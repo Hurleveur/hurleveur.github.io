@@ -39,6 +39,8 @@
     const wrap = document.getElementById("vault-brain")
     if (!wrap || wrap.dataset.vbActive) return
     wrap.dataset.vbActive = "1"
+    // mini mode (home-page rotunda): no labels, whole canvas is a door to /brain
+    const mini = !!wrap.dataset.mini
 
     const cv = document.getElementById("vb-graph")
     const starsCv = document.getElementById("vb-stars")
@@ -179,11 +181,12 @@
         cv.style.cursor = "pointer"
       } else {
         tip.style.opacity = 0
-        cv.style.cursor = "default"
+        cv.style.cursor = mini ? "pointer" : "default"
       }
     }
     function onClick() {
       if (hovered) window.location.href = "/" + hovered.slug
+      else if (mini) window.location.href = "/brain"
     }
 
     let t = 0
@@ -215,7 +218,7 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r * pulse, 0, 7)
         ctx.fill()
-        if (big) {
+        if (big && !mini) {
           ctx.font = "600 11px IBM Plex Sans, sans-serif"
           ctx.fillStyle = "rgba(223,227,242,.85)"
           ctx.textAlign = "center"
@@ -277,14 +280,45 @@
     }
   }
 
+  // palace quote slab: rotate through the hall of quotes
+  const QUOTES = [
+    ["How others treat you is not a reflection of who you are. How you treat others is.", "from the hall of quotes"],
+    ["Be a seeker of silence first, for therein lies the truth.", "from the hall of quotes"],
+    ["Dum spiro spero — while I breathe, I hope.", "from the latin inscriptions"],
+    ["Nobody is paying as much attention to you as you are.", "from the hall of quotes"],
+    ["The internet is the largest database. Please don’t pollute it.", "from guardians of knowledge"],
+    ["Solvitur ambulando — it is solved by walking.", "from the latin inscriptions"],
+    ["There isn’t so much to think about really. Just be, feel and do.", "from the hall of quotes"],
+  ]
+  function initQuotes() {
+    const q = document.getElementById("rotating-quote")
+    const src = document.getElementById("quote-source")
+    if (!q || q.dataset.vbDone) return
+    q.dataset.vbDone = "1"
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    let i = 0
+    const timer = setInterval(() => {
+      if (!q.isConnected) return clearInterval(timer)
+      q.style.opacity = 0
+      setTimeout(() => {
+        i = (i + 1) % QUOTES.length
+        q.textContent = QUOTES[i][0]
+        src.textContent = QUOTES[i][1]
+        q.style.opacity = 1
+      }, 600)
+    }, 7000)
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       init()
       initShelf()
+      initQuotes()
     })
   }
   init()
   initShelf()
+  initQuotes()
 })()

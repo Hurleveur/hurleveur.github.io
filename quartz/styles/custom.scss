@@ -215,6 +215,61 @@ body {
   }
 }
 
+/* home page is a hall, not an article — drop title/meta/graph chrome */
+body[data-slug="index"] {
+  .sidebar.right,
+  h1.article-title,
+  .content-meta {
+    display: none;
+  }
+}
+
+/* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
+.rotunda-band {
+  position: relative;
+  height: 52vh;
+  min-height: 300px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: url("/static/rotunda.png") center 30% / cover no-repeat;
+
+  &::after {
+    /* fade the band's foot into the marble page */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(245, 243, 238, 0) 55%, #f5f3ee 100%);
+    pointer-events: none;
+  }
+
+  /* the mini brain sits over the image's glowing-brain region */
+  #vault-brain {
+    position: absolute;
+    left: 34%;
+    right: 28%;
+    top: 26%;
+    bottom: 4%;
+    height: auto;
+    min-height: 0;
+    z-index: 1;
+  }
+
+  #vb-stars {
+    display: none; /* the dome is the backdrop, no starfield here */
+  }
+}
+
+.rotunda-band + .palace-hero {
+  min-height: 0;
+  padding-top: 2rem;
+}
+
+@media (max-width: 640px) {
+  .rotunda-band #vault-brain {
+    display: none; /* too small to hover; doors below carry navigation */
+  }
+}
+
 /* ============================================================
    BRAIN — the observatory  body[data-slug="brain"]
    ============================================================ */
