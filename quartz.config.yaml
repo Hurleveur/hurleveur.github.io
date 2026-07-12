@@ -145,7 +145,7 @@ plugins:
   - source: github:quartz-community/cname
     enabled: true
   - source: github:quartz-community/canvas-page
-    enabled: true
+    enabled: false
   - source: github:quartz-community/content-page
     enabled: true
   - source: github:quartz-community/folder-page
@@ -266,7 +266,7 @@ plugins:
     options:
       theme: default
   - source: github:quartz-community/obsidian-plugin-excalidraw
-    enabled: true
+    enabled: false
     options:
       enableInteraction: true
       darkMode: auto
