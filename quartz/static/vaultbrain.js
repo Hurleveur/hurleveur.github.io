@@ -111,8 +111,9 @@
     function initPositions() {
       nodes.forEach((n) => {
         const [hx, hy] = homeOf(n)
-        n.x = hx + (Math.random() - 0.5) * 140
-        n.y = hy + (Math.random() - 0.5) * 140
+        const spread = Math.min(140, W * 0.3)
+        n.x = hx + (Math.random() - 0.5) * spread
+        n.y = hy + (Math.random() - 0.5) * spread
       })
     }
 
@@ -134,6 +135,18 @@
         n.vy *= 0.92
         n.x += n.vx
         n.y += n.vy
+        // keep the cloud inside the canvas — in mini mode the box IS the
+        // image's brain region, so overspill breaks the illusion. Soft spring,
+        // not a hard clamp: a clamp piles nodes into a visible rim ring.
+        // ellipse sits well inside the canvas: node glows reach ~4x node radius,
+        // and anything past the canvas edge clips to a hard bright rectangle
+        const ex = (n.x - W / 2) / (W * 0.38)
+        const ey = (n.y - H / 2) / (H * 0.36)
+        const d = ex * ex + ey * ey
+        if (d > 1) {
+          n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
+          n.vy += (H / 2 - n.y) * 0.06 * (d - 1)
+        }
       })
       // links pull their ends together a little
       links.forEach(([a, b]) => {
@@ -260,6 +273,42 @@
       })
   }
 
+  // home-page doors: one arched portal per real top-level folder, colored like
+  // the constellation, counts live from the index — never a hand-kept list
+  async function initDoors() {
+    const row = document.getElementById("vb-doors")
+    if (!row || row.dataset.vbDone) return
+    row.dataset.vbDone = "1"
+    let data
+    try {
+      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const counts = {}
+    for (const slug of Object.keys(data)) {
+      if (slug.startsWith("tags/") || !slug.includes("/")) continue
+      const folder = slug.split("/")[0]
+      counts[folder] = (counts[folder] || 0) + 1
+    }
+    Object.keys(counts)
+      .sort((a, b) => counts[b] - counts[a])
+      .forEach((folder) => {
+        const a = document.createElement("a")
+        a.className = "door"
+        a.href = "/" + folder + "/"
+        a.style.setProperty("--tint", folderColor(folder))
+        const name = document.createElement("span")
+        name.className = "name"
+        name.textContent = folder.replace(/-/g, " ")
+        const count = document.createElement("span")
+        count.className = "count"
+        count.textContent = counts[folder] + (counts[folder] === 1 ? " note" : " notes")
+        a.append(name, count)
+        row.appendChild(a)
+      })
+  }
+
   // library shelf: one spine per published book note, built from the same index
   const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
   async function initShelf() {
@@ -372,6 +421,7 @@
       if (cleanup) cleanup()
       init()
       initLegend()
+      initDoors()
       initShelf()
       initQuotes()
       initAudio()
@@ -379,6 +429,7 @@
   }
   init()
   initLegend()
+  initDoors()
   initShelf()
   initQuotes()
   initAudio()

@@ -227,11 +227,12 @@ body[data-slug="index"] {
 /* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
 .rotunda-band {
   position: relative;
-  height: 52vh;
-  min-height: 300px;
+  /* same aspect as rotunda.png (1252x360): image fits exactly, so the
+     overlay's % insets map 1:1 onto image regions at every width */
+  aspect-ratio: 1252 / 360;
   border-radius: 6px;
   overflow: hidden;
-  background: url("/static/rotunda.png") center 30% / cover no-repeat;
+  background: url("/static/rotunda.png") center / cover no-repeat;
 
   &::after {
     /* fade the band's foot into the marble page */
@@ -246,9 +247,9 @@ body[data-slug="index"] {
   #vault-brain {
     position: absolute;
     left: 34%;
-    right: 28%;
-    top: 26%;
-    bottom: 4%;
+    right: 34%;
+    top: 40%;
+    bottom: 2%;
     height: auto;
     min-height: 0;
     z-index: 1;

@@ -25,26 +25,7 @@ publish: true
 </section>
 
 <section class="doors">
-  <h2>Six rooms</h2>
-  <p class="sub">the branches of the notebook drawing, each with its own light</p>
-  <div class="door-row">
-    <a class="door" style="--tint: var(--spiritual)" href="/brain">
-      <span class="name">Spiritual</span><span class="count">meditation · faith · letting go</span>
-    </a>
-    <a class="door" style="--tint: var(--experiences)" href="/brain">
-      <span class="name">Experiences</span><span class="count">memory · learning · travel</span>
-    </a>
-    <a class="door" style="--tint: var(--thinking)" href="/books/">
-      <span class="name">Thinking</span><span class="count">reading · debating · the box</span>
-    </a>
-    <a class="door" style="--tint: var(--connection)" href="/brain">
-      <span class="name">Connection</span><span class="count">friends · family · strangers</span>
-    </a>
-    <a class="door" style="--tint: var(--feelings)" href="/brain">
-      <span class="name">Feelings</span><span class="count">nature · music · sharing</span>
-    </a>
-    <a class="door" style="--tint: var(--mindset)" href="/brain">
-      <span class="name">Mindset</span><span class="count">habits · energy · values</span>
-    </a>
-  </div>
+  <h2>The rooms</h2>
+  <p class="sub">one door per wing of the vault — drawn from the live index, never by hand</p>
+  <div class="door-row" id="vb-doors"></div>
 </section>
