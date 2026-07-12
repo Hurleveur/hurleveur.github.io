@@ -11,12 +11,5 @@ publish: true
     <p class="eyebrow">The observatory</p>
     <p>Every note is a star; every link a thread. This view rebuilds itself from the vault on each publish — nothing here is arranged by hand.</p>
   </div>
-  <div class="brain-legend" aria-hidden="true">
-    <span style="--dot: var(--spiritual)">Spiritual</span>
-    <span style="--dot: var(--experiences)">Experiences</span>
-    <span style="--dot: var(--thinking)">Thinking</span>
-    <span style="--dot: var(--connection)">Connection</span>
-    <span style="--dot: var(--feelings)">Feelings</span>
-    <span style="--dot: var(--mindset)">Mindset</span>
-  </div>
+  <div class="brain-legend" id="vb-legend" aria-hidden="true"></div>
 </div>

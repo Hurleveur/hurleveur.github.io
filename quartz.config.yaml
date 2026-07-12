@@ -11,6 +11,7 @@ configuration:
   ignorePatterns:
     - private
     - templates
+    - Templates
     - .obsidian
   theme:
     fontOrigin: googleFonts
@@ -238,7 +239,7 @@ plugins:
       priority: 25
       display: mobile-only
   - source: github:quartz-community/bases-page
-    enabled: true
+    enabled: false # ponytail: emits from ctx.allFiles, bypasses ExplicitPublish (same bug class as excalidraw/canvas-page) — privacy leak, keep off
     options: {}
     order: 50
   - source: github:quartz-community/note-properties

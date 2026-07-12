@@ -4,30 +4,11 @@
 (function () {
   "use strict"
 
-  // top-level folder -> branch color. Unmapped folders fall back to a stable
-  // hash pick from the palette; never hardcode note names.
-  const BRANCH_COLORS = {
-    spiritual: "#9b7ede",
-    experiences: "#d4a94e",
-    thinking: "#6ab7e0",
-    connection: "#ef7b6d",
-    feelings: "#7fb069",
-    mindset: "#4ecdc4",
-  }
-  const FOLDER_BRANCH = {
-    books: "thinking",
-    guides: "thinking",
-    meaning: "spiritual",
-    travel: "experiences",
-    friends: "connection",
-    music: "feelings",
-    website: "mindset",
-  }
-  const PALETTE = Object.values(BRANCH_COLORS)
+  // top-level folder -> color. Categories are whatever folders actually exist
+  // in the vault; every folder gets a stable hash-picked color, none hardcoded.
+  const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
 
   function folderColor(folder) {
-    const mapped = FOLDER_BRANCH[folder.toLowerCase()]
-    if (mapped) return BRANCH_COLORS[mapped]
     let h = 0
     for (let i = 0; i < folder.length; i++) h = (h * 31 + folder.charCodeAt(i)) >>> 0
     return PALETTE[h % PALETTE.length]
@@ -251,6 +232,34 @@
     if (window.addCleanup) window.addCleanup(cleanup)
   }
 
+  // brain legend: one entry per real top-level folder present in the published
+  // set, colored the same way the graph colors its nodes — no fixed category list.
+  async function initLegend() {
+    const legend = document.getElementById("vb-legend")
+    if (!legend || legend.dataset.vbDone) return
+    legend.dataset.vbDone = "1"
+    let data
+    try {
+      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
+    const counts = {}
+    for (const slug of slugs) {
+      const folder = slug.includes("/") ? slug.split("/")[0] : "~"
+      counts[folder] = (counts[folder] || 0) + 1
+    }
+    Object.keys(counts)
+      .sort((a, b) => counts[b] - counts[a])
+      .forEach((folder) => {
+        const span = document.createElement("span")
+        span.style.setProperty("--dot", folderColor(folder))
+        span.textContent = folder === "~" ? "root" : folder
+        legend.appendChild(span)
+      })
+  }
+
   // library shelf: one spine per published book note, built from the same index
   const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
   async function initShelf() {
@@ -309,16 +318,68 @@
     }, 7000)
   }
 
+  // library ambience: one brass toggle, no autoplay ever — user gesture starts it.
+  // Button + audio live on <body> (outside Quartz's swapped content) so playback
+  // survives SPA nav between book pages; leaving the library pauses, returning resumes.
+  function initAudio() {
+    const inLibrary = (document.body.dataset.slug || "").startsWith("books")
+    let btn = document.getElementById("vb-audio-btn")
+    if (!btn) {
+      if (!inLibrary) return
+      btn = document.createElement("button")
+      btn.id = "vb-audio-btn"
+      btn.type = "button"
+      btn.textContent = "♪ play the room"
+      const audio = new Audio("/static/audio/library.mp3")
+      audio.loop = true
+      btn._audio = audio
+      const setLabel = () => {
+        btn.textContent = audio.paused ? "♪ play the room" : "♪ hush"
+        btn.classList.toggle("on", !audio.paused)
+      }
+      btn.addEventListener("click", () => {
+        if (audio.paused) {
+          audio.currentTime = +sessionStorage.getItem("vb-audio-t") || 0
+          audio.play().then(setLabel).catch(() => sessionStorage.removeItem("vb-audio-on"))
+          sessionStorage.setItem("vb-audio-on", "1")
+        } else {
+          sessionStorage.setItem("vb-audio-t", audio.currentTime)
+          sessionStorage.removeItem("vb-audio-on")
+          audio.pause()
+        }
+        setLabel()
+      })
+      document.body.appendChild(btn)
+    }
+    const audio = btn._audio
+    btn.style.display = inLibrary ? "" : "none"
+    if (!inLibrary && !audio.paused) {
+      sessionStorage.setItem("vb-audio-t", audio.currentTime)
+      audio.pause()
+    } else if (inLibrary && audio.paused && sessionStorage.getItem("vb-audio-on")) {
+      // resume mid-session (SPA nav back in); browsers allow play() after a prior gesture,
+      // and the catch covers fresh page loads where they don't
+      audio.currentTime = +sessionStorage.getItem("vb-audio-t") || 0
+      audio.play().catch(() => {})
+    }
+    btn.textContent = audio.paused ? "♪ play the room" : "♪ hush"
+    btn.classList.toggle("on", !audio.paused)
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       init()
+      initLegend()
       initShelf()
       initQuotes()
+      initAudio()
     })
   }
   init()
+  initLegend()
   initShelf()
   initQuotes()
+  initAudio()
 })()
