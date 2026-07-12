@@ -11,6 +11,3 @@ private/
 replit.nix
 .quartz/
 quartz/cli/tui/dist/
-
-# vault copy — private, never commit (site-owned index/brain/Books-index remain tracked from before)
-content/
