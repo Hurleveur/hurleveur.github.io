@@ -222,6 +222,22 @@ body[data-slug="index"] {
   .content-meta {
     display: none;
   }
+
+  /* no 6rem forecourt above the dome, no dead right column: the band gets the width */
+  .page-header {
+    margin-top: 1.2rem;
+  }
+
+  @media all and ($desktop) {
+    #quartz-body {
+      grid-template-columns: $sidePanelWidth auto;
+      grid-template-rows: auto auto auto;
+      grid-template-areas:
+        "grid-sidebar-left grid-header"
+        "grid-sidebar-left grid-center"
+        "grid-sidebar-left grid-footer";
+    }
+  }
 }
 
 /* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
@@ -287,6 +303,80 @@ body[data-slug="brain"] {
   --secondary: #6ab7e0;
   --tertiary: #8b93b8;
   --highlight: rgba(223, 227, 242, 0.08);
+
+  /* the observatory owns the whole viewport: no side columns at any width */
+  #quartz-body {
+    grid-template-columns: auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "grid-header"
+      "grid-center"
+      "grid-footer";
+  }
+
+  h1.article-title,
+  .content-meta,
+  .breadcrumb-container {
+    display: none; /* the caption inside the dome already names the room */
+  }
+
+  .page-header {
+    margin-top: 0;
+  }
+
+  /* left sidebar becomes a drawer — ☰ button (vaultbrain.js) slides it in */
+  .sidebar.left {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: min(320px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    background: #0e1228;
+    border-right: 1px solid rgba(223, 227, 242, 0.14);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 5;
+    padding: 4.5rem 2rem 2rem;
+    overflow-y: auto;
+  }
+
+  &.show-nav .sidebar.left {
+    transform: none;
+  }
+
+  #vault-brain {
+    height: 86vh;
+    height: 86dvh;
+  }
+}
+
+/* drawer toggle, injected by vaultbrain.js on the brain page only */
+#vb-nav-btn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 6;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid rgba(223, 227, 242, 0.25);
+  background: rgba(16, 20, 48, 0.85);
+  color: #dfe3f2;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:hover,
+  &.on {
+    background: #dfe3f2;
+    color: #0b0e1f;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #6ab7e0;
+    outline-offset: 3px;
+  }
 }
 
 #vault-brain {
@@ -305,7 +395,7 @@ body[data-slug="brain"] {
   .brain-caption {
     position: absolute;
     top: 1.2rem;
-    left: 1.2rem;
+    left: 4.2rem; /* clear of the fixed ☰ drawer toggle */
     max-width: 21rem;
     z-index: 2;
     pointer-events: none;
@@ -463,7 +553,8 @@ body[data-slug^="books"] {
   }
 }
 
-/* ambience toggle — lives on <body>, shown only in the library (vaultbrain.js) */
+/* ambience toggle — lives on <body>, every page has a matching room tone
+   (vaultbrain.js AMBIENCE map). Colors follow whichever world the page is in. */
 #vb-audio-btn {
   position: fixed;
   right: 1.2rem;
@@ -473,21 +564,21 @@ body[data-slug^="books"] {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #c9973f;
-  background: rgba(36, 26, 17, 0.85);
-  border: 1px solid rgba(201, 151, 63, 0.45);
+  color: var(--secondary);
+  background: color-mix(in srgb, var(--light) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
   border-radius: 999px;
   padding: 0.55rem 1rem;
   cursor: pointer;
 
   &:hover,
   &.on {
-    background: #c9973f;
-    color: #241a11;
+    background: var(--secondary);
+    color: var(--light);
   }
 
   &:focus-visible {
-    outline: 2px solid #c9973f;
+    outline: 2px solid var(--secondary);
     outline-offset: 3px;
   }
 }

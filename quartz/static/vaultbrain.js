@@ -14,6 +14,18 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // per-world ambience: slug prefix -> track in /static/audio/<name>.mp3.
+  // First matching prefix wins; "" is the fallback. Edit this list to choose
+  // which room gets which tone — tracks are plain mp3 files, swap freely.
+  const AMBIENCE = [
+    ["books", "library"],
+    ["brain", "space"],
+    ["meaning", "meaning"],
+    ["travel", "travel"],
+    ["friends", "friends"],
+    ["", "palace"],
+  ]
+
   let cleanup = null
 
   async function init() {
@@ -62,13 +74,37 @@
         label: data[slug].title || slug,
         folder,
         color: folder === "~" ? "#dfe3f2" : folderColor(folder),
-        r: Math.min(3 + Math.sqrt(backlinks[slug] || 0) * 2, 11),
+        r: mini
+          ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
+          : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5),
         hubWeight: backlinks[slug] || 0,
         x: 0, y: 0, vx: 0, vy: 0,
       }
     })
     const bySlug = {}
     nodes.forEach((n) => (bySlug[n.slug] = n))
+
+    // section stars: one big labeled node per folder, sized by note count;
+    // notes are the small dust clustered around it. Click opens the folder page.
+    const counts = {}
+    slugs.forEach((s) => {
+      const f = s.includes("/") ? s.split("/")[0] : "~"
+      counts[f] = (counts[f] || 0) + 1
+    })
+    folders.forEach((f) => {
+      if (f === "~") return
+      nodes.push({
+        slug: f + "/",
+        hub: true,
+        name: f.replace(/-/g, " "),
+        label: f.replace(/-/g, " ") + " · " + counts[f] + " notes",
+        folder: f,
+        color: folderColor(f),
+        r: (mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2),
+        hubWeight: 0,
+        x: 0, y: 0, vx: 0, vy: 0,
+      })
+    })
 
     const links = []
     for (const slug of slugs) {
@@ -103,14 +139,19 @@
     }
 
     function homeOf(n) {
-      const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.3
+      // ellipse, not circle: the canvas is wide, use the width
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      return [cx + hub.ax * R, cy + hub.ay * R]
+      return [W / 2 + hub.ax * W * 0.3, H / 2 + hub.ay * H * 0.46]
     }
 
     function initPositions() {
       nodes.forEach((n) => {
         const [hx, hy] = homeOf(n)
+        if (n.hub) {
+          n.x = hx
+          n.y = hy
+          return
+        }
         const spread = Math.min(140, W * 0.3)
         n.x = hx + (Math.random() - 0.5) * spread
         n.y = hy + (Math.random() - 0.5) * spread
@@ -120,15 +161,19 @@
     function step() {
       nodes.forEach((n) => {
         const [hx, hy] = homeOf(n)
-        n.vx += (hx - n.x) * 0.004
-        n.vy += (hy - n.y) * 0.004
+        // section stars are anchors: stiff spring holds them on the lobe ring
+        const k = n.hub ? 0.03 : 0.004
+        n.vx += (hx - n.x) * k
+        n.vy += (hy - n.y) * k
         // ponytail: O(n²) repulsion — fine below ~500 notes, quadtree if it chugs
         nodes.forEach((m) => {
           if (m === n) return
           const dx = n.x - m.x, dy = n.y - m.y, d2 = dx * dx + dy * dy
           if (d2 < 2200 && d2 > 0) {
-            n.vx += (dx / d2) * 3
-            n.vy += (dy / d2) * 3
+            // big stars carve out more space than dust
+            const f = m.hub ? 12 : 3
+            n.vx += (dx / d2) * f
+            n.vy += (dy / d2) * f
           }
         })
         n.vx *= 0.92
@@ -197,26 +242,31 @@
         ctx.stroke()
       })
       nodes.forEach((n, i) => {
-        const big = n.hubWeight >= 2
-        const pulse = big ? 1 + Math.sin(t * 2 + i) * 0.08 : 1
-        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4 * pulse)
+        const big = n.hub || n.hubWeight >= 2
+        const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = big ? 0.35 : 0.22
+        ctx.globalAlpha = n.hub ? 0.4 : big ? 0.3 : 0.2
         ctx.fillStyle = g
         ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r * 4 * pulse, 0, 7)
+        ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
         ctx.fillStyle = n.color
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r * pulse, 0, 7)
         ctx.fill()
-        if (big && !mini) {
-          ctx.font = "600 11px IBM Plex Sans, sans-serif"
-          ctx.fillStyle = "rgba(223,227,242,.85)"
+        // only section stars get names; note titles live in the hover tip
+        if (n.hub && !mini) {
           ctx.textAlign = "center"
-          ctx.fillText(n.label.toUpperCase(), n.x, n.y - n.r - 10)
+          ctx.font = "600 13px IBM Plex Sans, sans-serif"
+          ctx.fillStyle = "rgba(223,227,242,.92)"
+          ctx.fillText(n.name.toUpperCase(), n.x, n.y - n.r - 16)
+          ctx.font = "400 10px IBM Plex Sans, sans-serif"
+          ctx.fillStyle = "rgba(139,147,184,.9)"
+          ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
         }
       })
       if (!reduceMotion) {
@@ -367,52 +417,73 @@
     }, 7000)
   }
 
-  // library ambience: one brass toggle, no autoplay ever — user gesture starts it.
-  // Button + audio live on <body> (outside Quartz's swapped content) so playback
-  // survives SPA nav between book pages; leaving the library pauses, returning resumes.
+  // room ambience: every page has a matching tone (AMBIENCE map above); one
+  // toggle, no autoplay ever — user gesture starts it. Button + audio live on
+  // <body> (outside Quartz's swapped content) so playback survives SPA nav;
+  // crossing into another room swaps the track and each room resumes where it left off.
+  function setAudioLabel(btn) {
+    btn.textContent = btn._audio.paused ? "♪ play the room" : "♪ hush"
+    btn.classList.toggle("on", !btn._audio.paused)
+  }
+
   function initAudio() {
-    const inLibrary = (document.body.dataset.slug || "").startsWith("books")
+    const slug = document.body.dataset.slug || ""
+    const track = AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
-      if (!inLibrary) return
       btn = document.createElement("button")
       btn.id = "vb-audio-btn"
       btn.type = "button"
-      btn.textContent = "♪ play the room"
-      const audio = new Audio("/static/audio/library.mp3")
+      const audio = new Audio()
       audio.loop = true
       btn._audio = audio
-      const setLabel = () => {
-        btn.textContent = audio.paused ? "♪ play the room" : "♪ hush"
-        btn.classList.toggle("on", !audio.paused)
-      }
+      audio.addEventListener("play", () => setAudioLabel(btn))
+      audio.addEventListener("pause", () => setAudioLabel(btn))
       btn.addEventListener("click", () => {
         if (audio.paused) {
-          audio.currentTime = +sessionStorage.getItem("vb-audio-t") || 0
-          audio.play().then(setLabel).catch(() => sessionStorage.removeItem("vb-audio-on"))
           sessionStorage.setItem("vb-audio-on", "1")
+          audio.play().catch(() => sessionStorage.removeItem("vb-audio-on"))
         } else {
-          sessionStorage.setItem("vb-audio-t", audio.currentTime)
           sessionStorage.removeItem("vb-audio-on")
+          sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
           audio.pause()
         }
-        setLabel()
       })
       document.body.appendChild(btn)
     }
     const audio = btn._audio
-    btn.style.display = inLibrary ? "" : "none"
-    if (!inLibrary && !audio.paused) {
-      sessionStorage.setItem("vb-audio-t", audio.currentTime)
-      audio.pause()
-    } else if (inLibrary && audio.paused && sessionStorage.getItem("vb-audio-on")) {
-      // resume mid-session (SPA nav back in); browsers allow play() after a prior gesture,
-      // and the catch covers fresh page loads where they don't
-      audio.currentTime = +sessionStorage.getItem("vb-audio-t") || 0
-      audio.play().catch(() => {})
+    if (btn._track !== track) {
+      if (!audio.paused) sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
+      btn._track = track
+      audio.src = "/static/audio/" + track + ".mp3"
+      audio.currentTime = +sessionStorage.getItem("vb-audio-t:" + track) || 0
+      // resume mid-session (SPA nav); browsers allow play() after a prior
+      // gesture, and the catch covers fresh page loads where they don't
+      if (sessionStorage.getItem("vb-audio-on")) audio.play().catch(() => {})
     }
-    btn.textContent = audio.paused ? "♪ play the room" : "♪ hush"
-    btn.classList.toggle("on", !audio.paused)
+    setAudioLabel(btn)
+  }
+
+  // observatory drawer: the brain page hides the nav for full-width sky;
+  // this ☰ button slides the left sidebar in and out (CSS in custom.scss)
+  function initNavToggle() {
+    const isBrain = document.body.dataset.slug === "brain"
+    let btn = document.getElementById("vb-nav-btn")
+    if (!btn) {
+      if (!isBrain) return
+      btn = document.createElement("button")
+      btn.id = "vb-nav-btn"
+      btn.type = "button"
+      btn.textContent = "☰"
+      btn.setAttribute("aria-label", "Toggle navigation")
+      btn.addEventListener("click", () => {
+        const on = document.body.classList.toggle("show-nav")
+        btn.classList.toggle("on", on)
+      })
+      document.body.appendChild(btn)
+    }
+    btn.style.display = isBrain ? "" : "none"
+    if (!isBrain) document.body.classList.remove("show-nav")
   }
 
   if (!window.__vaultbrainWired) {
@@ -425,6 +496,7 @@
       initShelf()
       initQuotes()
       initAudio()
+      initNavToggle()
     })
   }
   init()
@@ -433,4 +505,5 @@
   initShelf()
   initQuotes()
   initAudio()
+  initNavToggle()
 })()
