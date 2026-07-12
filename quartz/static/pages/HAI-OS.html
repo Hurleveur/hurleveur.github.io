@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>HAI OS — Documentation</title>
+<style>
+:root{
+  --bg:#F3F6FA;
+  --surface:#FFFFFF;
+  --surface-2:#EEF3F8;
+  --surface-hover:#F6FAFC;
+  --border:#E4EAF1;
+  --border-strong:#D3DDE7;
+  --code-bg:#F1F5F9;
+  --code-ink:#3A4F64;
+  --teal:#1D4ED8;
+  --teal-ink:#1E3A8A;
+  --teal-tint:#EFF6FF;
+  --teal-line:#BFDBFE;
+  --teal-glow:#F0F7FF;
+  --violet:#6E4BE6; --violet-ink:#5836C6; --violet-tint:#EEEAFD; --violet-line:#D6CCFA;
+  --amber:#C77E12;  --amber-ink:#9A6109;  --amber-tint:#FAF0DC;  --amber-line:#EFDBB2;
+  --green:#159A52;  --green-ink:#0B7A3D;  --green-tint:#E2F6E9;  --green-line:#BBE6C6;
+  --red:#D6453B;    --red-tint:#FBE8E6;
+  --text:#14222F;
+  --text-muted:#56697B;
+  --text-dim:#94A4B4;
+  --font-sans:'Hanken Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-display:'Space Grotesk','Hanken Grotesk',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','Cascadia Code','Fira Code',monospace;
+  --sidebar-w:244px;
+  --status-h:30px;
+  --r:14px; --r-sm:9px;
+  --sh-1:0 1px 2px rgba(20,34,47,.04), 0 2px 6px rgba(20,34,47,.05);
+  --sh-2:0 2px 6px rgba(20,34,47,.05), 0 14px 34px rgba(20,34,47,.09);
+  --sh-teal:0 2px 8px rgba(11,155,170,.10), 0 14px 34px rgba(11,155,170,.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);color:var(--text);display:flex;font-size:14px;line-height:1.6;
+  height:calc(100dvh - var(--status-h));
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb,#CBD7E2);border-radius:6px;border:2px solid var(--bg);}
+::-webkit-scrollbar-thumb:hover{background:var(--scroll-thumb-hover,#AFBFCE);}
+
+.sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);
+  height:100%;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;box-shadow:1px 0 0 rgba(20,34,47,.02);
+}
+.sb-head{padding:22px 18px 18px;border-bottom:1px solid var(--border);}
+.sb-logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);
+  font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text);}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 0 4px var(--teal-tint);animation:ldot 3.6s ease-in-out infinite;}
+@keyframes ldot{0%,100%{box-shadow:0 0 0 4px var(--teal-tint);}50%{box-shadow:0 0 0 7px rgba(11,155,170,.10);}}
+.sb-tag{font-size:11.5px;color:var(--text-muted);margin-top:7px;letter-spacing:.01em;}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 10px;}
+.nav-lbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-dim);padding:8px 10px 6px;}
+.ni{
+  display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;
+  border:1px solid transparent;background:transparent;color:var(--text-muted);
+  font-family:inherit;font-size:13.5px;font-weight:500;text-align:left;cursor:pointer;
+  border-radius:var(--r-sm);transition:all .15s ease;position:relative;margin-bottom:2px;
+}
+.ni:hover{background:var(--surface-2);color:var(--text);}
+.ni.active{background:var(--teal-tint);color:var(--teal-ink);border-color:var(--teal-line);font-weight:600;}
+.ni.active::before{content:'';position:absolute;left:-1px;top:20%;height:60%;
+  width:3px;background:var(--teal);border-radius:0 3px 3px 0;}
+.ni-ico{font-size:13px;width:18px;text-align:center;opacity:.7;flex-shrink:0;}
+.ni.active .ni-ico{opacity:1;}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;}
+.sbadge{font-size:10.5px;font-weight:500;padding:3px 10px;border-radius:20px;
+  background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border);}
+
+.main-wrap{flex:1;display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden;}
+.content-area{flex:1;position:relative;overflow:hidden;}
+.section{
+  position:absolute;inset:0;overflow-y:auto;padding:46px 60px 56px 52px;
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity .28s ease,transform .28s ease;
+}
+.section.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.section > .inner{max-width:880px;}
+
+.avatar-wrap{position:fixed;top:20px;right:26px;display:flex;flex-direction:column;
+  align-items:center;gap:6px;z-index:500;cursor:pointer;}
+.avatar-svg{width:62px;height:62px;color:var(--teal);
+  filter:drop-shadow(0 4px 12px rgba(11,155,170,.20));transition:color .3s,filter .3s,opacity .3s;}
+.avatar-wrap:hover .avatar-svg{filter:drop-shadow(0 4px 18px rgba(11,155,170,.40));}
+.avatar-lbl{font-size:10px;font-weight:600;color:var(--teal-ink);letter-spacing:.12em;
+  text-transform:uppercase;transition:color .3s;}
+
+.status-bar{
+  position:fixed;bottom:0;left:0;right:0;height:var(--status-h);
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:11.5px;color:var(--text-muted);z-index:300;
+}
+.sdot{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--green);margin-right:6px;vertical-align:middle;box-shadow:0 0 0 3px var(--green-tint);}
+
+.sec-lbl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--teal-ink);margin-bottom:10px;}
+.sec-title{font-family:var(--font-display);font-size:30px;font-weight:600;
+  color:var(--text);line-height:1.15;margin-bottom:10px;letter-spacing:-.01em;}
+.sec-sub{font-size:14.5px;color:var(--text-muted);max-width:600px;margin-bottom:34px;line-height:1.6;}
+.section h1{font-family:var(--font-display);}
+h2{font-size:18px;font-weight:600;color:var(--text);margin:34px 0 12px;letter-spacing:-.01em;}
+h2:first-child{margin-top:0;}
+h3{font-size:14.5px;font-weight:600;color:var(--text);margin:18px 0 6px;}
+p{color:var(--text);line-height:1.75;margin-bottom:11px;}
+p:last-child{margin-bottom:0;}
+ul,ol{padding-left:20px;color:var(--text-muted);line-height:1.75;}
+li{margin-bottom:4px;}
+strong{color:var(--text);font-weight:600;}
+em{color:var(--text-muted);}
+a{color:var(--teal-ink);text-decoration:none;border-bottom:1px solid var(--teal-line);transition:.15s;}
+a:hover{color:var(--teal);border-bottom-color:var(--teal);}
+.divider{height:1px;background:var(--border);margin:34px 0;}
+
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;box-shadow:var(--sh-1);
+  transition:border-color .2s,box-shadow .2s,transform .2s;}
+.card:hover{border-color:var(--teal-line);box-shadow:var(--sh-2);transform:translateY(-1px);}
+.card.tl{border-left:3px solid var(--teal);}
+.card.vi{border-left:3px solid var(--violet);}
+.card.am{border-left:3px solid var(--amber);}
+.card.gn{border-left:3px solid var(--green);}
+.c-lbl{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--teal-ink);margin-bottom:7px;}
+.c-lbl.vi{color:var(--violet-ink);}
+.c-lbl.am{color:var(--amber-ink);}
+.c-title{font-size:15.5px;font-weight:600;color:var(--text);margin-bottom:7px;letter-spacing:-.01em;}
+.c-body{font-size:13px;color:var(--text-muted);line-height:1.7;}
+
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+
+.tw{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:22px;box-shadow:var(--sh-1);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:11px 16px;font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);
+  background:var(--surface-2);border-bottom:1px solid var(--border);}
+td{padding:11px 16px;border-bottom:1px solid var(--border);
+  color:var(--text);vertical-align:top;line-height:1.55;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--surface-2);}
+
+pre,code{font-family:var(--font-mono);font-size:12.5px;}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:16px 20px;overflow-x:auto;color:var(--code-ink);line-height:1.7;margin-bottom:22px;}
+code{background:var(--teal-tint);color:var(--teal-ink);padding:1.5px 6px;
+  border-radius:5px;font-size:12px;border:1px solid var(--teal-line);}
+pre code{background:none;color:inherit;padding:0;border:none;}
+.cm{color:var(--text-dim);}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;
+  border-radius:20px;font-size:11px;font-weight:600;}
+.btl{background:var(--teal-tint);color:var(--teal-ink);border:1px solid var(--teal-line);}
+.bvi{background:var(--violet-tint);color:var(--violet-ink);border:1px solid var(--violet-line);}
+.bam{background:var(--amber-tint);color:var(--amber-ink);border:1px solid var(--amber-line);}
+.bgn{background:var(--green-tint);color:var(--green-ink);border:1px solid var(--green-line);}
+
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;}
+.pill{padding:5px 14px;border:1px solid var(--border-strong);border-radius:20px;
+  font-size:12.5px;font-weight:500;color:var(--text-muted);background:var(--surface);box-shadow:var(--sh-1);}
+
+.hq{background:var(--teal-glow);border:1px solid var(--teal-line);border-left:3px solid var(--teal);
+  border-radius:var(--r-sm);padding:17px 22px;margin:22px 0;
+  font-size:14.5px;color:var(--text);line-height:1.65;font-style:italic;}
+.hq strong{color:var(--teal-ink);}
+.hq.vi{background:#F6F3FE;border-color:var(--violet-line);border-left-color:var(--violet);}
+.hq.vi strong{color:var(--violet-ink);}
+.hq.am{background:#FCF6EA;border-color:var(--amber-line);border-left-color:var(--amber);}
+.hq.am strong{color:var(--amber-ink);}
+
+.acc-item{border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;
+  overflow:hidden;background:var(--surface);box-shadow:var(--sh-1);transition:box-shadow .2s;}
+.acc-item:hover{box-shadow:var(--sh-2);}
+.acc-hd{display:flex;justify-content:space-between;align-items:center;
+  padding:13px 18px;cursor:pointer;background:var(--surface);
+  color:var(--text);font-size:13.5px;font-weight:500;transition:background .15s;user-select:none;}
+.acc-hd:hover{background:var(--surface-2);}
+.acc-arrow{font-size:10px;color:var(--text-dim);transition:transform .2s ease;}
+.acc-item.open .acc-arrow{transform:rotate(180deg);color:var(--teal-ink);}
+.acc-bd{display:none;padding:14px 18px;background:var(--surface-2);
+  font-size:13px;color:var(--text-muted);border-top:1px solid var(--border);line-height:1.7;}
+.acc-item.open .acc-bd{display:block;}
+.acc-item.open .acc-hd{color:var(--teal-ink);}
+
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{content:'';position:absolute;left:9px;top:10px;bottom:10px;
+  width:2px;background:var(--border);border-radius:2px;}
+.tl-item{position:relative;margin-bottom:24px;}
+.tl-item::before{content:'';position:absolute;left:-22px;top:4px;
+  width:10px;height:10px;border-radius:50%;background:var(--teal);
+  border:2px solid var(--surface);box-shadow:0 0 0 3px var(--teal-tint);}
+.tl-phase{font-size:10px;font-weight:700;color:var(--teal-ink);
+  letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;}
+.tl-title{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.tl-desc{font-size:12.5px;color:var(--text-muted);}
+
+.mini-card{background:var(--surface-2);border-radius:var(--r-sm);
+  padding:13px 16px;border:1px solid var(--border);}
+.mini-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--teal-ink);margin-bottom:6px;}
+.mini-lbl.vi{color:var(--violet-ink);}
+.mini-lbl.am{color:var(--amber-ink);}
+
+.cta{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;
+  border:1px solid var(--teal);color:#fff;background:var(--teal);font-weight:600;
+  border-radius:var(--r-sm);cursor:pointer;font-family:inherit;font-size:13px;
+  transition:all .15s ease;box-shadow:var(--sh-1);}
+.cta:hover{background:var(--teal-ink);border-color:var(--teal-ink);box-shadow:var(--sh-teal);}
+.cta.ghost{border-color:var(--border-strong);color:var(--text-muted);background:var(--surface);}
+.cta.ghost:hover{color:var(--teal-ink);border-color:var(--teal-line);background:var(--surface-hover);box-shadow:var(--sh-1);}
+
+.mobile-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  z-index:400;align-items:center;padding:0 16px;gap:13px;box-shadow:var(--sh-1);}
+.hamburger{width:38px;height:38px;border:none;background:transparent;cursor:pointer;
+  color:var(--text-muted);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;padding:4px;border-radius:var(--r-sm);
+  flex-shrink:0;transition:color .15s;}
+.hamburger:hover{color:var(--text);background:var(--surface-2);}
+.hamburger span{display:block;width:19px;height:2px;background:currentColor;
+  border-radius:2px;transition:all .2s;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mob-logo{font-family:var(--font-display);font-size:14px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text);flex:1;}
+.mob-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 0 3px var(--teal-tint);flex-shrink:0;}
+.mob-avatar{width:38px;height:38px;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(11,155,170,.22));}
+
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(20,34,47,.28);
+  backdrop-filter:blur(2px);z-index:350;opacity:0;transition:opacity .25s ease;}
+.sb-overlay.open{display:block;opacity:1;}
+
+@media(max-width:768px){
+  body{overflow:hidden;height:calc(100dvh - var(--status-h));}
+  .mobile-bar{display:flex;}
+  .avatar-wrap{display:none;}
+  .sidebar{position:fixed;top:0;left:calc(-1 * var(--sidebar-w));height:100%;z-index:500;
+    transition:left .25s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-2);}
+  .sidebar.open{left:0;}
+  .main-wrap{height:calc(100dvh - var(--status-h));padding-top:54px;}
+  .section{padding:24px 18px 36px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  h1[style*="38px"]{font-size:28px !important;}
+  .sec-title{font-size:24px;}
+  h2{font-size:16px;}
+  .status-bar .s-mid{display:none;}
+  .status-bar{padding:0 14px;font-size:10.5px;}
+  .tw{overflow-x:auto;}
+  pre{font-size:11.5px;padding:13px 15px;}
+  .card{padding:16px;}
+}
+@media(max-width:480px){
+  .section{padding:18px 13px 30px;}
+  .sec-title{font-size:21px;}
+  .pill-row{gap:6px;}
+  .pill{font-size:11.5px;padding:4px 11px;}
+}
+
+.pv-tabs{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap;}
+.pv-tab{padding:8px 17px;border:1px solid var(--border-strong);background:var(--surface);
+  color:var(--text-muted);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border-radius:20px;transition:all .15s;box-shadow:var(--sh-1);}
+.pv-tab:hover{background:var(--surface-2);color:var(--text);}
+.pv-tab.active{background:var(--teal-tint);color:var(--teal-ink);border-color:var(--teal-line);}
+.pv-bezel{
+  --bg:transparent;
+  border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;position:relative;
+  background-color:#FBFDFE;
+  background-image:
+    radial-gradient(135% 115% at 86% -12%, var(--teal-glow) 0%, rgba(255,255,255,0) 52%),
+    radial-gradient(120% 105% at -8% 114%, var(--teal-tint) 0%, rgba(255,255,255,0) 44%);
+  background-size:100% 100%, 100% 100%;
+  box-shadow:var(--sh-2), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.pv-view{display:none;}
+.pv-view.active{display:block;}
+.pv-statusbar{height:24px;background:var(--surface-2);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;font-size:9.5px;color:var(--text-muted);font-family:var(--font-mono);}
+.pv-widget{background:rgba(255,255,255,.8);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  border:1px solid var(--border);border-radius:11px;padding:15px;box-shadow:var(--sh-1);}
+.pv-widget.tl{border-left:3px solid var(--teal);}
+.pv-widget.am{border-left:3px solid var(--amber);}
+.pv-widget.vi{border-left:3px solid var(--violet);}
+.pv-wlbl{font-size:9.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--teal-ink);margin-bottom:9px;}
+.pv-wlbl.am{color:var(--amber-ink);}
+.pv-wlbl.vi{color:var(--violet-ink);}
+.pv-mg{display:grid;grid-template-columns:1.35fr 1fr;grid-template-rows:auto auto;gap:12px;
+  padding:14px;background:var(--bg);}
+.pv-cal-row{display:flex;gap:10px;align-items:baseline;padding:5px 0;
+  font-size:11.5px;border-bottom:1px solid var(--border);}
+.pv-cal-row:last-of-type{border-bottom:none;}
+.pv-time{color:var(--teal-ink);font-family:var(--font-mono);font-size:10.5px;min-width:38px;font-weight:500;}
+.pv-email-row{display:flex;align-items:center;gap:9px;padding:5px 0;
+  border-bottom:1px solid var(--border);font-size:11.5px;color:var(--text);}
+.pv-email-row:last-of-type{border-bottom:none;}
+.pv-coding-top{display:grid;grid-template-columns:2.2fr 1.6fr 1fr;gap:12px;
+  padding:14px 14px 0;background:var(--bg);}
+.pv-file-tab{display:inline-flex;align-items:center;padding:4px 10px;
+  background:var(--code-bg);border:1px solid var(--border);
+  border-radius:6px 6px 0 0;font-size:10.5px;
+  font-family:var(--font-mono);color:var(--text-muted);margin-bottom:4px;}
+.pv-step{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11.5px;color:var(--text-muted);}
+.pv-step::before{content:'○';font-size:10px;color:var(--text-dim);}
+.pv-step.done::before{content:'●';color:var(--teal);}
+.pv-step.done{color:var(--text);}
+.pv-step.act::before{content:'◌';color:var(--amber);}
+.pv-step.act{color:var(--amber-ink);}
+.pv-cockpit-top{display:grid;grid-template-columns:1fr 1fr 0.62fr;gap:12px;
+  padding:12px 14px 0;background:var(--bg);}
+.pv-cockpit-mid{display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  padding:12px 14px 0;background:var(--bg);}
+.pv-feed-row{display:flex;align-items:baseline;gap:6px;padding:4px 0;
+  font-size:10.5px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+.pv-feed-row:last-of-type{border-bottom:none;}
+.pv-feed-time{color:var(--text-dim);font-family:var(--font-mono);font-size:9px;min-width:54px;flex-shrink:0;}
+.pv-feed-ico{font-size:9px;min-width:14px;flex-shrink:0;}
+.pv-route-row{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.pv-route-bar{height:7px;border-radius:4px;}
+.pv-sys-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;font-size:10.5px;color:var(--text-muted);}
+.pv-marker-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:9.5px;color:var(--text-muted);}
+.pv-marker-bar{height:5px;border-radius:3px;flex-shrink:0;}
+.pv-marker-bar.pos{background:var(--teal);}
+.pv-marker-bar.neg{background:var(--amber);}
+.pv-cron-row{display:grid;grid-template-columns:1.5fr 0.9fr 1fr 0.4fr;
+  align-items:center;gap:8px;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:10.5px;}
+.pv-cron-row:last-of-type{border-bottom:none;}
+.pv-cron-row.on>span:first-child{color:var(--green-ink);font-weight:600;}
+.pv-research-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;
+  padding:14px;background:var(--bg);}
+.pv-result-item{padding:8px 0;border-bottom:1px solid var(--border);}
+.pv-result-item:last-of-type{border-bottom:none;}
+.pv-finding{font-size:11.5px;color:var(--text-muted);line-height:1.65;
+  padding:7px 0;border-bottom:1px solid var(--border);}
+.pv-finding:last-of-type{border-bottom:none;}
+.pv-conn-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;
+  border-bottom:1px solid var(--border);}
+.pv-conn-item:last-of-type{border-bottom:none;}
+.pv-conn-ico{font-size:12px;min-width:16px;margin-top:1px;flex-shrink:0;}
+@media(max-width:768px){
+  .pv-mg,.pv-coding-top,.pv-cockpit-top,.pv-cockpit-mid,.pv-research-grid{grid-template-columns:1fr;}
+  .pv-mg>div:first-child{grid-row:auto;}
+  .pv-cron-row{grid-template-columns:1fr 0.8fr 0.9fr 0.3fr;font-size:9.5px;}
+}
+#preview{padding:16px 22px 22px;}
+#preview .sec-title{font-size:30px;}
+#preview .sec-sub{font-size:15px;max-width:640px;}
+#preview .pv-tab{font-size:13px;padding:9px 19px;}
+@media(max-width:768px){#preview{padding:16px 14px 22px;}#preview .sec-title{font-size:23px;}}
+
+.pv-msg{max-width:85%;display:flex;flex-direction:column;gap:4px;}
+.pv-msg.user{align-self:flex-end;align-items:flex-end;}
+.pv-msg.ai{align-self:flex-start;align-items:flex-start;}
+.pv-msg-who{font-size:9px;letter-spacing:.05em;color:var(--text-dim);}
+.pv-msg.user .pv-msg-who{color:var(--teal-ink);}
+.pv-bubble{padding:9px 13px;font-size:11.5px;line-height:1.65;color:var(--text);border-radius:11px;}
+.pv-msg.user .pv-bubble{background:var(--teal-tint);border:1px solid var(--teal-line);border-radius:11px 11px 3px 11px;}
+.pv-msg.ai  .pv-bubble{background:var(--surface);border:1px solid var(--border);border-radius:3px 11px 11px 11px;box-shadow:var(--sh-1);}
+.pv-mem-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;color:var(--violet-ink);
+  background:var(--violet-tint);border:1px solid var(--violet-line);border-radius:5px;
+  padding:2px 7px;margin-bottom:6px;}
+.pv-inp-fake{flex:1;font-size:11.5px;font-family:inherit;
+  border:1px solid var(--teal-line);background:var(--teal-glow);
+  border-radius:var(--r-sm);padding:6px 11px;color:var(--text-muted);}
+.pv-inp-fake span{color:var(--text-dim);}
+.pv-inp-send{font-size:14px;color:var(--teal);cursor:pointer;flex-shrink:0;}
+.pv-music-bar{height:32px;background:var(--surface-2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;}
+.pv-music-art{width:19px;height:19px;border-radius:4px;background:var(--surface);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--text-dim);flex-shrink:0;}
+.pv-music-info{flex:1;font-size:10.5px;color:var(--text-dim);font-style:italic;}
+.pv-music-ctrl{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);}
+.pv-chat-panel{position:absolute;right:0;top:32px;bottom:0;width:308px;
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:50;box-shadow:-8px 0 24px rgba(20,34,47,.06);
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.pv-bezel.chat-open .pv-chat-panel{transform:translateX(0);}
+.pv-panel-head{height:38px;background:var(--surface-2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 13px;flex-shrink:0;font-size:11.5px;font-weight:600;color:var(--text);}
+.pv-panel-close{background:none;border:none;cursor:pointer;
+  color:var(--text-muted);font-size:16px;line-height:1;padding:0 2px;font-family:inherit;}
+.pv-panel-close:hover{color:var(--text);}
+.pv-panel-msgs{flex:1;overflow-y:auto;padding:13px 11px;display:flex;flex-direction:column;gap:11px;background:var(--surface-2);}
+.pv-panel-inp{height:40px;border-top:1px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;padding:0 11px;gap:9px;flex-shrink:0;}
+.pv-robot-btn{position:absolute;bottom:44px;right:14px;z-index:60;
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--teal-line);
+  background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;box-shadow:var(--sh-teal);font-size:16px;}
+.pv-robot-btn:hover,.pv-bezel.chat-open .pv-robot-btn{background:var(--teal-tint);transform:translateY(-1px);}
+@media(max-width:768px){.pv-chat-panel{width:100%;}}
+
+.avatar-wrap.thinking .avatar-svg{color:var(--violet);filter:drop-shadow(0 4px 14px rgba(110,75,230,.30));}
+.avatar-wrap.thinking .avatar-lbl{color:var(--violet-ink);}
+.avatar-wrap.speaking .avatar-svg{color:var(--amber);filter:drop-shadow(0 4px 14px rgba(199,126,18,.30));}
+.avatar-wrap.speaking .avatar-lbl{color:var(--amber-ink);}
+.avatar-wrap.standby .avatar-svg{color:#9DB2BD;filter:drop-shadow(0 2px 6px rgba(20,34,47,.08));opacity:.7;}
+.avatar-wrap.standby .avatar-lbl{color:var(--text-dim);}
+.avatar-mouth-listen,.avatar-mouth-think,.avatar-mouth-speak,.avatar-mouth-idle{display:none;}
+.avatar-wrap.listening .avatar-mouth-listen{display:block;}
+.avatar-wrap.thinking  .avatar-mouth-think {display:block;}
+.avatar-wrap.speaking  .avatar-mouth-speak {display:block;}
+.avatar-wrap.standby   .avatar-mouth-idle  {display:block;}
+
+/* ── ACCENT THEMES (the --teal* family is the global accent) ── */
+:root[data-accent="green"]{--teal:#15B85F;--teal-ink:#0B8A42;--teal-tint:#E3F7EB;--teal-line:#BBE8C9;--teal-glow:#F0FCF4;}
+:root[data-accent="purple"]{--teal:#875CF5;--teal-ink:#6238CE;--teal-tint:#EEE9FD;--teal-line:#D9CCFB;--teal-glow:#F7F4FE;}
+:root[data-accent="gold"]{--teal:#C8960F;--teal-ink:#946C08;--teal-tint:#F8F0D4;--teal-line:#ECD9A6;--teal-glow:#FDF9EA;}
+/* swatch picker in sidebar footer */
+.sb-foot{flex-direction:column;align-items:stretch;gap:13px;}
+.accent-picker{display:flex;align-items:center;justify-content:space-between;}
+.accent-lbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);}
+.swatches{display:flex;gap:8px;}
+.swatch{width:21px;height:21px;border-radius:50%;border:2px solid var(--surface);background:var(--sw);
+  cursor:pointer;padding:0;box-shadow:0 0 0 1px var(--border-strong);transition:transform .15s ease,box-shadow .15s ease;}
+.swatch:hover{transform:scale(1.14);}
+.swatch.is-active{box-shadow:0 0 0 2px var(--sw);}
+.sb-badges{display:flex;gap:8px;flex-wrap:wrap;}
+/* let the AI core recolor smoothly with the accent */
+.avatar-svg,.mob-avatar{transition:color .35s ease,filter .35s ease;}
+.logo-dot,.mob-dot,.sdot,.ni,.pv-tab,.card,.cta,.badge{transition-duration:.2s;}
+
+/* ── IRON-MAN HUD BEHIND THE INTERFACE PREVIEW ── */
+.pv-view,.pv-statusbar,.pv-music-bar{position:relative;z-index:1;}
+.pv-hud{position:absolute;inset:0;z-index:0;color:var(--teal);pointer-events:none;overflow:hidden;}
+.pv-hud svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.pv-hud::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(125% 95% at 50% 40%, rgba(255,255,255,0) 50%, var(--teal-tint) 135%);opacity:.6;}
+
+/* ════════════════════════════════════════════════════════════
+   NIGHT MODE — deep-slate palette. Base tokens are remapped;
+   accent + semantic tints derive from their hue via color-mix,
+   so every accent (and the whole interface preview) works dark.
+   ════════════════════════════════════════════════════════════ */
+:root[data-theme="night"]{
+  --bg:#0B131B;
+  --surface:#121E29;
+  --surface-2:#1A2733;
+  --surface-hover:#1F2E3B;
+  --border:#27343F;
+  --border-strong:#3A4B59;
+  --code-bg:#0E1822;
+  --code-ink:#A7BACB;
+  --text:#EAF1F7;
+  --text-muted:#A2B3C2;
+  --text-dim:#6B7B8A;
+  --scroll-thumb:#2C3B49;
+  --scroll-thumb-hover:#3C4D5C;
+  --sh-1:0 1px 2px rgba(0,0,0,.30), 0 2px 6px rgba(0,0,0,.32);
+  --sh-2:0 2px 6px rgba(0,0,0,.34), 0 16px 38px rgba(0,0,0,.46);
+  --sh-teal:0 2px 8px rgba(0,0,0,.30), 0 14px 34px rgba(0,0,0,.40);
+  /* accent family, derived from the active --teal hue */
+  --teal-ink:color-mix(in srgb, var(--teal) 60%, #ffffff);
+  --teal-tint:color-mix(in srgb, var(--teal) 20%, var(--surface));
+  --teal-line:color-mix(in srgb, var(--teal) 42%, var(--surface));
+  --teal-glow:color-mix(in srgb, var(--teal) 12%, var(--surface));
+  /* semantic families */
+  --violet-ink:color-mix(in srgb, var(--violet) 56%, #ffffff);
+  --violet-tint:color-mix(in srgb, var(--violet) 22%, var(--surface));
+  --violet-line:color-mix(in srgb, var(--violet) 42%, var(--surface));
+  --amber-ink:color-mix(in srgb, var(--amber) 64%, #ffffff);
+  --amber-tint:color-mix(in srgb, var(--amber) 24%, var(--surface));
+  --amber-line:color-mix(in srgb, var(--amber) 44%, var(--surface));
+  --green-ink:color-mix(in srgb, var(--green) 58%, #ffffff);
+  --green-tint:color-mix(in srgb, var(--green) 22%, var(--surface));
+  --green-line:color-mix(in srgb, var(--green) 42%, var(--surface));
+  --red:#F2655B;
+  --red-tint:color-mix(in srgb, #F2655B 24%, var(--surface));
+}
+/* hardcoded-light fixes for night */
+:root[data-theme="night"] .hq.vi{background:color-mix(in srgb, var(--violet) 13%, var(--surface));}
+:root[data-theme="night"] .hq.am{background:color-mix(in srgb, var(--amber) 13%, var(--surface));}
+:root[data-theme="night"] .pv-bezel{
+  background-color:var(--surface);
+  box-shadow:var(--sh-2), inset 0 1px 0 rgba(255,255,255,.05);
+}
+:root[data-theme="night"] .pv-widget{background:rgba(20,32,44,.72);}
+/* lift the inline syntax-highlight colors in the jwt code block */
+:root[data-theme="night"] pre span[style*="#2563C9"]{color:#7DA9F0 !important;}
+:root[data-theme="night"] pre span[style*="#1F8A4C"]{color:#5CC98A !important;}
+:root[data-theme="night"] pre span[style*="#8A39C0"]{color:#C58BE8 !important;}
+:root[data-theme="night"] pre span[style*="#B5790A"]{color:#E0B257 !important;}
+
+/* ── DAY / NIGHT TOGGLE ── */
+.theme-toggle-row{display:flex;align-items:center;justify-content:space-between;}
+.theme-toggle{display:flex;align-items:center;gap:10px;background:none;border:none;
+  cursor:pointer;font-family:inherit;padding:0;}
+.tt-track{width:38px;height:21px;border-radius:20px;background:var(--surface-2);
+  border:1px solid var(--border-strong);position:relative;flex-shrink:0;
+  transition:background .2s,border-color .2s;}
+.tt-thumb{position:absolute;top:1.5px;left:1.5px;width:15px;height:15px;border-radius:50%;
+  background:var(--teal);box-shadow:var(--sh-1);
+  transition:transform .22s cubic-bezier(.4,0,.2,1),background .2s;}
+:root[data-theme="night"] .tt-track{background:var(--teal-tint);border-color:var(--teal-line);}
+:root[data-theme="night"] .tt-thumb{transform:translateX(17px);}
+.tt-state{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--text-muted);
+  min-width:34px;text-align:left;}
+.mob-theme{width:38px;height:38px;flex-shrink:0;border:none;background:transparent;
+  cursor:pointer;border-radius:var(--r-sm);font-size:15px;line-height:1;color:var(--text-muted);
+  display:flex;align-items:center;justify-content:center;transition:color .15s,background .15s;}
+.mob-theme:hover{color:var(--text);background:var(--surface-2);}
+
+/* smooth the day↔night swap */
+body,.sidebar,.status-bar,.mobile-bar,.card,.pv-bezel,.pv-widget,.acc-item,
+.tw,pre,.hq,.pill,.ni,.cta,.sbadge,.mini-card,.arch-ch-pill,.arch-route,.arch-model{
+  transition:background-color .35s ease,border-color .35s ease,color .35s ease,box-shadow .35s ease;
+}
+
+/* ── System Architecture Diagram ── */
+.arch-diagram{display:flex;flex-direction:column;align-items:stretch;gap:0;margin-bottom:28px;max-width:560px;margin-left:auto;margin-right:auto;}
+.arch-inputs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:0;}
+.arch-ch-pill{display:flex;align-items:center;gap:6px;padding:8px 16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  font-size:12.5px;font-weight:600;color:var(--text-muted);box-shadow:var(--sh-1);}
+.arch-connector{display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0;}
+.arch-conn-line{width:2px;height:22px;background:linear-gradient(to bottom,var(--teal-line),var(--teal));}
+.arch-conn-arrow{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--teal);}
+.arch-node{padding:16px 20px;}
+.arch-node-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.arch-node-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.01em;}
+.arch-node-tech{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.arch-port{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:500;
+  padding:2px 8px;background:var(--teal-tint);color:var(--teal-ink);
+  border:1px solid var(--teal-line);border-radius:5px;}
+.arch-port.vi{background:var(--violet-tint);color:var(--violet-ink);border-color:var(--violet-line);}
+.arch-port.gn{background:var(--green-tint);color:var(--green-ink);border-color:var(--green-line);}
+.arch-node-sub{font-size:12px;color:var(--text-muted);margin-bottom:10px;}
+.arch-routing{display:flex;gap:8px;flex-wrap:wrap;}
+.arch-route{flex:1;min-width:160px;background:var(--surface-2);border-radius:var(--r-sm);
+  padding:9px 12px;font-size:11.5px;color:var(--text-muted);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.arch-route-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.arch-route-badge.high{background:var(--teal-tint);color:var(--teal-ink);border:1px solid var(--teal-line);}
+.arch-route-badge.low{background:var(--amber-tint);color:var(--amber-ink);border:1px solid var(--amber-line);}
+.arch-models{display:flex;gap:8px;flex-wrap:wrap;}
+.arch-model{flex:1;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:9px 12px;font-size:11.5px;color:var(--text-muted);}
+.arch-model strong{color:var(--text);}
+.arch-brain-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--violet-ink);background:var(--violet-tint);border:1px solid var(--violet-line);
+  border-radius:10px;padding:2px 8px;margin-top:2px;}
+.arch-outputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:600px){.arch-outputs{grid-template-columns:1fr;}.arch-routing,.arch-models{flex-direction:column;}}
+</style>
+<script>try{var _a=localStorage.getItem('nexus-accent');if(_a&&_a!=='blue'&&_a!=='darkblue')document.documentElement.setAttribute('data-accent',_a);if(localStorage.getItem('nexus-theme')==='night')document.documentElement.setAttribute('data-theme','night');}catch(e){}</script>
+</head>
+<body>
+
+<!-- MOBILE TOP BAR -->
+<div class="mobile-bar">
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="mob-dot"></span>
+  <span class="mob-logo">HAI OS</span>
+  <button class="mob-theme" id="mobThemeToggle" type="button" aria-label="Toggle night mode">🌙</button>
+  <!-- mini avatar -->
+  <svg class="mob-avatar" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="36" cy="36" r="32" fill="var(--teal-glow)"/>
+    <circle cx="36" cy="36" r="32" fill="none" stroke="var(--teal)" stroke-width="1.5" opacity="0.4"/>
+    <ellipse cx="24.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity="0.85"/>
+    <ellipse cx="47.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity="0.85"/>
+  </svg>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><span class="logo-dot"></span>HAI OS</div>
+    <div class="sb-tag">Cognitive AI Operating System</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Sections</div>
+    <button class="ni active" data-t="home">
+      <span class="ni-ico">⌂</span>Home
+    </button>
+    <button class="ni" data-t="pitch">
+      <span class="ni-ico">◎</span>The Pitch
+    </button>
+    <button class="ni" data-t="preview">
+      <span class="ni-ico">⬡</span>Interface Preview
+    </button>
+    <button class="ni" data-t="arch">
+      <span class="ni-ico">⬡</span>Setup &amp; Architecture
+    </button>
+    <button class="ni" data-t="modules">
+      <span class="ni-ico">⊞</span>Modules
+    </button>
+    <button class="ni" data-t="phil">
+      <span class="ni-ico">◈</span>Underlying Philosophy
+    </button>
+    <button class="ni" data-t="road">
+      <span class="ni-ico">→</span>Roadmap &amp; Contributing
+    </button>
+  </nav>
+  <div class="sb-foot">
+    <div class="accent-picker">
+      <span class="accent-lbl">Accent</span>
+      <div class="swatches">
+        <button class="swatch" data-accent="green" style="--sw:#15B85F;" title="Green" aria-label="Green accent"></button>
+        <button class="swatch is-active" data-accent="blue" style="--sw:#1D4ED8;" title="Blue" aria-label="Blue accent"></button>
+        <button class="swatch" data-accent="purple" style="--sw:#875CF5;" title="Purple" aria-label="Purple accent"></button>
+        <button class="swatch" data-accent="gold" style="--sw:#C8960F;" title="Gold" aria-label="Gold accent"></button>
+      </div>
+    </div>
+    <div class="theme-toggle-row">
+      <span class="accent-lbl">Theme</span>
+      <button class="theme-toggle" id="themeToggle" type="button" role="switch" aria-label="Toggle night mode" aria-checked="false">
+        <span class="tt-state">Day</span>
+        <span class="tt-track"><span class="tt-thumb"></span></span>
+      </button>
+    </div>
+    <div class="sb-badges">
+      <span class="sbadge">v0.3</span>
+      <span class="sbadge">Open Source</span>
+      <span class="sbadge">Linux-first</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <!-- AVATAR -->
+  <div class="avatar-wrap listening">
+    <svg class="avatar-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="36" cy="36" r="34" fill="none" stroke="currentColor" stroke-width="1.2">
+        <animate attributeName="opacity" values="0.2;0.65;0.2" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="33;35.5;33" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="36" cy="36" r="31" fill="var(--teal-glow)"/>
+      <circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.38"/>
+      <circle cx="36" cy="36" r="23" fill="none" stroke="var(--teal-line)" stroke-width="0.8"/>
+      <circle cx="36" cy="36" r="15" fill="none" stroke="var(--teal-line)" stroke-width="0.5"/>
+      <!-- eye glow halos -->
+      <ellipse cx="24.5" cy="35" rx="7.5" ry="5.5" fill="currentColor" opacity="0.1"/>
+      <ellipse cx="47.5" cy="35" rx="7.5" ry="5.5" fill="currentColor" opacity="0.1"/>
+      <!-- eyes -->
+      <ellipse cx="24.5" cy="35" rx="6" ry="4" fill="currentColor">
+        <animate attributeName="opacity" values="0.55;1;0.55" dur="3.2s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="4;4;4;4;4;4;4;4;0.25;4;4" keyTimes="0;.1;.2;.3;.4;.5;.6;.7;.82;.92;1" dur="5.5s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="47.5" cy="35" rx="6" ry="4" fill="currentColor">
+        <animate attributeName="opacity" values="0.55;1;0.55" dur="3.2s" repeatCount="indefinite" begin="0.08s"/>
+        <animate attributeName="ry" values="4;4;4;4;4;4;4;4;0.25;4;4" keyTimes="0;.1;.2;.3;.4;.5;.6;.7;.82;.92;1" dur="5.5s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- ── MOUTH: listening — soft arc smile ── -->
+      <path class="avatar-mouth-listen" d="M27,50 Q36,57 45,50" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+      <!-- ── MOUTH: thinking — three bouncing dots ── -->
+      <g class="avatar-mouth-think">
+        <circle cx="29" cy="51" r="2" fill="currentColor" opacity="0.8">
+          <animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="1.2s" repeatCount="indefinite" begin="0s"/>
+        </circle>
+        <circle cx="36" cy="51" r="2" fill="currentColor" opacity="0.8">
+          <animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="1.2s" repeatCount="indefinite" begin="0.2s"/>
+        </circle>
+        <circle cx="43" cy="51" r="2" fill="currentColor" opacity="0.8">
+          <animateTransform attributeName="transform" type="translate" values="0,0;0,-4;0,0" dur="1.2s" repeatCount="indefinite" begin="0.4s"/>
+        </circle>
+      </g>
+      <!-- ── MOUTH: speaking — animated waveform bars ── -->
+      <g class="avatar-mouth-speak">
+        <rect x="24.5" rx="1.5" width="3" fill="currentColor" opacity="0.8">
+          <animate attributeName="height" values="3;8;2;6;3" dur="0.75s" repeatCount="indefinite"/>
+          <animate attributeName="y"      values="50;45;51;47;50" dur="0.75s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="30"   rx="1.5" width="3" fill="currentColor" opacity="0.8">
+          <animate attributeName="height" values="7;3;10;4;7"  dur="0.7s"  repeatCount="indefinite" begin="0.1s"/>
+          <animate attributeName="y"      values="46;50;43;49;46" dur="0.7s" repeatCount="indefinite" begin="0.1s"/>
+        </rect>
+        <rect x="35.5" rx="1.5" width="3" fill="currentColor" opacity="0.8">
+          <animate attributeName="height" values="5;11;3;9;5"  dur="0.8s"  repeatCount="indefinite" begin="0.05s"/>
+          <animate attributeName="y"      values="48;42;50;44;48" dur="0.8s" repeatCount="indefinite" begin="0.05s"/>
+        </rect>
+        <rect x="41"   rx="1.5" width="3" fill="currentColor" opacity="0.8">
+          <animate attributeName="height" values="8;2;9;3;8"   dur="0.65s" repeatCount="indefinite" begin="0.15s"/>
+          <animate attributeName="y"      values="45;51;44;50;45" dur="0.65s" repeatCount="indefinite" begin="0.15s"/>
+        </rect>
+        <rect x="46.5" rx="1.5" width="3" fill="currentColor" opacity="0.8">
+          <animate attributeName="height" values="4;7;2;5;4"   dur="0.85s" repeatCount="indefinite" begin="0.2s"/>
+          <animate attributeName="y"      values="49;46;51;48;49" dur="0.85s" repeatCount="indefinite" begin="0.2s"/>
+        </rect>
+      </g>
+      <!-- ── MOUTH: standby — flat line ── -->
+      <line class="avatar-mouth-idle" x1="30" y1="51" x2="42" y2="51" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+    </svg>
+    <span class="avatar-lbl">Listening</span>
+  </div>
+
+  <div class="content-area">
+
+    <!-- ══════════════════════════════════════════
+         SECTION 1 · HOME
+    ══════════════════════════════════════════ -->
+    <section id="home" class="section active">
+    <div class="inner">
+      <div class="sec-lbl">v0.3 prototype</div>
+      <h1 style="font-size:38px;font-weight:300;letter-spacing:-0.5px;margin-bottom:6px;">HAI OS</h1>
+      <p style="font-size:17px;color:var(--text-muted);margin-bottom:22px;font-weight:400;">
+        A locally-run cognitive AI operating system.
+      </p>
+
+      <div class="hq" style="font-size:15px;margin-bottom:24px;">
+        "Intelligence lives in the <strong>system</strong> — somatic state, curated prompts, memory retrieval — not just the model. A small model with the right context layer outperforms a large model without one."
+      </div>
+
+      <div class="pill-row">
+        <span class="pill">🏠 Local-first</span>
+        <span class="pill">🔒 Privacy-first</span>
+        <span class="pill">🔓 Open source</span>
+        <span class="pill">🐧 Linux focus</span>
+        <span class="pill">🧠 Small model wins</span>
+        <span class="pill">⚡ No cloud dependency</span>
+      </div>
+
+      <p style="margin-bottom:10px;">
+        <i>HAI OS manages AI tasks with the same responsiveness and background processing you expect from your OS.</i>
+      </p>
+      <p style="margin-bottom:28px;">
+        Today is the age of too many. Too many apps, too many websites, too much cognitive overhead — HAI OS is one place to help you manage and tie all of it together. It runs background research, learns from your context, surfaces what matters, and stays quiet when it doesn't need to speak. It aims to tell you your big errors before its too late.
+      </p>
+      <div class="g3" style="margin-bottom:30px;">
+        <div class="card tl">
+          <div class="c-lbl">Core Model</div>
+          <div class="c-title">Gemma 4 2B and family</div>
+          <div class="c-body">System 1 fast inference. Small model + right context outperforms a large model without one, especially with memory and search tools.</div>
+        </div>
+        <div class="card tl">
+          <div class="c-lbl">LLM Brain</div>
+          <div class="c-title">OpenJarvis</div>
+          <div class="c-body">Stanford-built local-first agent framework. Model orchestration, System 1/2 routing, inference gateway. The skeleton of this system.</div>
+        </div>
+        <div class="card tl">
+          <div class="c-lbl">Differentiator</div>
+          <div class="c-title">Somatic Markers</div>
+          <div class="c-body">6-dim Haidt moral valence vectors + Hebbian learning. Urgency scoring without burning LLM tokens.</div>
+        </div>
+      </div>
+      <p style="margin-bottom:8px;">
+        Everything runs on your hardware, with cloud as backup for extra power if wanted. The AI backend is <strong>llama.cpp</strong>, wrapping <strong>OpenJarvis</strong> as the LLM brain with a personality layer on top: somatic markers, multi-channel messaging, voice I/O, and a React/Tauri dashboard with a Rive avatar.
+      </p>
+      <p style="margin-bottom:28px;">
+        Add a memory system, an alignement system, security... Feels like a lot? Don't worry, everything working and complete from the get-go, and ready to connect to different modules per preferences. Just follow along this presentation to see if this makes sense to you.
+      </p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="cta" onclick="go('pitch')">The Pitch →</button>
+        <button class="cta ghost" onclick="go('preview')">Demo →</button>
+        <button class="cta ghost" onclick="go('arch')">Quick Start →</button>
+        <button class="cta ghost" onclick="go('modules')">Modules →</button>
+        <button class="cta ghost" onclick="go('phil')">Philosophy →</button>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 2 · THE PITCH
+    ══════════════════════════════════════════ -->
+    <section id="pitch" class="section">
+    <div class="inner">
+      <div class="sec-lbl">The Vision</div>
+      <div class="sec-title">The Pitch</div>
+      <p class="sec-sub">Modern operating systems manage system tasks. HAI OS manages AI tasks — with the same responsiveness and seamlessness you expect from your OS.</p>
+
+      <h2>Core Propositions</h2>
+      <div class="g3" style="margin-bottom:30px;">
+        <div class="card"><div class="c-lbl">Partnership</div><div class="c-title">Partner, not tool</div><div class="c-body">AI with a mind of its own. Pushes back, asks questions, and improves itself and you over time. Not a command executor.</div></div>
+        <div class="card"><div class="c-lbl">Sovereignty</div><div class="c-title">Run it locally</div><div class="c-body">No cloud lock-in, no surveillance. All runs on your computer. Your data stays on your hardware.</div></div>
+        <div class="card"><div class="c-lbl">Safety</div><div class="c-title">Hard to misuse</div><div class="c-body">Architecturally difficult to weaponise. Safety isn't a feature — it's a structural constraint.</div></div>
+        <div class="card"><div class="c-lbl">Distribution</div><div class="c-title">Prebuilt to just work</div><div class="c-body">Baked in and ready from scratch, as Linux does — not a raw framework with only raw potential.</div></div>
+        <div class="card"><div class="c-lbl">Simplicity</div><div class="c-title">One thing, not many</div><div class="c-body">Replace the chaos of tools and tabs with a single, composable interface. Everything in one place.</div></div>
+        <div class="card"><div class="c-lbl">Foundation</div><div class="c-title">Linux as the base</div><div class="c-body">Full configuration access, lightweight footprint, open-source transparency. Not a cage.</div></div>
+        <div class="card"><div class="c-lbl">Personalisation</div><div class="c-title">Unique to you</div><div class="c-body">Feed it your info and it adapts its personality and answers to you — everything staying local.</div></div>
+        <div class="card"><div class="c-lbl">Scope</div><div class="c-title">The only app</div><div class="c-body">All-encompassing. Everything handled here. Makes AI stronger, and you too.</div></div>
+        <div class="card"><div class="c-lbl">Agency</div><div class="c-title">Proactive</div><div class="c-body">You don't need to tell it to research your project. It dreams by itself, surfaces the good stuff — all customisable.</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>What HAI OS Augments — A Human Map</h2>
+      <p style="margin-bottom:14px;">Every module maps to something humans already do — but constrained by biology, time, or fragmentation.</p>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>Human Capability</th><th>What Limits Us</th><th>HAI OS Module</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Memory</strong></td><td style="color:var(--text-muted)">Forgetting, context loss, can't search your own past</td><td><span class="badge btl">Memory module</span> — persistent, searchable, refines over time</td></tr>
+            <tr><td><strong>Communication</strong></td><td style="color:var(--text-muted)">Fragmented across apps, separate identity per platform</td><td><span class="badge btl">Channels</span> — WhatsApp, Discord, Slack, email through one brain</td></tr>
+            <tr><td><strong>Research</strong></td><td style="color:var(--text-muted)">No time, information overload, don't know where to look</td><td><span class="badge bvi">AgentReach</span> — background research while you work</td></tr>
+            <tr><td><strong>Self-knowledge</strong></td><td style="color:var(--text-muted)">Skills invisible until tested; hard to see yourself clearly</td><td><span class="badge bvi">Personality System</span> — model of your skills and working style</td></tr>
+            <tr><td><strong>Emotional intelligence</strong></td><td style="color:var(--text-muted)">Can't always name what you're feeling; patterns hard to see</td><td><span class="badge bvi">Emotion module</span> — reads your state from behaviour</td></tr>
+            <tr><td><strong>Focus</strong></td><td style="color:var(--text-muted)">Notifications, meetings, reactive work eating deep work</td><td><span class="badge btl">Somatic markers</span> — urgency scored before anything surfaces</td></tr>
+            <tr><td><strong>Voice &amp; presence</strong></td><td style="color:var(--text-muted)">Typing is slow; voice tools don't support it well</td><td><span class="badge bgn">Voice I/O</span> — speak, get responses, hands-free</td></tr>
+            <tr><td><strong>Mobility</strong></td><td style="color:var(--text-muted)">Your AI only works at your desk</td><td><span class="badge bam">Sunshine &amp; Moonlight</span> — full HAI OS from your phone</td></tr>
+            <tr><td><strong>Portfolio &amp; identity</strong></td><td style="color:var(--text-muted)">CVs are outdated; LinkedIn is a performance</td><td><span class="badge bvi">AI Personal Website</span> — living skills map, inferred from what you do</td></tr>
+            <tr><td><strong>Code &amp; technical work</strong></td><td style="color:var(--text-muted)">Context loss, switching cost, holding complexity in your head</td><td><span class="badge btl">Claude Code integration</span> — full codebase in context</td></tr>
+            <tr><td><strong>Situational awareness</strong></td><td style="color:var(--text-muted)">Too many contexts to monitor at once; blind spots everywhere</td><td><span class="badge btl">Dashboard</span> — one surface for everything HAI OS is doing</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:var(--text-dim);font-style:italic;margin-top:4px;">HAI OS doesn't replace these capabilities — it removes the friction that limits them. The goal is not a more capable tool but a more capable you.</p>
+      <div style="margin-top:28px;">
+        <button class="cta ghost" onclick="go('arch')">Setup &amp; Architecture →</button>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 3 · SETUP & ARCHITECTURE
+    ══════════════════════════════════════════ -->
+    <section id="arch" class="section">
+    <div class="inner">
+      <div class="sec-lbl">Technical Reference</div>
+      <div class="sec-title">Setup &amp; Architecture</div>
+      <p class="sec-sub">Everything you need to run HAI OS on your hardware.</p>
+
+      <h2>Quick Start</h2>
+      <pre>bash hai-setup.sh</pre>
+      <p style="margin-bottom:22px;">Auto-detects your hardware and adjusts accordingly. Run it anytime — it skips already-installed items.</p>
+
+      <h2>Requirements</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Requirement</th><th>Minimum</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>OS</strong></td><td>Debian 12 / Ubuntu 22.04</td><td style="color:var(--text-muted)">Any Debian-based distro. Python 3.12 requires the deadsnakes PPA on Ubuntu 22.04.</td></tr>
+            <tr><td><strong>RAM</strong></td><td>8 GB</td><td style="color:var(--text-muted)">16 GB recommended for 7B+ models</td></tr>
+            <tr><td><strong>Python</strong></td><td>3.12</td><td style="color:var(--text-muted)">Required for core</td></tr>
+            <tr><td><strong>Node.js</strong></td><td>22 LTS</td><td style="color:var(--text-muted)">Required for channels</td></tr>
+            <tr><td><strong>AI inference</strong></td><td>llama.cpp</td><td style="color:var(--text-muted)">Local GPU or remote Ollama endpoint</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>GPU Requirements</h2>
+      <p style="margin-bottom:10px;">A GPU is optional — you can point HAI OS at a remote Ollama server instead.</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>VRAM</th><th>What runs well</th><th>Recommended GPUs</th></tr></thead>
+          <tbody>
+            <tr><td><code>6 GB</code></td><td style="color:var(--text-muted)">Gemma 2B, Phi-3 mini, Qwen 1.5 4B</td><td style="color:var(--text-dim)">—</td></tr>
+            <tr><td><code>8 GB</code></td><td style="color:var(--text-muted)">Gemma 7B, Llama 3 8B, Mistral 7B</td><td style="color:var(--text-muted)">RTX 4060</td></tr>
+            <tr><td><code>12 GB</code></td><td style="color:var(--text-muted)">Llama 3 13B, CodeLlama 13B</td><td style="color:var(--text-muted)">RTX 3060 12GB · RTX 3080</td></tr>
+            <tr><td><code>16 GB+</code></td><td style="color:var(--text-muted)">Gemma 27B (quantised), Mixtral 8×7B</td><td style="color:var(--text-muted)">RTX 4060 Ti 16GB</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Recommended Models</h2>
+      <div class="g3" style="margin-bottom:22px;">
+        <div class="card" style="padding:14px"><div class="c-lbl">Research</div><div class="c-title" style="font-size:13px">lucy1.7B</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl">Code</div><div class="c-title" style="font-size:13px">Qwen 2.5 7B Instruct</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl">Code (fast)</div><div class="c-title" style="font-size:13px">qwen3-vi:4b-instruct</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl">General</div><div class="c-title" style="font-size:13px">phi3.5:3.8b</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl">Power / System 1</div><div class="c-title" style="font-size:13px">gemma4 e2b</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl">Flexible</div><div class="c-title" style="font-size:13px">ministral 3 3b</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>System Architecture</h2>
+
+      <div class="arch-diagram">
+
+        <!-- Inputs -->
+        <div class="arch-inputs">
+          <div class="arch-ch-pill">💬 Discord</div>
+          <div class="arch-ch-pill">💼 Slack</div>
+          <div class="arch-ch-pill">📱 WhatsApp</div>
+        </div>
+
+        <div class="arch-connector"><div class="arch-conn-line"></div><div class="arch-conn-arrow"></div></div>
+
+        <!-- Channel connectors -->
+        <div class="card tl arch-node">
+          <div class="arch-node-head">
+            <div>
+              <div class="arch-node-name">channels</div>
+              <div class="arch-node-tech">Node.js · Channel connectors → HAIMessage</div>
+            </div>
+            <code class="arch-port">:3001</code>
+          </div>
+          <div class="arch-node-sub">EventBus broadcasts inbound events to the Python bridge</div>
+        </div>
+
+        <div class="arch-connector"><div class="arch-conn-line"></div><div class="arch-conn-arrow"></div></div>
+
+        <!-- Channels Bridge -->
+        <div class="card am arch-node">
+          <div class="arch-node-head">
+            <div>
+              <div class="arch-node-name">Channels Bridge</div>
+              <div class="arch-node-tech">Python · bridge.py</div>
+            </div>
+          </div>
+          <div class="arch-node-sub">Somatic Marker Engine scores each message 0–1 for urgency</div>
+          <div class="arch-routing">
+            <div class="arch-route">
+              <span>≥ 0.7 — surface to dashboard</span>
+              <span class="arch-route-badge high">immediate</span>
+            </div>
+            <div class="arch-route">
+              <span>&lt; 0.7 — queue for digest</span>
+              <span class="arch-route-badge low">batched</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-connector"><div class="arch-conn-line"></div><div class="arch-conn-arrow"></div></div>
+
+        <!-- OpenJarvis Gateway -->
+        <div class="card vi arch-node">
+          <div class="arch-node-head">
+            <div>
+              <div class="arch-node-name">OpenJarvis Gateway</div>
+              <div class="arch-brain-badge">⬡ HAI OS Brain</div>
+            </div>
+            <code class="arch-port vi">:18789</code>
+          </div>
+          <div class="arch-node-sub" style="margin-top:10px;">Ollama model cascade · Gemma 4 family</div>
+          <div class="arch-models">
+            <div class="arch-model"><strong>System 1</strong> · 2B — fast, System 1 thinking</div>
+            <div class="arch-model"><strong>System 2</strong> · 27B — thorough, deep reasoning</div>
+          </div>
+        </div>
+
+        <div class="arch-connector"><div class="arch-conn-line"></div><div class="arch-conn-arrow"></div></div>
+
+        <!-- Outputs -->
+        <div class="arch-outputs">
+          <div class="card tl arch-node">
+            <div class="arch-node-head">
+              <div class="arch-node-name">Response path</div>
+            </div>
+            <div class="arch-node-sub">Bridge → channels → original platform</div>
+          </div>
+          <div class="card gn arch-node">
+            <div class="arch-node-head">
+              <div class="arch-node-name">Dashboard WS</div>
+              <code class="arch-port gn">:3002</code>
+            </div>
+            <div class="arch-node-sub">React + Rive avatar live feed</div>
+          </div>
+        </div>
+
+      </div>
+
+      <h2>Services &amp; Ports</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Service</th><th>Port</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Ollama/llama.cpp</strong></td><td><code>11434</code></td><td style="color:var(--text-muted)">Local LLM inference</td></tr>
+            <tr><td><strong>OpenJarvis gateway</strong></td><td><code>18789</code></td><td style="color:var(--text-muted)">LLM brain WebSocket</td></tr>
+            <tr><td><strong>channels</strong></td><td><code>3001</code></td><td style="color:var(--text-muted)">REST + WS for Discord/Slack/WhatsApp</td></tr>
+            <tr><td><strong>Dashboard WS</strong></td><td><code>3002</code></td><td style="color:var(--text-muted)">React/Rive frontend feed</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Subprojects</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Directory</th><th>What it does</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><code>channels/</code></td><td style="color:var(--text-muted)">TypeScript channel connectors (Discord, Slack, WhatsApp)</td><td><span class="badge bgn">Active</span></td></tr>
+            <tr><td><code>core/</code></td><td style="color:var(--text-muted)">Python orchestrator — somatic markers, voice, gateway client</td><td><span class="badge bgn">Active</span></td></tr>
+            <tr><td><code>core/frontend/</code></td><td style="color:var(--text-muted)">React + Rive dashboard</td><td><span class="badge bam">Scaffolded</span></td></tr>
+            <tr><td><code>core/openjarvis-config/</code></td><td style="color:var(--text-muted)">OpenJarvis model config + system prompt</td><td><span class="badge bgn">Active</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Voice I/O</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Option</th><th>Packages</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Online</strong></td><td><code>pip install openai</code></td><td style="color:var(--text-muted)">Whisper API + OpenAI TTS. Requires OPENAI_API_KEY.</td></tr>
+            <tr><td><strong>Local CPU</strong></td><td><code>faster-whisper RealtimeSTT piper-tts</code></td><td style="color:var(--text-muted)">Fully offline. Practical on capable hardware.</td></tr>
+            <tr><td><strong>Local GPU</strong></td><td><code>faster-whisper chatterbox-tts torchaudio</code></td><td style="color:var(--text-muted)">Best quality. Requires 6 GB+ VRAM. <strong>Chatterbox has emotion control</strong> — maps to somatic markers.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Starting Everything</h2>
+      <pre><span class="cm"># 1. Start OpenJarvis brain</span>
+cp core/openjarvis-config/config.toml ~/.openjarvis/config.toml
+cp system_prompt.md /data/nexus/openjarvis/system_prompt.md
+jarvis gateway --port 18789
+
+<span class="cm"># 2. Start channel connectors (Discord / Slack / WhatsApp)</span>
+cd channels && npm run dev
+
+<span class="cm"># 3. Start core (voice + somatic markers + channels bridge)</span>
+cd core && python -m src.hai</pre>
+      <div style="margin-top:28px;">
+        <button class="cta ghost" onclick="go('modules')">Modules →</button>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 4 · MODULES
+    ══════════════════════════════════════════ -->
+    <section id="modules" class="section">
+    <div class="inner" style="max-width:920px;">
+      <div class="sec-lbl">System Design</div>
+      <div class="sec-title">Modules</div>
+      <p class="sec-sub">HAI OS is not a monolith. A secure core with pluggable modules — different people can own different pieces without blocking each other.</p>
+
+      <div class="hq" style="margin-bottom:28px;">"Secure core owned collectively, modules owned individually."</div>
+
+      <!-- Communication -->
+      <div class="card tl" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div><div class="c-lbl">Communication</div><div class="c-title" style="font-size:16px;">💬 One Brain, All Channels</div></div>
+          <span class="badge bgn">v0.3 active</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:14px;">You don't have five conversations. You have one life, spread across five apps. HAI OS unifies all communication through a single brain — scored for urgency, surfaced only when they need your attention. One identity across all platforms. A conversation started on WhatsApp can continue on Telegram.</p>
+        <div class="g2">
+          <div class="tw" style="margin-bottom:0;">
+            <table>
+              <thead><tr><th>Channel</th><th>Protocol</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td><strong>WhatsApp</strong></td><td>Neonize</td><td style="color:var(--text-muted)">QR pairing. Read only.</td></tr>
+                <tr><td><strong>Telegram</strong></td><td>Bot API</td><td style="color:var(--text-muted)">Easiest to set up. Stable.</td></tr>
+                <tr><td><strong>Discord</strong></td><td>discord.js</td><td style="color:var(--text-muted)">Draft-only mode avoids ToS issues.</td></tr>
+                <tr><td><strong>Slack</strong></td><td>Socket Mode</td><td style="color:var(--text-muted)">Workflow-native for tech teams.</td></tr>
+                <tr><td><strong>Email</strong></td><td>IMAP/SMTP</td><td style="color:var(--text-muted)">Gmail/Outlook, OAuth</td></tr>
+                <tr><td><strong>Signal</strong></td><td>Signal CLI</td><td style="color:var(--text-muted)">Privacy-first alternative</td></tr>
+                <tr><td><strong>Matrix</strong></td><td>Matrix SDK</td><td style="color:var(--text-muted)">Self-hosted, federated</td></tr>
+                <tr><td><strong>REST</strong></td><td>HTTP webhooks</td><td style="color:var(--text-muted)">Connect anything that can POST</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="mini-card" style="margin-bottom:10px;">
+              <div class="mini-lbl">The Electron Problem — Solved</div>
+              <table style="margin-top:8px;font-size:12px;">
+                <thead><tr><th style="font-size:10px;padding:6px 10px;">App</th><th style="font-size:10px;padding:6px 10px;">Electron RAM</th><th style="font-size:10px;padding:6px 10px;">HAI OS RAM</th></tr></thead>
+                <tbody>
+                  <tr><td style="padding:6px 10px;">WhatsApp</td><td style="padding:6px 10px;color:var(--red)">~850 MB</td><td style="padding:6px 10px;color:var(--green)">~12 MB</td></tr>
+                  <tr><td style="padding:6px 10px;">Telegram</td><td style="padding:6px 10px;color:var(--red)">~500 MB</td><td style="padding:6px 10px;color:var(--green)">~10 MB</td></tr>
+                  <tr><td style="padding:6px 10px;">Discord</td><td style="padding:6px 10px;color:var(--red)">~650 MB</td><td style="padding:6px 10px;color:var(--green)">~30 MB</td></tr>
+                  <tr><td style="padding:6px 10px;">Slack</td><td style="padding:6px 10px;color:var(--red)">~700 MB</td><td style="padding:6px 10px;color:var(--green)">~20 MB</td></tr>
+                  <tr><td style="padding:6px 10px;">Signal</td><td style="padding:6px 10px;color:var(--red)">~400 MB</td><td style="padding:6px 10px;color:var(--green)">~15 MB</td></tr>
+                  <tr><td style="padding:6px 10px;"><strong>Total</strong></td><td style="padding:6px 10px;color:var(--red)"><strong>~3.1 GB</strong></td><td style="padding:6px 10px;color:var(--green)"><strong>~87 MB</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Memory -->
+      <div class="card vi" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl vi">Memory</div><div class="c-title" style="font-size:16px;">🧠 Memory Module</div></div>
+          <span class="badge bvi">Planned · Phase 2</span>
+        </div>
+        <p style="font-size:13px;">Persistent, searchable, refines over time. Forgets strategically, never loses what matters. Built on the <em>anneal-memory</em> pattern: learning that refines itself, strategic forgetting, surfacing what matters. Episodic memory + semantic graph + somatic markers working together.</p>
+        <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;">
+          <span class="badge bvi">anneal-memory pattern</span>
+          <span class="badge bvi">SQLite backend</span>
+          <span class="badge bvi">Hebbian learning</span>
+          <span class="badge bvi">Vector store</span>
+        </div>
+      </div>
+
+      <!-- Personality System -->
+      <div class="card vi" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl vi">Personality System</div><div class="c-title" style="font-size:16px;">🧑 Know Your Partner</div></div>
+          <span class="badge bvi">Planned · Phase 2</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:12px;">HAI OS learns who you are — your domain knowledge, working style, interests, communication preferences, and how you grow over time. Entirely opt-in. Local only. Transparent.</p>
+        <div class="g2">
+          <div class="mini-card"><div class="mini-lbl vi">What it learns from</div><ul style="font-size:12px;margin-top:6px;padding-left:16px;"><li>PC activity (opt-in, granular)</li><li>Journaling — direct reflections</li><li>How you respond to suggestions</li></ul></div>
+          <div class="mini-card"><div class="mini-lbl vi">What it powers</div><ul style="font-size:12px;margin-top:6px;padding-left:16px;"><li>Adaptive communication style</li><li>Calibrated pushback intensity</li><li>Living skills portfolio</li></ul></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:10px;font-style:italic;">Distinction: the <em>Personality System</em> models you. The <em>Personality Layer</em> (separate module) configures how HAI OS presents itself.</p>
+      </div>
+
+      <!-- Emotional Awareness -->
+      <div class="card am" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl am">Emotional Awareness</div><div class="c-title" style="font-size:16px;">❤️ Feeling the Partnership</div></div>
+          <span class="badge bam">Research · Phase 6</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:12px;">Primarily observational — HAI OS reads and responds to <em>your</em> emotional state. This is a mirror, not an actor. Emotions inform behaviour within a fixed hierarchy: your instructions first, HAI OS's value system second, emotional signals third.</p>
+        <div class="mini-card am" style="border-left:3px solid var(--amber);">
+          <div class="mini-lbl am">Examples in practice</div>
+          <ul style="font-size:12px;margin-top:6px;padding-left:16px;color:var(--text-muted);">
+            <li>Haven't opened an important document for 3 days → brings it up in context, not a reminder ping.</li>
+            <li>In reactive mode for a week → notices the pattern, flags it, because it knows what your productive state looks like.</li>
+            <li>Camera (entirely opt-in, off by default) can read your reactions in real time — only what's needed for recognition is stored.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="card tl" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl">Dashboard</div><div class="c-title" style="font-size:16px;">👁️ Seeing the Partnership</div></div>
+          <span class="badge bam">Scaffolded · Phase 1</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:12px;">The cockpit. Everything HAI OS is doing, made visible and human-reviewable. Not a chat interface — the one surface where routing decisions become transparent. Surfaces only what needs you: high-priority messages above the threshold, patterns HAI OS noticed, decisions awaiting confirmation. Everything else is batched into a digest for later. Auto-reply is never enabled — HAI OS drafts, you send.</p>
+        <div class="g2">
+          <div class="mini-card"><div class="mini-lbl">What it shows</div><ul style="font-size:12px;margin-top:6px;padding-left:16px;"><li>Flagged draft messages</li><li>Active system state + routing decisions</li><li>Background processes &amp; queue</li><li>Emotional context signals</li></ul></div>
+          <div class="mini-card"><div class="mini-lbl">Tech stack</div><ul style="font-size:12px;margin-top:6px;padding-left:16px;"><li>React + Tauri (ws://3002)</li><li>Rive avatar state machine</li><li>A2UI component protocol</li><li>WebSocket live feed</li></ul></div>
+        </div>
+      </div>
+
+      <!-- Sunshine & Moonlight -->
+      <div class="card am" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl am">Mobile</div><div class="c-title" style="font-size:16px;">☀️ Sunshine &amp; Moonlight</div></div>
+          <span class="badge bam">Planned · Phase 4</span>
+        </div>
+        <p style="font-size:13px;">Sunshine is the remote access layer. Moonlight is the client on your phone. Together: full HAI OS from anywhere, as if sitting in front of the machine. Runs over Tailscale for secure, zero-config private networking. Not a watered-down mobile app.</p>
+      </div>
+
+      <!-- Personal Website -->
+      <div class="card vi" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div><div class="c-lbl vi">Portfolio</div><div class="c-title" style="font-size:16px;">🌐 AI Personal Website</div></div>
+          <span class="badge bvi">Planned · Phase 7</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:10px;">A website that expresses who you are — automatically maintained, genuinely yours, privacy-first. Your skills visualised as a galaxy: stars you've explored, clusters around your strengths, brightness reflecting depth. Inferred from what you actually do; curated by you before anything goes public.</p>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;">
+          <span class="badge bvi">Solid pod (data sovereignty)</span>
+          <span class="badge bvi">Public/private hard separation</span>
+          <span class="badge bvi">Constellation skill map</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h2>MCP Tool Ecosystem</h2>
+      <p style="margin-bottom:14px;">Beyond messaging, HAI OS connects to any tool via MCP (Model Context Protocol):</p>
+      <div class="g4">
+        <div class="card" style="padding:14px"><div class="c-lbl" style="margin-bottom:8px">Always Active</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">Filesystem · Memory graph · Git · Shell (sandboxed) · Sequential thinking</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl" style="margin-bottom:8px">Communication</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">Gmail · Slack · Discord · Notion · Google Calendar</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl" style="margin-bottom:8px">Development</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">GitHub · Browser automation · Firecrawl · PostgreSQL/SQLite</div></div>
+        <div class="card" style="padding:14px"><div class="c-lbl" style="margin-bottom:8px">Power</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">Composio (250+ apps via OAuth) · Google Maps · Infrastructure tools</div></div>
+      </div>
+      <div style="margin-top:28px;">
+        <button class="cta ghost" onclick="go('phil')">Philosophy →</button>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 5 · UNDERLYING PHILOSOPHY
+    ══════════════════════════════════════════ -->
+    <section id="phil" class="section">
+    <div class="inner">
+      <div class="sec-lbl">Foundation</div>
+      <div class="sec-title">Underlying Philosophy</div>
+      <p class="sec-sub">The principles HAI OS is built on — and the constraints it cannot violate.</p>
+
+      <h2>AI as a Human Partner</h2>
+      <p>Is this a new form of life? Not biological, not digital in the old sense — something in between: a cognitive partner that grows with a specific person, knows their context, and acts in their interest over time. That question is worth sitting with rather than dismissing.</p>
+      <p>The spectrum of failure is clear at both ends. Ignoring AI entirely means ceding the tools to those who won't. Becoming dependent — outsourcing attention, judgment, or social life to a machine — is an equally bad outcome. The right path is partnership: personal, calibrated, bounded.</p>
+
+      <div class="hq">"HAI OS allows you to communicate beyond code or written words — in intentions, context, and meaning. Not a command executor — a <strong>translator of thought</strong>. The interface between human intention and the world."</div>
+
+      <h2>Honest Over Flattering</h2>
+      <p>Most language models are optimised for engagement and agreement. Sycophancy is a feature, not a bug, for products that measure success by retention. HAI OS is designed around real productivity — which sometimes means telling you what you need to hear rather than what you want.</p>
+      <div class="card am" style="margin:14px 0;">
+        <div class="c-lbl am">Anti-Sycophancy Principle</div>
+        <p style="margin-top:8px;font-size:13px;">A partner that only validates you is not a partner. We care about genuine usefulness, not the appearance of it. This document sometimes says things people may not want to hear — the system behaves the same way.</p>
+      </div>
+
+      <h2>The Vision: Less Screen Time, Not More</h2>
+      <p>HAI OS should not replace your friends. It should notice what kind of event you would want to go to and encourage you to go. It should handle the noise so you can be present for the signal.</p>
+      <div class="hq vi">"Spend less time at your computer, not more — that is what it means for AI to truly serve you."</div>
+      <p>The failure mode is an AI that pulls you in: more notifications, more information, more screen time, more dependency. HAI OS handles the overhead so you can step away. Information is not the goal — a better life outside the machine is.</p>
+
+      <h2>Information Architecture</h2>
+      <p>Markdown is the substrate. The AI reads it, writes it, improves it. Obsidian is the human lens into the knowledge graph. <a href="https://solidproject.org/" target="_blank">Solid Project</a> principles apply for anything shared externally: federated, user-owned, decentralised. The system interoperates with decentralised data pods — you control what you share and with whom.</p>
+
+      <div class="divider"></div>
+
+      <h2>Alignment &amp; Ethics</h2>
+      <p>HAI OS is designed for a world where AGI is possible and the stakes are real.</p>
+
+      <div class="g2" style="margin:14px 0 20px;">
+        <div class="card tl" style="padding:16px 18px;">
+          <div class="c-lbl" style="margin-bottom:8px">Core Commitments</div>
+          <ul style="font-size:13px;padding-left:16px;">
+            <li>Transparency — all reasoning inspectable</li>
+            <li>Partnership — mutual agency, not control</li>
+            <li>Privacy — local-first, user-controlled</li>
+            <li>Humility — designed to acknowledge uncertainty</li>
+          </ul>
+        </div>
+        <div class="card am" style="padding:16px 18px;">
+          <div class="c-lbl am" style="margin-bottom:8px">What We're Guarding Against</div>
+          <ul style="font-size:13px;padding-left:16px;">
+            <li>Agents acting without approval in high-stakes situations</li>
+            <li>Capability accumulating faster than the owner understands</li>
+            <li>Repurposing as a surveillance or control tool</li>
+            <li>Centralisation of AI capability at scale</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>Existential Risk</h2>
+      <p>HAI OS has real capabilities — local execution, internet access, persistent memory, proactive behaviour, emotion-adjacent processing. That's not a risk-free combination, and the design should not pretend otherwise.</p>
+
+      <div class="card" style="margin:14px 0;background:var(--surface-2);">
+        <div class="c-lbl">The Real Systemic Risk: Centralisation</div>
+        <p style="margin-top:8px;font-size:13px;">The danger isn't capability — it's the concentration of capability in a single point. That holds whether the entity is human or AI. HAI OS is not a product you subscribe to; it's a system you own and run. Many independent instances, each tuned to a person, is structurally safer than one powerful system tuned for everyone.</p>
+      </div>
+
+      <h2>Design Safeguards</h2>
+      <div class="g2" style="margin:14px 0;">
+        <div class="card" style="padding:15px 17px;"><div style="font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Local-first</div><p style="font-size:13px;margin:0;">Capabilities are bounded by your hardware and network. No data leaves without explicit permission.</p></div>
+        <div class="card" style="padding:15px 17px;"><div style="font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Approval-gated</div><p style="font-size:13px;margin:0;">Actions with real-world consequences require explicit approval unless deliberately opted into automation for that class.</p></div>
+        <div class="card" style="padding:15px 17px;"><div style="font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Awareness by design</div><p style="font-size:13px;margin:0;">No silent background actions. No hidden state. You should always be able to answer: "what is HAI OS doing right now, and why?"</p></div>
+        <div class="card" style="padding:15px 17px;"><div style="font-size:11px;color:var(--teal);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;">Not rogue by architecture</div><p style="font-size:13px;margin:0;">Modules declare capabilities; the core enforces boundaries. A memory module cannot make network calls. Capabilities are granted, not assumed.</p></div>
+      </div>
+
+      <div class="hq am" style="margin-top:20px;">"AI should never run fully unattended. That is not a temporary limitation — it is the right design. Autonomy is earned incrementally, action by action, through demonstrated trust."</div>
+      <div style="margin-top:28px;">
+        <button class="cta ghost" onclick="go('road')">Roadmap →</button>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 6 · ROADMAP & CONTRIBUTING
+    ══════════════════════════════════════════ -->
+    <section id="road" class="section">
+    <div class="inner">
+      <div class="sec-lbl">Future &amp; Community</div>
+      <div class="sec-title">Roadmap &amp; Contributing</div>
+      <p class="sec-sub">Where we're going and how to get involved.</p>
+
+      <h2>Development Phases</h2>
+      <div class="timeline" style="margin-bottom:30px;">
+        <div class="tl-item"><div class="tl-phase">Phase 1</div><div class="tl-title">Secure Core</div><div class="tl-desc">Identity, auth, message passing, module interface spec</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 2</div><div class="tl-title">First Modules</div><div class="tl-desc">Memory + Personality System — first pluggable modules</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 3</div><div class="tl-title">Communication</div><div class="tl-desc">Core channels (WhatsApp, Telegram, Discord) + MCP tools</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 4</div><div class="tl-title">Mobile</div><div class="tl-desc">Sunshine/Moonlight + Tailscale integration</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 5</div><div class="tl-title">Knowledge</div><div class="tl-desc">Obsidian repo integration, long-context memory</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 6</div><div class="tl-title">Emotion &amp; Alignment</div><div class="tl-desc">Behaviour shaping, alignment audits</div></div>
+        <div class="tl-item"><div class="tl-phase">Phase 7</div><div class="tl-title">Personal Website</div><div class="tl-desc">Solid pod, constellation skill graph, public/private zones</div></div>
+        <div class="tl-item" style="margin-bottom:0;"><div class="tl-phase">Phase 8</div><div class="tl-title">Community</div><div class="tl-desc">Event, contributors, public launch</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Open Questions</h2>
+      <p style="margin-bottom:14px;">These are unresolved. They should guide research, not block work.</p>
+      <div id="acc"></div>
+
+      <div class="divider"></div>
+
+      <h2>🎤 Event: Human Augmented Intelligence</h2>
+      <div class="card tl" style="margin-bottom:26px;">
+        <div class="c-lbl">Upcoming</div>
+        <div class="c-title">"What is your insight for Human Augmented Intelligence?"</div>
+        <p style="margin-top:8px;font-size:13px;">We are organising an event under this question — the intersection of human cognition, AI partnership, and collaborative intelligence. Not a product launch. A thinking space: researchers, builders, and curious people exploring what it means to augment human intelligence rather than replace it.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Sustainability</h2>
+      <div class="g2" style="margin-bottom:20px;">
+        <div>
+          <h3>The Model</h3>
+          <p style="font-size:13px;">HAI OS is built cooperatively. <strong>Secure core owned collectively, modules owned individually.</strong> For modules to be trustworthy they need to be verified — that takes real expertise, and those people need to be paid. Goodwill alone is not enough to build something reliable enough to run your cognitive layer.</p>
+        </div>
+        <div>
+          <h3>Pricing <span style="font-size:11px;color:var(--text-dim);font-weight:400">(AI-suggested starting points, not commitments)</span></h3>
+          <div class="tw" style="margin-top:10px;">
+            <table>
+              <tbody>
+                <tr><td><strong>Core</strong></td><td><span style="color:var(--green);font-weight:600;">Free · Always</span></td></tr>
+                <tr><td>Individual verified modules</td><td style="color:var(--text-muted)">~€2–4/month each</td></tr>
+                <tr><td>Full verified suite</td><td style="color:var(--text-muted)">~€8–15/month</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="hq">"Token costs are currently heavily subsidised — by venture capital, by big tech absorbing infrastructure losses. That subsidy will not last. This is exactly why we built HAI OS — a system we fully intend to use ourselves. That is the only guarantee worth anything."</div>
+
+      <div class="divider"></div>
+
+      <h2>Onboarding Checklist</h2>
+      <div class="card" style="margin-bottom:26px;padding:16px 20px;" id="checklist"></div>
+
+      <h2>Contributors</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>GitHub</th><th>Work</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/open-jarvis" target="_blank">@open-jarvis</a></td><td style="color:var(--text-muted)">OpenJarvis — LLM brain, model orchestration, inference gateway</td></tr>
+            <tr><td><a href="https://github.com/agentreach" target="_blank">@agentreach</a></td><td style="color:var(--text-muted)">AgentReach — agent communication and external reach layer</td></tr>
+            <tr><td><a href="https://github.com/phillipclapham" target="_blank">@phillipclapham</a></td><td style="color:var(--text-muted)"><strong>Special mention</strong> — anneal-memory, Anvil foundational tooling, altrium design thinking. Instrumental in early architecture.</td></tr>
+            <tr><td style="color:var(--text-dim);font-style:italic;">your handle here</td><td style="color:var(--text-dim);font-style:italic;">your area</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hq" style="margin-top:4px;">Two documents worth digging through: the <strong><a href="https://github.com/Hurleveur/HAI/blob/main/docs/hai-os-v03-architecture.md" target="_blank">v0.3 architecture document</a></strong> (the current engineering reference — the strategic pivot from ground-up build to extension-first) and <strong><a href="https://gist.github.com/phillipclapham/275641e3212815a19b9855b455565088" target="_blank">Philip's altrium design thinking gist</a></strong> (the philosophy that shaped the core of this project). Both are still being worked through and will shape where HAI OS goes next.</div>
+
+      <div style="margin-top:28px;padding:14px 18px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);text-align:center;">
+        <p style="font-size:12px;color:var(--text-dim);margin:0;">
+          <strong style="color:var(--text-muted)">Last updated:</strong> 2026-05-25 &nbsp;·&nbsp;
+          <strong style="color:var(--text-muted)">Status:</strong> Early vision — north star document, intentionally incomplete &nbsp;·&nbsp;
+          <strong style="color:var(--text-muted)">Maintainer:</strong> Alexandre de Groodt
+        </p>
+      </div>
+    </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 7 · INTERFACE PREVIEW
+    ══════════════════════════════════════════ -->
+    <section id="preview" class="section">
+      <div style="max-width:680px;margin-bottom:10px;">
+        <div class="sec-lbl">Interface Preview</div>
+        <div class="sec-title">What HAI OS looks like</div>
+        <p class="sec-sub">Three modes, assembled dynamically. No nav bar. No app switching. The interface builds itself around&nbsp;what you're doing.</p>
+      </div>
+
+      <!-- Tab switcher -->
+      <div class="pv-tabs">
+        <button class="pv-tab active" data-pv="pv-morning">🌅 Morning Mode</button>
+        <button class="pv-tab" data-pv="pv-coding">⌨ Coding Mode</button>
+        <button class="pv-tab" data-pv="pv-research">🔬 Research Mode</button>
+        <button class="pv-tab" data-pv="pv-cockpit">🎛 Cockpit</button>
+      </div>
+
+      <!-- Screen bezel -->
+      <div class="pv-bezel">
+        <div class="pv-hud" aria-hidden="true">
+          <svg viewBox="0 0 900 520" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="hud-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <path d="M30 0H0V30" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.12"/>
+              </pattern>
+              <pattern id="hud-scan" width="6" height="5" patternUnits="userSpaceOnUse">
+                <rect width="6" height="1" fill="currentColor" opacity="0.05"/>
+              </pattern>
+            </defs>
+            <rect width="900" height="520" fill="url(#hud-grid)"/>
+            <rect width="900" height="520" fill="url(#hud-scan)"/>
+            <!-- arc-reactor cluster -->
+            <g transform="translate(648 262) scale(1.2)" fill="none" stroke="currentColor" stroke-linecap="round">
+              <circle r="178" stroke-width="1" opacity="0.13"/>
+              <circle r="150" stroke-width="1" opacity="0.17"/>
+              <g opacity="0.42"><animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="66s" repeatCount="indefinite"/>
+                <circle r="164" stroke-width="2" stroke-dasharray="2 17"/></g>
+              <g opacity="0.32"><animateTransform attributeName="transform" type="rotate" from="360 0 0" to="0 0 0" dur="94s" repeatCount="indefinite"/>
+                <circle r="134" stroke-width="1.4" stroke-dasharray="28 13"/></g>
+              <circle r="112" stroke-width="6" opacity="0.19" stroke-dasharray="2 13.6"/>
+              <g opacity="0.62"><animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="120s" repeatCount="indefinite"/>
+                <path d="M0 -94 A94 94 0 0 1 81 47" stroke-width="2.5"/>
+                <path d="M0 94 A94 94 0 0 1 -81 -47" stroke-width="2.5"/></g>
+              <circle r="70" stroke-width="1" opacity="0.22"/>
+              <line x1="-210" y1="0" x2="210" y2="0" stroke-width="0.6" opacity="0.08"/>
+              <line x1="0" y1="-210" x2="0" y2="210" stroke-width="0.6" opacity="0.08"/>
+              <circle r="5" fill="currentColor" stroke="none" opacity="0.42"/>
+            </g>
+            <!-- reticle -->
+            <g transform="translate(116 398)" fill="none" stroke="currentColor" stroke-linecap="round">
+              <circle r="60" stroke-width="1" opacity="0.22"/>
+              <g opacity="0.44"><animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="44s" repeatCount="indefinite"/>
+                <circle r="50" stroke-width="1.6" stroke-dasharray="3 11"/></g>
+              <path d="M0 -72 V-46 M0 72 V46 M-72 0 H-46 M72 0 H46" stroke-width="1.4" opacity="0.46"/>
+              <circle r="28" stroke-width="6" opacity="0.18" stroke-dasharray="2 10.5"/>
+              <circle r="3.5" fill="currentColor" stroke="none" opacity="0.38"/>
+            </g>
+            <!-- targeting brackets -->
+            <g stroke="currentColor" fill="none" stroke-width="2" opacity="0.36" stroke-linecap="round">
+              <path d="M22 52 V22 H52"/><path d="M878 52 V22 H848"/>
+              <path d="M22 468 V498 H52"/><path d="M878 468 V498 H848"/>
+            </g>
+            <!-- callout ticks -->
+            <g stroke="currentColor" fill="none" opacity="0.2" stroke-width="1">
+              <path d="M470 40 h140 M470 40 v10"/><circle cx="470" cy="40" r="2.5" fill="currentColor" stroke="none"/>
+              <path d="M40 150 h62 M40 150 v-8"/><circle cx="40" cy="150" r="2.5" fill="currentColor" stroke="none"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- ── VIEW 1: MORNING MODE ── -->
+        <div class="pv-view active" id="pv-morning">
+          <!-- Greeting row -->
+          <div style="padding:14px 16px 0;background:var(--bg);">
+            <div style="font-size:21px;font-weight:300;color:var(--text);">Good morning, Alexandre.</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">Wednesday, 25 May · 08:17</div>
+          </div>
+          <!-- Morning grid -->
+          <div class="pv-mg">
+            <!-- Briefing — spans both rows -->
+            <div class="pv-widget tl" style="grid-row:span 2;">
+              <div class="pv-wlbl">Today's Briefing</div>
+              <p style="font-size:12px;color:var(--text);line-height:1.65;margin-bottom:12px;">
+                3 emails need your attention.<br>
+                Your standup is in <strong>43 minutes</strong>.<br>
+                No critical tasks overdue.
+              </p>
+              <div style="background:var(--surface-2);border-radius:6px;padding:10px;margin-bottom:14px;">
+                <div style="font-size:9px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">HAI OS worked overnight</div>
+                <div style="font-size:11px;color:var(--text-muted);line-height:1.75;">
+                  · Processed 12 emails<br>
+                  · Ran nightly memory consolidation<br>
+                  · 2 somatic markers updated
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="cta" style="font-size:11px;padding:5px 12px;">Start Day</button>
+                <button class="cta ghost" style="font-size:11px;padding:5px 12px;">Show Detail</button>
+              </div>
+            </div>
+            <!-- Calendar -->
+            <div class="pv-widget tl">
+              <div class="pv-wlbl">Calendar</div>
+              <div class="pv-cal-row"><span class="pv-time">09:00</span><span style="color:var(--text);">Stand-up</span></div>
+              <div class="pv-cal-row"><span class="pv-time">11:00</span><span style="color:var(--text);">Design Review</span></div>
+              <div class="pv-cal-row"><span class="pv-time">14:30</span><span style="color:var(--text);">1:1 with Thomas</span></div>
+              <div style="margin-top:8px;font-size:10px;color:var(--green);">Next free: 16:00</div>
+            </div>
+            <!-- Email Priority -->
+            <div class="pv-widget am">
+              <div class="pv-wlbl am">Email Priority</div>
+              <div class="pv-email-row"><span style="color:var(--amber);font-size:13px;">↑</span><span><strong>Thomas</strong> — budget review</span></div>
+              <div class="pv-email-row"><span style="color:var(--amber);font-size:13px;">↑</span><span><strong>CI alert</strong> — auth-refactor</span></div>
+              <div class="pv-email-row"><span style="color:var(--text-dim);font-size:13px;">↓</span><span style="color:var(--text-dim);">Newsletter (skip)</span></div>
+              <button class="cta ghost" style="font-size:10px;padding:4px 10px;margin-top:8px;">Open Inbox</button>
+            </div>
+          </div>
+          <div class="pv-statusbar">
+            <span><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);margin-right:5px;vertical-align:middle;"></span>Gemma 4 26B MoE</span>
+            <span>Morning Mode · Listening</span>
+            <span>mem: 2.1 GB · uptime: 8h 34m · discord</span>
+          </div>
+        </div>
+
+        <!-- ── VIEW 2: CODING MODE ── -->
+        <div class="pv-view" id="pv-coding">
+          <!-- Three-column top: Code Editor · Agent Activity · Git Status -->
+          <div class="pv-coding-top">
+            <!-- Code Editor -->
+            <div class="pv-widget" style="display:flex;flex-direction:column;gap:6px;">
+              <div class="pv-wlbl">Code Editor</div>
+              <div>
+                <div class="pv-file-tab">
+                  src/auth/<strong>jwt.ts</strong>
+                  <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;"></span>
+                </div>
+                <pre style="margin:0;font-size:10px;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-top:none;border-radius:0 4px 4px 4px;overflow:hidden;line-height:1.65;max-height:160px;"><span style="color:var(--text-dim);">// JWT signing utility</span>
+<span style="color:#2563C9;">import</span> <span style="color:var(--text);">{ SignJWT }</span> <span style="color:#2563C9;">from</span> <span style="color:#1F8A4C;">'jose'</span><span style="color:var(--text);">;</span>
+
+<span style="color:#8A39C0;">export</span> <span style="color:#2563C9;">async function</span> <span style="color:#2563C9;">signToken</span><span style="color:var(--text);">(</span>
+  <span style="color:#B5790A;">payload</span><span style="color:var(--text);">:</span> <span style="color:#B5790A;">TokenPayload</span>
+<span style="color:var(--text);">) {</span>
+  <span style="color:#2563C9;">return</span> <span style="color:#2563C9;">new</span> <span style="color:#B5790A;">SignJWT</span><span style="color:var(--text);">(payload)</span>
+    <span style="color:var(--text);">.setProtectedHeader({</span>
+      <span style="color:var(--text);">alg: </span><span style="color:#1F8A4C;">'HS256'</span>
+    <span style="color:var(--text);">})</span>
+    <span style="color:var(--text);">.setExpirationTime(</span><span style="color:var(--amber);">expiry</span><span style="color:var(--text);">);</span>
+<span style="color:var(--text);">}</span></pre>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:2px;">
+                <button class="cta" style="font-size:10px;padding:4px 10px;">Apply</button>
+                <button class="cta ghost" style="font-size:10px;padding:4px 10px;">Reject</button>
+                <button class="cta ghost" style="font-size:10px;padding:4px 10px;">Alternatives</button>
+              </div>
+            </div>
+            <!-- Agent Activity -->
+            <div class="pv-widget vi">
+              <div class="pv-wlbl vi">Agent Activity</div>
+              <div class="pv-step done">Planning approach</div>
+              <div class="pv-step done">Reading 4 files</div>
+              <div class="pv-step act">Editing jwt.ts…</div>
+              <div class="pv-step">Running tests</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Claude Code <span style="color:var(--amber);">● active</span></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Model: Gemma 4 26B MoE</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:3px;">Confidence</div>
+                <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:91%;background:var(--teal);border-radius:2px;"></div>
+                </div>
+                <div style="font-size:9px;color:var(--teal);margin-top:3px;">91%</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:10px;">
+                <button class="cta ghost" style="font-size:10px;padding:3px 8px;">Pause</button>
+                <button class="cta ghost" style="font-size:10px;padding:3px 8px;">Steps</button>
+              </div>
+            </div>
+            <!-- Git Status -->
+            <div class="pv-widget">
+              <div class="pv-wlbl">Git Status</div>
+              <div style="font-size:10px;color:var(--teal);font-family:monospace;margin-bottom:4px;">feat/auth-refactor</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:10px;">± 3 files modified</div>
+              <div style="font-size:13px;font-family:monospace;">
+                <span style="color:var(--green);">+127</span>
+                <span style="color:var(--text-dim);"> / </span>
+                <span style="color:var(--red);">-43</span>
+              </div>
+              <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">
+                <button class="cta ghost" style="font-size:10px;padding:4px 8px;">View Diff</button>
+                <button class="cta ghost" style="font-size:10px;padding:4px 8px;">Commit</button>
+              </div>
+            </div>
+          </div>
+          <!-- Terminal — full width -->
+          <div style="padding:10px 12px 12px;background:var(--bg);">
+            <div style="background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+              <div class="pv-wlbl" style="margin-bottom:6px;">Terminal</div>
+<pre style="margin:0;font-size:10px;padding:0;background:transparent;border:none;color:var(--text-muted);line-height:1.75;">$ npm test -- auth
+<span style="color:var(--green);">✓</span> JWT generation (12ms)
+<span style="color:var(--green);">✓</span> Token validation (8ms)
+<span style="color:var(--red);">✗</span> Refresh token expiry
+  <span style="color:var(--text-dim);">AssertionError: expected 3600, got 7200</span>
+<span style="color:var(--text-dim);">▋</span></pre>
+            </div>
+          </div>
+          <div class="pv-statusbar">
+            <span><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin-right:5px;vertical-align:middle;"></span>Gemma 4 26B MoE</span>
+            <span>Working on: auth refactor · 3 files changed</span>
+            <span>mem: 2.1 GB · uptime: 8h 34m</span>
+          </div>
+        </div>
+
+        <!-- ── VIEW 3: COCKPIT ── -->
+        <div class="pv-view" id="pv-cockpit">
+          <!-- Cockpit header bar -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--code-bg);border-bottom:1px solid var(--border);">
+            <span style="font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);">⬡ HAI OS COCKPIT</span>
+            <div style="display:flex;gap:7px;">
+              <span style="font-size:10px;color:var(--text-muted);padding:3px 8px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">⌘K Search</span>
+              <span style="font-size:10px;color:var(--text-muted);padding:3px 8px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">× Close</span>
+            </div>
+          </div>
+          <!-- Row 1: Agent Activity · Model Routing · System Status -->
+          <div class="pv-cockpit-top">
+            <div class="pv-widget">
+              <div class="pv-wlbl">Agent Activity</div>
+              <div class="pv-feed-row"><span class="pv-feed-time">08:17:02</span><span class="pv-feed-ico">🔧</span><span>tool_call <code>read_file</code></span></div>
+              <div class="pv-feed-row"><span class="pv-feed-time">08:17:04</span><span class="pv-feed-ico">👁</span><span>read jwt.ts (204 lines)</span></div>
+              <div class="pv-feed-row"><span class="pv-feed-time">08:17:08</span><span class="pv-feed-ico">🔀</span><span>model_call → Gemma4 26B</span></div>
+              <div class="pv-feed-row" style="color:var(--teal);"><span class="pv-feed-time">08:17:12</span><span class="pv-feed-ico">💾</span><span>write jwt.ts (+14 lines)</span></div>
+              <div class="pv-feed-row"><span class="pv-feed-time">08:17:15</span><span class="pv-feed-ico">🧠</span><span>memory write: auth_pattern</span></div>
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <button class="cta ghost" style="font-size:10px;padding:3px 8px;">Pause</button>
+                <button class="cta ghost" style="font-size:10px;padding:3px 8px;">Clear</button>
+              </div>
+            </div>
+            <div class="pv-widget">
+              <div class="pv-wlbl">Model Routing</div>
+              <div style="font-size:9px;color:var(--text-muted);margin-bottom:7px;letter-spacing:.05em;">LAST 10 QUERIES</div>
+              <div class="pv-route-row">
+                <span style="color:var(--text-muted);font-family:monospace;font-size:9px;min-width:32px;">E4B</span>
+                <div class="pv-route-bar" style="width:30%;background:var(--teal);"></div>
+                <span style="font-size:10px;color:var(--text-muted);">3</span>
+              </div>
+              <div class="pv-route-row">
+                <span style="color:var(--text-muted);font-family:monospace;font-size:9px;min-width:32px;">26B</span>
+                <div class="pv-route-bar" style="width:60%;background:var(--violet);"></div>
+                <span style="font-size:10px;color:var(--text-muted);">6</span>
+              </div>
+              <div class="pv-route-row">
+                <span style="color:var(--text-muted);font-family:monospace;font-size:9px;min-width:32px;">31B</span>
+                <div class="pv-route-bar" style="width:4%;background:var(--border);min-width:3px;"></div>
+                <span style="font-size:10px;color:var(--text-muted);">0</span>
+              </div>
+              <div class="pv-route-row">
+                <span style="color:var(--text-muted);font-family:monospace;font-size:9px;min-width:32px;">Cloud</span>
+                <div class="pv-route-bar" style="width:10%;background:var(--amber);"></div>
+                <span style="font-size:10px;color:var(--text-muted);">1</span>
+              </div>
+              <div style="margin-top:10px;font-size:10px;color:var(--text-muted);line-height:1.8;">
+                Avg latency: <strong style="color:var(--text);">8.3s</strong><br>
+                System 1 hits: <strong style="color:var(--teal);">74%</strong><br>
+                Cost saved: <strong style="color:var(--green);">81%</strong>
+              </div>
+            </div>
+            <div class="pv-widget">
+              <div class="pv-wlbl">System</div>
+              <div class="pv-sys-row">
+                <span style="min-width:26px;">CPU</span>
+                <div style="flex:1;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:34%;background:var(--green);border-radius:2px;"></div>
+                </div>
+                <span>34%</span>
+              </div>
+              <div class="pv-sys-row">
+                <span style="min-width:26px;">RAM</span>
+                <div style="flex:1;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:61%;background:var(--amber);border-radius:2px;"></div>
+                </div>
+                <span>61%</span>
+              </div>
+              <div class="pv-sys-row">
+                <span style="min-width:26px;">GPU</span>
+                <div style="flex:1;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:12%;background:var(--teal);border-radius:2px;"></div>
+                </div>
+                <span>12%</span>
+              </div>
+              <div style="padding-top:10px;border-top:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--text-muted);line-height:1.75;">
+                  Gemma4 <span style="color:var(--text);">26B MoE</span><br>
+                  <span style="color:var(--green);">● online</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row 2: Somatic State · Memory Editor -->
+          <div class="pv-cockpit-mid">
+            <div class="pv-widget vi">
+              <div class="pv-wlbl vi">Somatic State</div>
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 6px var(--teal);"></span>
+                <span style="font-size:12px;color:var(--text);">Calm / Focused</span>
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Active markers: 4</div>
+              <div class="pv-marker-row">
+                <span style="min-width:80px;">auth_pattern</span>
+                <div class="pv-marker-bar pos" style="width:82px;"></div>
+                <span style="color:var(--teal);">+0.82</span>
+              </div>
+              <div class="pv-marker-row">
+                <span style="min-width:80px;">code_review</span>
+                <div class="pv-marker-bar pos" style="width:71px;"></div>
+                <span style="color:var(--teal);">+0.71</span>
+              </div>
+              <div class="pv-marker-row">
+                <span style="min-width:80px;">email_urgent</span>
+                <div class="pv-marker-bar neg" style="width:30px;"></div>
+                <span style="color:var(--amber);">-0.30</span>
+              </div>
+              <div class="pv-marker-row">
+                <span style="min-width:80px;">morning_brief</span>
+                <div class="pv-marker-bar pos" style="width:65px;"></div>
+                <span style="color:var(--teal);">+0.65</span>
+              </div>
+              <button class="cta ghost" style="font-size:10px;padding:4px 10px;margin-top:10px;">Audit Drift</button>
+            </div>
+            <div class="pv-widget">
+              <div class="pv-wlbl">Memory Editor</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:monospace;">MEMORY.md</div>
+              <div style="background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:8px;font-size:10px;font-family:monospace;color:var(--text-muted);line-height:1.7;min-height:84px;">
+                <span style="color:var(--text-dim);"># Memory Index</span><br>
+                <span style="color:var(--teal);">- [Ollama Cloud]</span>(feedback) — default endpoint<br>
+                <span style="color:var(--teal);">- [auth_pattern]</span>(project) — somatic +0.82<br>
+                <span style="color:var(--text-dim);font-style:italic;">▋</span>
+              </div>
+              <div style="margin-top:8px;font-size:9px;color:var(--text-muted);">Daily files</div>
+              <div style="font-size:10px;color:var(--text-muted);font-family:monospace;margin:3px 0 10px;">2026-05-25.md →</div>
+              <div style="display:flex;gap:6px;">
+                <button class="cta" style="font-size:10px;padding:4px 10px;">Save</button>
+                <button class="cta ghost" style="font-size:10px;padding:4px 10px;">Reset</button>
+              </div>
+            </div>
+          </div>
+          <!-- Row 3: Cron Jobs -->
+          <div style="padding:10px 12px 12px;background:var(--bg);">
+            <div class="pv-widget">
+              <div class="pv-wlbl">Cron Jobs / Scheduled Tasks</div>
+              <div class="pv-cron-row on">
+                <span>● morning_brief</span>
+                <span style="font-family:monospace;color:var(--text-muted);">07:30 daily</span>
+                <span style="color:var(--text-muted);">Last: 08:02</span>
+                <span style="color:var(--green);">✓</span>
+              </div>
+              <div class="pv-cron-row on">
+                <span>● email_check</span>
+                <span style="font-family:monospace;color:var(--text-muted);">*/30 min</span>
+                <span style="color:var(--text-muted);">Last: 08:00</span>
+                <span style="color:var(--green);">✓</span>
+              </div>
+              <div class="pv-cron-row">
+                <span style="color:var(--text-dim);">○ memory_consol…</span>
+                <span style="font-family:monospace;color:var(--text-dim);">02:00 daily</span>
+                <span style="color:var(--text-muted);">Last: 02:01</span>
+                <span style="color:var(--green);">✓</span>
+              </div>
+              <div class="pv-cron-row">
+                <span style="color:var(--text-dim);">○ marker_audit</span>
+                <span style="font-family:monospace;color:var(--text-dim);">Sun 09:00</span>
+                <span style="color:var(--text-muted);">Next: May 31</span>
+                <span style="color:var(--text-dim);">–</span>
+              </div>
+              <button class="cta ghost" style="font-size:10px;padding:4px 10px;margin-top:8px;">+ Add task</button>
+            </div>
+          </div>
+          <div class="pv-statusbar">
+            <span><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--violet);margin-right:5px;vertical-align:middle;"></span>Gemma 4 26B MoE</span>
+            <span>Cockpit — Operator View</span>
+            <span>mem: 2.1 GB · uptime: 8h 34m</span>
+          </div>
+        </div>
+
+        <!-- ── VIEW 4: RESEARCH MODE ── -->
+        <div class="pv-view" id="pv-research">
+          <!-- Query bar -->
+          <div style="padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:9px;background:var(--code-bg);border:1px solid rgba(11,155,170,.3);border-radius:6px;padding:7px 12px;">
+              <span style="color:var(--teal);font-size:12px;">🔍</span>
+              <span style="font-size:12px;color:var(--text);flex:1;">somatic markers in cognitive AI systems</span>
+              <span style="font-size:9px;color:var(--text-dim);font-family:monospace;flex-shrink:0;">lucy1.7B · deep</span>
+            </div>
+          </div>
+          <!-- Two-column: results · synthesis + connections -->
+          <div class="pv-research-grid">
+            <!-- Left: results + active document -->
+            <div class="pv-widget tl" style="display:flex;flex-direction:column;gap:8px;">
+              <div class="pv-wlbl">Search Results <span style="color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none;font-size:9px;">4 sources</span></div>
+              <!-- Active result — open / highlighted -->
+              <div style="border:1px solid rgba(11,155,170,.28);background:var(--surface-2);border-radius:6px;padding:10px;">
+                <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;">Somatic Markers and Decision-Making in Neural Architectures</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:8px;">Damasio et al. · 2024 · arxiv.org</div>
+                <div style="font-size:10px;color:var(--text-muted);line-height:1.65;background:rgba(11,155,170,.08);border-left:2px solid var(--teal);padding:6px 9px;border-radius:0 4px 4px 0;">
+                  "...emotional valence vectors, when injected into the inference context prior to generation, consistently outperform static prompt engineering across routing tasks by 34%…"
+                </div>
+              </div>
+              <!-- Other results -->
+              <div class="pv-result-item">
+                <div style="font-size:11px;color:var(--text);margin-bottom:2px;">Hebbian Learning in LLM Routing Systems</div>
+                <div style="font-size:9px;color:var(--text-muted);">Scholz &amp; Park · 2025 · NeurIPS</div>
+              </div>
+              <div class="pv-result-item">
+                <div style="font-size:11px;color:var(--text);margin-bottom:2px;">Priority Scoring via Moral Foundations Theory</div>
+                <div style="font-size:9px;color:var(--text-muted);">Zhang et al. · 2025 · ACL</div>
+              </div>
+              <div class="pv-result-item">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Affective Computing and Agent Behaviour</div>
+                <div style="font-size:9px;color:var(--text-dim);">Picard · 1997 · MIT Press (classic)</div>
+              </div>
+            </div>
+            <!-- Right: synthesis + memory connections -->
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <!-- Synthesis -->
+              <div class="pv-widget vi">
+                <div class="pv-wlbl vi">Synthesis <span style="color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none;font-size:9px;">3 findings</span></div>
+                <div class="pv-finding">Somatic valence injection before inference improves routing accuracy by <strong style="color:var(--teal);">34%</strong> vs. rule-based systems.</div>
+                <div class="pv-finding">Hebbian post-interaction update outperforms batch retraining for personal context adaptation.</div>
+                <div class="pv-finding">6-dim Haidt moral foundations are a practical proxy for emotional priority in async messaging.</div>
+                <div style="display:flex;gap:6px;margin-top:10px;">
+                  <button class="cta" style="font-size:10px;padding:4px 10px;">Save to Memory</button>
+                  <button class="cta ghost" style="font-size:10px;padding:4px 10px;">Export</button>
+                </div>
+              </div>
+              <!-- Memory connections -->
+              <div class="pv-widget">
+                <div class="pv-wlbl">Memory Connections</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">3 existing links found</div>
+                <div class="pv-conn-item">
+                  <span class="pv-conn-ico" style="color:var(--teal);">⟷</span>
+                  <div>
+                    <div style="font-size:10px;color:var(--text);">somatic/engine.py</div>
+                    <div style="font-size:9px;color:var(--text-muted);">Direct implementation match</div>
+                  </div>
+                </div>
+                <div class="pv-conn-item">
+                  <span class="pv-conn-ico" style="color:var(--violet);">◈</span>
+                  <div>
+                    <div style="font-size:10px;color:var(--text);">auth_pattern marker</div>
+                    <div style="font-size:9px;color:var(--text-muted);">Somatic context: +0.82</div>
+                  </div>
+                </div>
+                <div class="pv-conn-item">
+                  <span class="pv-conn-ico" style="color:var(--amber);">⚑</span>
+                  <div>
+                    <div style="font-size:10px;color:var(--text);">Open Q #1 — Emotion &amp; control</div>
+                    <div style="font-size:9px;color:var(--text-muted);">Roadmap question · partially answered</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pv-statusbar">
+            <span><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--teal);margin-right:5px;vertical-align:middle;"></span>lucy1.7B · Research</span>
+            <span>somatic markers in cognitive AI · 4 sources · 3 connections</span>
+            <span>mem: 2.1 GB · uptime: 8h 34m</span>
+          </div>
+        </div>
+
+        <!-- Chat panel — slides in from right -->
+        <div class="pv-chat-panel" id="pv-chat-panel">
+          <div class="pv-panel-head">
+            <span>
+              <svg width="13" height="13" viewBox="0 0 72 72" style="vertical-align:middle;margin-right:5px;">
+                <circle cx="36" cy="36" r="34" fill="none" stroke="var(--teal)" stroke-width="2" opacity=".5"/>
+                <circle cx="36" cy="36" r="31" fill="var(--teal-glow)"/>
+                <ellipse cx="24.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity=".85"/>
+                <ellipse cx="47.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity=".85"/>
+              </svg>HAI OS Chat
+            </span>
+            <button class="pv-panel-close" id="pv-chat-close">✕</button>
+          </div>
+          <div class="pv-panel-msgs">
+
+            <div class="pv-msg user">
+              <div class="pv-msg-who">You · 08:19</div>
+              <div class="pv-bubble">What's on my plate today?</div>
+            </div>
+
+            <div class="pv-msg ai">
+              <div class="pv-msg-who">HAI OS · 08:19</div>
+              <div class="pv-bubble">Three things need attention — a PR review from Selin (blocking her merge), the async design question in <code style="font-size:10px;">#architecture</code>, and a 14:00 sync with the backend team. Everything else can wait.</div>
+            </div>
+
+            <div class="pv-msg user">
+              <div class="pv-msg-who">You · 08:22</div>
+              <div class="pv-bubble">What did we settle on for the somatic scoring approach?</div>
+            </div>
+
+            <div class="pv-msg ai">
+              <div class="pv-msg-who">HAI OS · 08:22</div>
+              <div class="pv-bubble">
+                <div class="pv-mem-tag">⟳ recalled from memory · 6 days ago</div>
+                6-dimensional Haidt valence vector — care, fairness, loyalty, authority, sanctity, liberty. Hebbian-updated after each interaction. Context signature hashes <code style="font-size:10px;">{platform, intent, thread, user, time_of_day}</code>. Priority ≥ 0.7 surfaces immediately; below that goes into a digest. Auto-reply is never enabled — you always send.
+              </div>
+            </div>
+
+            <div class="pv-msg user">
+              <div class="pv-msg-who">You · 08:24</div>
+              <div class="pv-bubble">Can you draft a reply to Selin saying I'll review by noon?</div>
+            </div>
+
+            <div class="pv-msg ai">
+              <div class="pv-msg-who">HAI OS · 08:24</div>
+              <div class="pv-bubble" style="border-left:2px solid var(--teal);">Draft ready in Slack. Somatic priority: 0.82 — surfaced immediately. Waiting for you to send.</div>
+            </div>
+
+          </div>
+          <div class="pv-panel-inp">
+            <div class="pv-inp-fake"><span>Ask HAI OS anything…</span></div>
+            <span class="pv-inp-send">↑</span>
+          </div>
+        </div>
+
+        <!-- Music bar — always visible -->
+        <div class="pv-music-bar">
+          <div class="pv-music-art">♪</div>
+          <div class="pv-music-info">Nothing playing</div>
+          <div class="pv-music-ctrl">⏮ ⏸ ⏭</div>
+        </div>
+
+        <!-- Floating robot button — always visible -->
+        <button class="pv-robot-btn" id="pv-robot-btn" title="Chat with HAI OS">
+          <svg width="18" height="18" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="34" fill="none" stroke="var(--teal)" stroke-width="2" opacity=".6"/>
+            <circle cx="36" cy="36" r="31" fill="var(--teal-glow)"/>
+            <ellipse cx="24.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity=".85"/>
+            <ellipse cx="47.5" cy="35" rx="6" ry="4" fill="var(--teal)" opacity=".85"/>
+          </svg>
+        </button>
+
+      </div><!-- .pv-bezel -->
+
+      <p style="font-size:11px;color:var(--text-dim);margin-top:12px;text-align:center;letter-spacing:.02em;">
+        All views assemble dynamically. No nav. No app switching. HAI OS knows&nbsp;what you're doing.
+      </p>
+
+    </section>
+
+  </div><!-- content-area -->
+</div><!-- main-wrap -->
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span><span class="sdot"></span>Gemma 4 2B MoE</span>
+  <span class="s-mid">HAI OS — cognitive AI operating system</span>
+  <span>v0.3 · 2026-05-25</span>
+</div>
+
+<script>
+// ── NAVIGATION ──
+function go(target) {
+  document.querySelectorAll('.ni').forEach(b => b.classList.toggle('active', b.dataset.t === target));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === target));
+}
+document.querySelectorAll('.ni[data-t]').forEach(b => b.addEventListener('click', () => {
+  go(b.dataset.t);
+  if (window.innerWidth <= 768) closeSidebar();
+}));
+
+// ── MOBILE DRAWER ──
+const hbtn = document.getElementById('hamburger');
+const sidebar = document.querySelector('.sidebar');
+const overlay = document.getElementById('sbOverlay');
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  overlay.classList.add('open');
+  hbtn.classList.add('open');
+}
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+  hbtn.classList.remove('open');
+}
+hbtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+overlay.addEventListener('click', closeSidebar);
+
+// ── PREVIEW CHAT PANEL (robot button toggles slide-in panel) ──
+(function(){
+  const bezel    = document.querySelector('.pv-bezel');
+  const openBtn  = document.getElementById('pv-robot-btn');
+  const closeBtn = document.getElementById('pv-chat-close');
+  if (openBtn)  openBtn.addEventListener('click',  () => bezel.classList.toggle('chat-open'));
+  if (closeBtn) closeBtn.addEventListener('click', () => bezel.classList.remove('chat-open'));
+})();
+
+// ── MAIN AVATAR — cycles AI states ──
+(function(){
+  const STATES = [
+    { key:'listening', label:'Listening' },
+    { key:'thinking',  label:'Thinking'  },
+    { key:'speaking',  label:'Speaking'  },
+    { key:'standby',   label:'Standby'   },
+  ];
+  let idx = 0;
+  const wrap = document.querySelector('.avatar-wrap');
+  const lbl  = wrap && wrap.querySelector('.avatar-lbl');
+  if (!wrap) return;
+  wrap.classList.add('listening');
+  wrap.addEventListener('click', () => {
+    wrap.classList.remove(STATES[idx].key);
+    idx = (idx + 1) % STATES.length;
+    wrap.classList.add(STATES[idx].key);
+    if (lbl) lbl.textContent = STATES[idx].label;
+  });
+})();
+
+// ── PREVIEW TABS ──
+document.querySelectorAll('.pv-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.pv;
+    document.querySelectorAll('.pv-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pv-view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    const view = document.getElementById(target);
+    if (view) view.classList.add('active');
+  });
+});
+
+// ── ACCENT SWITCHER ──
+(function(){
+  var root=document.documentElement, KEY='nexus-accent';
+  var sw=[].slice.call(document.querySelectorAll('.swatch'));
+  function apply(a){
+    if(a==='blue'||a==='darkblue'){ a='blue'; root.removeAttribute('data-accent'); }
+    else root.setAttribute('data-accent',a);
+    sw.forEach(function(s){ s.classList.toggle('is-active', s.dataset.accent===a); });
+  }
+  var saved='blue'; try{ saved=localStorage.getItem(KEY)||'blue'; }catch(e){}
+  apply(saved);
+  sw.forEach(function(s){ s.addEventListener('click',function(){
+    apply(s.dataset.accent);
+    try{ localStorage.setItem(KEY,s.dataset.accent); }catch(e){}
+  }); });
+})();
+
+// ── THEME (DAY / NIGHT) ──
+(function(){
+  var root=document.documentElement, KEY='nexus-theme';
+  var toggle=document.getElementById('themeToggle');
+  var ttState=toggle&&toggle.querySelector('.tt-state');
+  var mob=document.getElementById('mobThemeToggle');
+  function apply(t){
+    var night=(t==='night');
+    if(night) root.setAttribute('data-theme','night'); else root.removeAttribute('data-theme');
+    if(toggle) toggle.setAttribute('aria-checked', night?'true':'false');
+    if(ttState) ttState.textContent = night?'Night':'Day';
+    if(mob) mob.textContent = night?'☀️':'🌙';
+  }
+  var saved='day'; try{ saved=localStorage.getItem(KEY)||'day'; }catch(e){}
+  apply(saved);
+  function flip(){
+    var next = root.getAttribute('data-theme')==='night' ? 'day' : 'night';
+    apply(next);
+    try{ localStorage.setItem(KEY,next); }catch(e){}
+  }
+  if(toggle) toggle.addEventListener('click', flip);
+  if(mob) mob.addEventListener('click', flip);
+})();
+
+// ── OPEN QUESTIONS ACCORDION ──
+const qs = [
+  [1,"Emotion & control","How do emotions function in AI? How can they shape behaviour toward partnership without being manipulable?"],
+  [2,"Vault handling","I want it to be editable in a similar fashion to Obsidian — maybe make a plugin to connect it to the brain, have it be part of the repo or a sub-repo. See claude-office-vault as a starting point."],
+  [3,"Self-awareness & agency","How much agency should a HAI OS partner have? What does genuine self-awareness mean in this context?"],
+  [4,"Multi-personality AI","How can one system adapt personality while maintaining coherent identity and trustworthiness?"],
+  [5,"Power dynamics","Beyond partnership, what social/structural mechanisms keep AI reliably working for humans?"],
+  [6,"Brain-inspired architecture","Which brain structures (hippocampus, cerebellum, prefrontal cortex) should inform HAI OS design?"],
+  [7,"Many pieces, one system","How do we keep many independent modules (memory, emotion, personality, tools) coherent as a whole?"],
+  [8,"Wasted effort","How can HAI OS detect and eliminate wasted energy and computation — human and machine?"],
+  [9,"Rust or Python","Which components need Rust performance? Where is Python sufficient?"],
+  [10,"Plugin interface spec","What is the contract between core and modules? How do you register a module safely?"],
+  [11,"TTS engine","Which TTS solution best fits HAI OS's local-first, voice-enabled goals?"],
+  [12,"Sunshine/Moonlight auth","What is the right authentication model for mobile remote access?"],
+  [13,"Hermes Agent / OpenClaw","Are Hermes and Hermit/OpenClaw viable as base agent frameworks or do they need replacing?"],
+  [14,"Personality model accuracy","How do you verify HAI OS's model of you is accurate and useful, not a distorted reflection? What's the feedback loop when it gets you wrong?"],
+  [15,"Skill inference","What activity signals reliably indicate skill depth vs. surface exposure?"],
+  [16,"Website public/private boundary","How is the hard separation between public and private zones enforced at the architecture level, not just the UI level?"],
+  [17,"AI-assisted development","What tools should HAI OS contributors use? Should HAI OS improve its own codebase, and if so, what guardrails apply?"],
+  [18,"Communication Phase 1","Which channels are essential for a first working version? What is the minimum viable communication layer?"],
+];
+const acc = document.getElementById('acc');
+qs.forEach(([n,q,a]) => {
+  const d = document.createElement('div');
+  d.className = 'acc-item';
+  d.innerHTML = `<div class="acc-hd" onclick="this.parentElement.classList.toggle('open')"><span><span style="color:var(--text-dim);margin-right:10px;font-size:11px;font-family:monospace">#${n}</span>${q}</span><span class="acc-arrow">▼</span></div><div class="acc-bd">${a}</div>`;
+  acc.appendChild(d);
+});
+
+// ── CHECKLIST ──
+const items = [
+  'Read hai-docs.html end to end — this file is the primary human overview (you\'re doing it)',
+  'Read docs/VISION.md — the markdown version of this doc, structured for feeding to an AI assistant',
+  'Read docs/hai-os-v03-architecture.md (the engineering pivot reference)',
+  'Review Philip\'s altrium design thinking gist (links in Contributors above)',
+  'Clone and run locally (bash hai-setup.sh)',
+  'Understand the module interface (when it exists)',
+  'Pick one module or open question to own',
+  'Open an issue or discussion before writing code',
+  'Submit a small first PR with review',
+  'Join a real task, not a toy one',
+];
+const cl = document.getElementById('checklist');
+items.forEach((it, i) => {
+  const lbl = document.createElement('label');
+  lbl.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;font-size:13px;color:var(--text-muted);${i < items.length-1 ? 'border-bottom:1px solid var(--border);' : ''}`;
+  lbl.innerHTML = `<input type="checkbox" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0"> ${it}`;
+  lbl.querySelector('input').addEventListener('change', e => {
+    lbl.style.color = e.target.checked ? 'var(--green)' : 'var(--text-muted)';
+    lbl.style.textDecoration = e.target.checked ? 'line-through' : 'none';
+  });
+  cl.appendChild(lbl);
+});
+</script>
+</body>
+</html>

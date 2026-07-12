@@ -462,6 +462,35 @@ body[data-slug^="books"] {
   }
 }
 
+/* ambience toggle — lives on <body>, shown only in the library (vaultbrain.js) */
+#vb-audio-btn {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 10;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9973f;
+  background: rgba(36, 26, 17, 0.85);
+  border: 1px solid rgba(201, 151, 63, 0.45);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+
+  &:hover,
+  &.on {
+    background: #c9973f;
+    color: #241a11;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c9973f;
+    outline-offset: 3px;
+  }
+}
+
 .shelf-board {
   height: 10px;
   margin: 0 auto 3.5rem;
