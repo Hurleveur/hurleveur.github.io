@@ -55,7 +55,8 @@
       return
     }
 
-    const slugs = Object.keys(data)
+    // tag pages are generated indexes, not notes — they'd swamp the constellation as fake hubs
+    const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
     const backlinks = {}
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
@@ -247,12 +248,43 @@
     if (window.addCleanup) window.addCleanup(cleanup)
   }
 
+  // library shelf: one spine per published book note, built from the same index
+  const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
+  async function initShelf() {
+    const shelf = document.getElementById("vb-shelf")
+    if (!shelf || shelf.dataset.vbDone) return
+    shelf.dataset.vbDone = "1"
+    let data
+    try {
+      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const books = Object.keys(data)
+      .filter((s) => s.startsWith("books/") && s !== "books/index")
+      .sort()
+    let h = 0
+    for (const slug of books) {
+      const a = document.createElement("a")
+      a.className = "spine"
+      a.href = "/" + slug
+      const t = data[slug].title || slug
+      a.textContent = t.length > 42 ? t.slice(0, 40) + "…" : t
+      a.title = t
+      h = (h * 31 + slug.length + slug.charCodeAt(0)) % CLOTHS.length
+      a.style.setProperty("--cloth", CLOTHS[h])
+      shelf.appendChild(a)
+    }
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       init()
+      initShelf()
     })
   }
   init()
+  initShelf()
 })()

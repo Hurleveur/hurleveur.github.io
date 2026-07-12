@@ -8,4 +8,7 @@ publish: true
   <p class="sub">Ask me — I'll lend you any of these.</p>
 </div>
 
-The reading room. Notes on books live here, like [[The Prophet]].
+<div class="shelf" id="vb-shelf"></div>
+<div class="shelf-board"></div>
+
+Every spine above is a real note — pull one off the shelf.
