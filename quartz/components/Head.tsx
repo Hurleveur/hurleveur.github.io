@@ -95,6 +95,9 @@ export default (() => {
         <meta name="description" content={description} />
         <meta name="generator" content="Quartz" />
 
+        {/* Loci: vault brain — self-wires on SPA "nav" events, inert unless #vault-brain exists */}
+        <script src="/static/vaultbrain.js" defer></script>
+
         {css.map((resource) => CSSResourceToStyleElement(resource, true))}
         {js
           .filter((resource) => resource.loadTime === "beforeDOMReady")
