@@ -238,6 +238,16 @@ body[data-slug="index"] {
         "grid-sidebar-left grid-footer";
     }
   }
+
+  &.nav-off #quartz-body {
+    @media all and ($desktop) {
+      grid-template-columns: auto;
+      grid-template-areas:
+        "grid-header"
+        "grid-center"
+        "grid-footer";
+    }
+  }
 }
 
 /* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
@@ -304,55 +314,64 @@ body[data-slug="brain"] {
   --tertiary: #8b93b8;
   --highlight: rgba(223, 227, 242, 0.08);
 
-  /* the observatory owns the whole viewport: no side columns at any width */
+  /* the observatory owns the whole viewport, edge to edge */
+  .page {
+    max-width: none;
+  }
+
   #quartz-body {
+    row-gap: 0; /* empty header/footer rows must not leave gap slivers */
+  }
+
+  /* explorer is a real column beside the sky (collapses via body.nav-off below) */
+  @media all and not ($mobile) {
+    #quartz-body {
+      grid-template-columns: $sidePanelWidth auto;
+      grid-template-rows: auto auto auto;
+      grid-template-areas:
+        "grid-sidebar-left grid-header"
+        "grid-sidebar-left grid-center"
+        "grid-sidebar-left grid-footer";
+    }
+  }
+
+  &.nav-off #quartz-body {
     grid-template-columns: auto;
-    grid-template-rows: auto auto auto;
     grid-template-areas:
       "grid-header"
       "grid-center"
       "grid-footer";
   }
 
+  .sidebar.left {
+    background: rgba(14, 18, 40, 0.55);
+    border-right: 1px solid rgba(223, 227, 242, 0.08);
+  }
+
   h1.article-title,
   .content-meta,
-  .breadcrumb-container {
-    display: none; /* the caption inside the dome already names the room */
+  .breadcrumb-container,
+  .center > hr,
+  .page-footer,
+  footer {
+    display: none; /* the caption inside the dome already names the room; the sky needs no rule-offs */
   }
 
   .page-header {
     margin-top: 0;
   }
 
-  /* left sidebar becomes a drawer — ☰ button (vaultbrain.js) slides it in */
-  .sidebar.left {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: min(320px, 85vw);
-    height: 100vh;
-    height: 100dvh;
-    background: #0e1228;
-    border-right: 1px solid rgba(223, 227, 242, 0.14);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 5;
-    padding: 4.5rem 2rem 2rem;
-    overflow-y: auto;
-  }
-
-  &.show-nav .sidebar.left {
-    transform: none;
+  article {
+    margin: 0;
   }
 
   #vault-brain {
-    height: 86vh;
-    height: 86dvh;
+    height: 100vh;
+    height: 100dvh;
   }
 }
 
-/* drawer toggle, injected by vaultbrain.js on the brain page only */
+/* explorer toggle, injected by vaultbrain.js on every page — colors follow the world */
 #vb-nav-btn {
   position: fixed;
   top: 1rem;
@@ -361,20 +380,20 @@ body[data-slug="brain"] {
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 50%;
-  border: 1px solid rgba(223, 227, 242, 0.25);
-  background: rgba(16, 20, 48, 0.85);
-  color: #dfe3f2;
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  background: color-mix(in srgb, var(--light) 85%, transparent);
+  color: var(--secondary);
   font-size: 1rem;
   cursor: pointer;
 
   &:hover,
   &.on {
-    background: #dfe3f2;
-    color: #0b0e1f;
+    background: var(--secondary);
+    color: var(--light);
   }
 
   &:focus-visible {
-    outline: 2px solid #6ab7e0;
+    outline: 2px solid var(--secondary);
     outline-offset: 3px;
   }
 }
@@ -629,6 +648,34 @@ body[data-slug^="books"] {
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #c9973f;
+  }
+}
+
+/* collapsed explorer — ☰ (vaultbrain.js) sets body.nav-off, persisted; the
+   left column leaves the grid entirely so content reflows into its space.
+   Per-world pages (index/brain) declare their own higher-specificity variant. */
+body.nav-off {
+  .sidebar.left {
+    display: none;
+  }
+
+  #quartz-body {
+    @media all and ($desktop) {
+      grid-template-columns: auto $sidePanelWidth;
+      grid-template-areas:
+        "grid-header grid-sidebar-right"
+        "grid-center grid-sidebar-right"
+        "grid-footer grid-sidebar-right";
+    }
+
+    @media all and ($tablet) {
+      grid-template-columns: auto;
+      grid-template-areas:
+        "grid-header"
+        "grid-center"
+        "grid-sidebar-right"
+        "grid-footer";
+    }
   }
 }
 

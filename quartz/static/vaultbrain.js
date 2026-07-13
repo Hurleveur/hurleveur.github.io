@@ -62,10 +62,13 @@
     // group notes by top-level folder; folder hubs sit on a brain-lobe ellipse
     const folders = [...new Set(slugs.map((s) => (s.includes("/") ? s.split("/")[0] : "~")))]
     const hubs = {}
-    folders.forEach((f, i) => {
-      const angle = (i / folders.length) * Math.PI * 2 - Math.PI / 2
+    // sections ring the sky; loose root notes gather in the middle
+    const ring = folders.filter((f) => f !== "~")
+    ring.forEach((f, i) => {
+      const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2
       hubs[f] = { ax: Math.cos(angle), ay: Math.sin(angle) * 0.72 }
     })
+    hubs["~"] = { ax: 0, ay: 0 }
 
     const nodes = slugs.map((slug) => {
       const folder = slug.includes("/") ? slug.split("/")[0] : "~"
@@ -114,6 +117,16 @@
     }
 
     let W, H, dpr
+    // zoom/pan viewport (full mode only): screen = world * s + offset
+    const view = { s: 1, x: 0, y: 0 }
+    function clampView() {
+      view.s = Math.min(8, Math.max(1, view.s))
+      view.x = Math.min(0, Math.max(W - W * view.s, view.x))
+      view.y = Math.min(0, Math.max(H - H * view.s, view.y))
+    }
+    function toWorld(px, py) {
+      return [(px - view.x) / view.s, (py - view.y) / view.s]
+    }
     function size() {
       dpr = window.devicePixelRatio || 1
       W = wrap.clientWidth
@@ -124,6 +137,8 @@
         c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0)
       })
       paintStars()
+      clampView()
+      calm = Math.max(calm, 240) // wake the sim so the sky re-settles to the new size
     }
 
     function paintStars() {
@@ -161,17 +176,18 @@
     function step() {
       nodes.forEach((n) => {
         const [hx, hy] = homeOf(n)
-        // section stars are anchors: stiff spring holds them on the lobe ring
-        const k = n.hub ? 0.03 : 0.004
+        // section stars are anchors: stiff spring holds them on the lobe ring;
+        // notes pull in tight so each section reads as one dense cluster
+        const k = n.hub ? 0.03 : 0.01
         n.vx += (hx - n.x) * k
         n.vy += (hy - n.y) * k
         // ponytail: O(n²) repulsion — fine below ~500 notes, quadtree if it chugs
         nodes.forEach((m) => {
           if (m === n) return
           const dx = n.x - m.x, dy = n.y - m.y, d2 = dx * dx + dy * dy
-          if (d2 < 2200 && d2 > 0) {
+          if (d2 < 1600 && d2 > 0) {
             // big stars carve out more space than dust
-            const f = m.hub ? 12 : 3
+            const f = m.hub ? 12 : 2
             n.vx += (dx / d2) * f
             n.vy += (dy / d2) * f
           }
@@ -204,18 +220,18 @@
     let hovered = null
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
-      const x = e.clientX - rect.left, y = e.clientY - rect.top
+      const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       hovered = null
       for (const n of nodes) {
-        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + 8) ** 2) {
+        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + 8 / view.s) ** 2) {
           hovered = n
           break
         }
       }
       if (hovered) {
         tip.textContent = hovered.label
-        tip.style.left = hovered.x + "px"
-        tip.style.top = hovered.y + "px"
+        tip.style.left = hovered.x * view.s + view.x + "px"
+        tip.style.top = hovered.y * view.s + view.y + "px"
         tip.style.opacity = 1
         cv.style.cursor = "pointer"
       } else {
@@ -224,15 +240,56 @@
       }
     }
     function onClick() {
+      if (dragged) return // pan release, not a pick
       if (hovered) window.location.href = "/" + hovered.slug
       else if (mini) window.location.href = "/brain"
     }
 
+    // wheel zooms toward the cursor; drag pans when zoomed in. Full mode only —
+    // the home rotunda must keep normal page scroll.
+    function onWheel(e) {
+      e.preventDefault()
+      const rect = cv.getBoundingClientRect()
+      const px = e.clientX - rect.left, py = e.clientY - rect.top
+      const [wx, wy] = toWorld(px, py)
+      view.s *= Math.exp(-e.deltaY * 0.0012)
+      view.s = Math.min(8, Math.max(1, view.s))
+      view.x = px - wx * view.s
+      view.y = py - wy * view.s
+      clampView()
+      onMove(e) // re-aim the hover under the new view
+    }
+    let dragged = false
+    let dragFrom = null
+    function onDown(e) {
+      dragFrom = { px: e.clientX, py: e.clientY, vx: view.x, vy: view.y }
+      dragged = false
+    }
+    function onDrag(e) {
+      if (!dragFrom) return
+      const dx = e.clientX - dragFrom.px, dy = e.clientY - dragFrom.py
+      if (dx * dx + dy * dy > 16) dragged = true
+      if (dragged) {
+        view.x = dragFrom.vx + dx
+        view.y = dragFrom.vy + dy
+        clampView()
+        tip.style.opacity = 0
+      }
+    }
+    function onUp() {
+      dragFrom = null
+    }
+
     let t = 0
     let raf = 0
+    // stars drift into place, then hold still — only the twinkle stays alive
+    let calm = 600
     function draw() {
       ctx.clearRect(0, 0, W, H)
       t += 0.008
+      ctx.save()
+      ctx.translate(view.x, view.y)
+      ctx.scale(view.s, view.s)
       links.forEach(([a, b]) => {
         ctx.strokeStyle = "rgba(223,227,242,.14)"
         ctx.lineWidth = 1
@@ -269,15 +326,28 @@
           ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
         }
       })
+      ctx.restore()
       if (!reduceMotion) {
-        step()
+        if (calm > 0) {
+          calm--
+          step()
+        }
         raf = requestAnimationFrame(draw)
       }
     }
 
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("click", onClick)
-    window.addEventListener("resize", size)
+    if (!mini) {
+      cv.addEventListener("wheel", onWheel, { passive: false })
+      cv.addEventListener("pointerdown", onDown)
+      cv.addEventListener("pointermove", onDrag)
+      window.addEventListener("pointerup", onUp)
+    }
+    // observe the wrapper, not the window: the explorer toggle resizes the
+    // grid column without firing a window resize, and the sim must follow
+    const ro = new ResizeObserver(size)
+    ro.observe(wrap)
 
     size()
     initPositions()
@@ -288,7 +358,13 @@
       cancelAnimationFrame(raf)
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("click", onClick)
-      window.removeEventListener("resize", size)
+      if (!mini) {
+        cv.removeEventListener("wheel", onWheel)
+        cv.removeEventListener("pointerdown", onDown)
+        cv.removeEventListener("pointermove", onDrag)
+        window.removeEventListener("pointerup", onUp)
+      }
+      ro.disconnect()
       delete wrap.dataset.vbActive
       cleanup = null
     }
@@ -464,46 +540,47 @@
     setAudioLabel(btn)
   }
 
-  // observatory drawer: the brain page hides the nav for full-width sky;
-  // this ☰ button slides the left sidebar in and out (CSS in custom.scss)
+  // explorer toggle: ☰ on every page collapses the left sidebar column and
+  // the layout reflows into its space (CSS body.nav-off in custom.scss).
+  // Choice persists across pages and visits.
   function initNavToggle() {
-    const isBrain = document.body.dataset.slug === "brain"
+    const off = localStorage.getItem("vb-nav-off") === "1"
+    document.body.classList.toggle("nav-off", off)
     let btn = document.getElementById("vb-nav-btn")
     if (!btn) {
-      if (!isBrain) return
       btn = document.createElement("button")
       btn.id = "vb-nav-btn"
       btn.type = "button"
       btn.textContent = "☰"
-      btn.setAttribute("aria-label", "Toggle navigation")
+      btn.setAttribute("aria-label", "Toggle explorer")
       btn.addEventListener("click", () => {
-        const on = document.body.classList.toggle("show-nav")
-        btn.classList.toggle("on", on)
+        const nowOff = document.body.classList.toggle("nav-off")
+        localStorage.setItem("vb-nav-off", nowOff ? "1" : "")
+        btn.classList.toggle("on", !nowOff)
       })
       document.body.appendChild(btn)
     }
-    btn.style.display = isBrain ? "" : "none"
-    if (!isBrain) document.body.classList.remove("show-nav")
+    btn.classList.toggle("on", !off)
   }
 
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
+      initNavToggle()
       init()
       initLegend()
       initDoors()
       initShelf()
       initQuotes()
       initAudio()
-      initNavToggle()
     })
   }
+  initNavToggle()
   init()
   initLegend()
   initDoors()
   initShelf()
   initQuotes()
   initAudio()
-  initNavToggle()
 })()
