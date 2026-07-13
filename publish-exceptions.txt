@@ -1,0 +1,14 @@
+# Publish exceptions — the allowlist for non-markdown files.
+#
+# Markdown notes need `publish: true` frontmatter (ExplicitPublish). Files that
+# can't carry frontmatter (pdf, html, images, ...) publish ONLY if they match a
+# glob below. Anything not listed stays private. Paths are relative to content/,
+# matched by the Assets emitter (quartz/plugins/emitters/assets.ts).
+#
+# One glob per line. Full-line # comments only.
+
+# images embedded in published notes — broad on purpose; tighten to single files if needed
+Attachments/**
+
+Guides/prompting guide.pdf
+Website/*.html
