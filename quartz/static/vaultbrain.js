@@ -138,7 +138,7 @@
       })
       paintStars()
       clampView()
-      calm = Math.max(calm, 240) // wake the sim so the sky re-settles to the new size
+      heat = Math.max(heat, 0.6) // rewarm the sim so the sky re-settles to the new size
     }
 
     function paintStars() {
@@ -156,7 +156,7 @@
     function homeOf(n) {
       // ellipse, not circle: the canvas is wide, use the width
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      return [W / 2 + hub.ax * W * 0.3, H / 2 + hub.ay * H * 0.46]
+      return [W / 2 + hub.ax * W * 0.24, H / 2 + hub.ay * H * 0.4]
     }
 
     function initPositions() {
@@ -194,8 +194,9 @@
         })
         n.vx *= 0.92
         n.vy *= 0.92
-        n.x += n.vx
-        n.y += n.vy
+        // heat scales motion, not forces: the sky cools into an ever-slower drift
+        n.x += n.vx * heat
+        n.y += n.vy * heat
         // keep the cloud inside the canvas — in mini mode the box IS the
         // image's brain region, so overspill breaks the illusion. Soft spring,
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
@@ -282,8 +283,8 @@
 
     let t = 0
     let raf = 0
-    // stars drift into place, then hold still — only the twinkle stays alive
-    let calm = 600
+    // stars drift into place then cool to a faint perpetual drift — never a hard freeze
+    let heat = 1
     function draw() {
       ctx.clearRect(0, 0, W, H)
       t += 0.008
@@ -328,10 +329,8 @@
       })
       ctx.restore()
       if (!reduceMotion) {
-        if (calm > 0) {
-          calm--
-          step()
-        }
+        step()
+        heat = Math.max(heat * 0.997, 0.04)
         raf = requestAnimationFrame(draw)
       }
     }
