@@ -68,6 +68,10 @@ const filesToCopy = async (argv: Argv, cfg: QuartzConfig, excludeExtensions: Set
   return await glob("**", argv.directory, excludePatterns)
 }
 
+// raw html assets have no site chrome — inject the assetnav drawer
+// (quartz/static/assetnav.js) so they keep a door back into the site
+const NAV_TAG = `<script defer src="/static/assetnav.js"></script>`
+
 const copyFile = async (argv: Argv, fp: FilePath) => {
   const src = joinSegments(argv.directory, fp) as FilePath
 
@@ -77,7 +81,13 @@ const copyFile = async (argv: Argv, fp: FilePath) => {
   const dir = path.dirname(dest) as FilePath
   await fs.promises.mkdir(dir, { recursive: true })
 
-  await fs.promises.copyFile(src, dest)
+  if (path.extname(fp).toLowerCase() === ".html") {
+    let html = await fs.promises.readFile(src, "utf8")
+    html = html.includes("</body>") ? html.replace("</body>", `${NAV_TAG}</body>`) : html + NAV_TAG
+    await fs.promises.writeFile(dest, html)
+  } else {
+    await fs.promises.copyFile(src, dest)
+  }
   return dest
 }
 

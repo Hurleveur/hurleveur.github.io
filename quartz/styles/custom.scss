@@ -246,7 +246,8 @@ body[data-slug="index"] {
 
   @media all and ($desktop) {
     #quartz-body {
-      grid-template-columns: $sidePanelWidth auto;
+      // min-content: the resizable .sidebar.left drives the column width
+      grid-template-columns: min-content auto;
       grid-template-rows: auto auto auto;
       grid-template-areas:
         "grid-sidebar-left grid-header"
@@ -316,19 +317,20 @@ body[data-slug="index"] {
 /* ============================================================
    BRAIN — the observatory  body[data-slug="brain"]
    ============================================================ */
+/* day observatory — pale morning sky; night comes back with the theme toggle */
 body[data-slug="brain"] {
-  --light: #0b0e1f;
+  --light: #e9eef8;
+  --lightgray: #d4dcee;
+  --gray: #5f6b8e;
+  --darkgray: #333c5c;
+  --dark: #202741;
+  --secondary: #3d7cab;
+  --tertiary: #5f6b8e;
+  --highlight: rgba(61, 124, 171, 0.1);
 
   .sidebar.right {
     display: none;
   }
-  --lightgray: #1a1f3d;
-  --gray: #8b93b8;
-  --darkgray: #c3c9e0;
-  --dark: #dfe3f2;
-  --secondary: #6ab7e0;
-  --tertiary: #8b93b8;
-  --highlight: rgba(223, 227, 242, 0.08);
 
   /* the observatory owns the whole viewport, edge to edge */
   .page {
@@ -342,7 +344,8 @@ body[data-slug="brain"] {
   /* explorer is a real column beside the sky (collapses via body.nav-off below) */
   @media all and not ($mobile) {
     #quartz-body {
-      grid-template-columns: $sidePanelWidth auto;
+      // min-content: the resizable .sidebar.left drives the column width
+      grid-template-columns: min-content auto;
       grid-template-rows: auto auto auto;
       grid-template-areas:
         "grid-sidebar-left grid-header"
@@ -360,8 +363,8 @@ body[data-slug="brain"] {
   }
 
   .sidebar.left {
-    background: rgba(14, 18, 40, 0.55);
-    border-right: 1px solid rgba(223, 227, 242, 0.08);
+    background: color-mix(in srgb, var(--light) 70%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--dark) 10%, transparent);
   }
 
   h1.article-title,
@@ -385,6 +388,18 @@ body[data-slug="brain"] {
     height: 100vh;
     height: 100dvh;
   }
+}
+
+/* night observatory — the original fixed palette, now only when the theme is dark */
+[saved-theme="dark"] body[data-slug="brain"] {
+  --light: #0b0e1f;
+  --lightgray: #1a1f3d;
+  --gray: #8b93b8;
+  --darkgray: #c3c9e0;
+  --dark: #dfe3f2;
+  --secondary: #6ab7e0;
+  --tertiary: #8b93b8;
+  --highlight: rgba(223, 227, 242, 0.08);
 }
 
 /* explorer toggle, injected by vaultbrain.js on every page — colors follow the world */
@@ -411,6 +426,26 @@ body[data-slug="brain"] {
   &:focus-visible {
     outline: 2px solid var(--secondary);
     outline-offset: 3px;
+  }
+}
+
+/* explorer width grip (vaultbrain.js) — full-height strip on the sidebar's right edge */
+#vb-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+
+  &:hover,
+  &:active {
+    background: color-mix(in srgb, var(--secondary) 35%, transparent);
+  }
+
+  @media all and ($mobile) {
+    display: none;
   }
 }
 
@@ -446,7 +481,7 @@ body[data-slug="brain"] {
       font-family: var(--sans);
       font-size: 0.85rem;
       line-height: 1.6;
-      color: #8b93b8;
+      color: var(--gray);
       margin-top: 0.6rem;
     }
   }
@@ -463,7 +498,7 @@ body[data-slug="brain"] {
     flex-wrap: wrap;
     gap: 0.5rem 1.2rem;
     max-width: 30rem;
-    color: #8b93b8;
+    color: var(--gray);
     pointer-events: none;
 
     span::before {
@@ -484,9 +519,9 @@ body[data-slug="brain"] {
     pointer-events: none;
     font-family: var(--sans);
     font-size: 0.78rem;
-    background: rgba(16, 20, 48, 0.92);
-    border: 1px solid rgba(223, 227, 242, 0.18);
-    color: #dfe3f2;
+    background: color-mix(in srgb, var(--light) 92%, black);
+    border: 1px solid color-mix(in srgb, var(--dark) 18%, transparent);
+    color: var(--dark);
     padding: 0.35rem 0.7rem;
     border-radius: 4px;
     transform: translate(-50%, -140%);

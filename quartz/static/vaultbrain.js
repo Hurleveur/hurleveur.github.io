@@ -14,6 +14,43 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // canvas colors follow the theme: Quartz's darkmode script stamps saved-theme
+  // on <html> and fires "themechange". Day = ink on pale sky, night = starlight.
+  // The home rotunda mini brain sits on the dark dome image — always night there.
+  function skyColors(mini) {
+    const day = !mini && document.documentElement.getAttribute("saved-theme") === "light"
+    return day
+      ? {
+          star: "#333c5c",
+          link: "rgba(51,60,92,.18)",
+          label: "rgba(32,39,65,.92)",
+          sub: "rgba(95,107,142,.95)",
+          root: "#5f6b8e",
+        }
+      : {
+          star: "#dfe3f2",
+          link: "rgba(223,227,242,.14)",
+          label: "rgba(223,227,242,.92)",
+          sub: "rgba(139,147,184,.9)",
+          root: "#dfe3f2",
+        }
+  }
+
+  // contentIndex knows notes; assetIndex (Assets emitter) knows published
+  // html/pdf. Merge so the map, legend, doors and folder pages see both.
+  async function loadIndex() {
+    const data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    try {
+      const assets = await fetch("/static/assetIndex.json").then((r) => r.json())
+      for (const a of assets) {
+        if (!data[a.slug]) data[a.slug] = { title: a.title, links: [], asset: true }
+      }
+    } catch (e) {
+      /* no published assets */
+    }
+    return data
+  }
+
   // per-world ambience: slug prefix -> track in /static/audio/<name>.mp3.
   // First matching prefix wins; "" is the fallback. Edit this list to choose
   // which room gets which tone — tracks are plain mp3 files, swap freely.
@@ -44,11 +81,12 @@
 
     let data
     try {
-      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+      data = await loadIndex()
     } catch (e) {
       console.error("vaultbrain: could not load contentIndex.json", e)
       return
     }
+    let sky = skyColors(mini)
 
     // tag pages are generated indexes, not notes — they'd swamp the constellation as fake hubs
     const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
@@ -76,7 +114,7 @@
         slug,
         label: data[slug].title || slug,
         folder,
-        color: folder === "~" ? "#dfe3f2" : folderColor(folder),
+        color: folder === "~" ? sky.root : folderColor(folder),
         r: mini
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
           : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5),
@@ -145,7 +183,7 @@
       sctx.clearRect(0, 0, W, H)
       for (let i = 0; i < 160; i++) {
         sctx.globalAlpha = Math.random() * 0.5 + 0.1
-        sctx.fillStyle = "#dfe3f2"
+        sctx.fillStyle = sky.star
         sctx.beginPath()
         sctx.arc(Math.random() * W, Math.random() * H, Math.random() * 1.1 + 0.2, 0, 7)
         sctx.fill()
@@ -292,7 +330,7 @@
       ctx.translate(view.x, view.y)
       ctx.scale(view.s, view.s)
       links.forEach(([a, b]) => {
-        ctx.strokeStyle = "rgba(223,227,242,.14)"
+        ctx.strokeStyle = sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
@@ -320,10 +358,10 @@
         if (n.hub && !mini) {
           ctx.textAlign = "center"
           ctx.font = "600 13px IBM Plex Sans, sans-serif"
-          ctx.fillStyle = "rgba(223,227,242,.92)"
+          ctx.fillStyle = sky.label
           ctx.fillText(n.name.toUpperCase(), n.x, n.y - n.r - 16)
           ctx.font = "400 10px IBM Plex Sans, sans-serif"
-          ctx.fillStyle = "rgba(139,147,184,.9)"
+          ctx.fillStyle = sky.sub
           ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
         }
       })
@@ -334,6 +372,17 @@
         raf = requestAnimationFrame(draw)
       }
     }
+
+    // theme toggle flips the sky between day ink and night starlight
+    function onTheme() {
+      sky = skyColors(mini)
+      paintStars()
+      nodes.forEach((n) => {
+        if (n.folder === "~" && !n.hub) n.color = sky.root
+      })
+      if (reduceMotion) draw()
+    }
+    document.addEventListener("themechange", onTheme)
 
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("click", onClick)
@@ -355,6 +404,7 @@
 
     cleanup = () => {
       cancelAnimationFrame(raf)
+      document.removeEventListener("themechange", onTheme)
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("click", onClick)
       if (!mini) {
@@ -378,7 +428,7 @@
     legend.dataset.vbDone = "1"
     let data
     try {
-      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+      data = await loadIndex()
     } catch (e) {
       return
     }
@@ -406,7 +456,7 @@
     row.dataset.vbDone = "1"
     let data
     try {
-      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+      data = await loadIndex()
     } catch (e) {
       return
     }
@@ -539,6 +589,75 @@
     setAudioLabel(btn)
   }
 
+  // folder pages are built from markdown only; append the published html/pdf
+  // assets so e.g. /guides doesn't say "0 items" while the explorer lists its pdf
+  async function initFolderAssets() {
+    const listing = document.querySelector(".page-listing")
+    const slug = document.body.dataset.slug || ""
+    if (!listing || !slug.endsWith("/index") || listing.dataset.vbAssets) return
+    listing.dataset.vbAssets = "1"
+    let assets
+    try {
+      assets = await fetch("/static/assetIndex.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const folder = slug.slice(0, -"index".length)
+    const mine = assets.filter(
+      (a) => a.slug.startsWith(folder) && !a.slug.slice(folder.length).includes("/"),
+    )
+    const ul = listing.querySelector("ul.section-ul")
+    if (!mine.length || !ul) return
+    for (const a of mine) {
+      const li = document.createElement("li")
+      li.className = "section-li"
+      li.innerHTML = '<div class="section"><p class="meta"></p><div class="desc"><h3></h3></div></div>'
+      const link = document.createElement("a")
+      link.className = "internal"
+      link.href = "/" + a.slug
+      link.textContent = a.title
+      // raw html/pdf aren't quartz pages — full page load, not SPA swap
+      link.dataset.routerIgnore = ""
+      li.querySelector("h3").appendChild(link)
+      ul.appendChild(li)
+    }
+    // "N items under this folder" — bump the count to include the assets
+    const p = listing.querySelector("p")
+    if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)
+  }
+
+  // explorer width: drag grip on the sidebar's right edge sets --sidebar-w
+  // (base.scss), persisted across pages and visits
+  function initSidebarResize() {
+    const saved = +localStorage.getItem("vb-sidebar-w")
+    if (saved) document.documentElement.style.setProperty("--sidebar-w", saved + "px")
+    const sb = document.querySelector(".sidebar.left")
+    if (!sb || document.getElementById("vb-resize")) return
+    const grip = document.createElement("div")
+    grip.id = "vb-resize"
+    grip.setAttribute("aria-hidden", "true")
+    sb.appendChild(grip)
+    // listeners go on window, not the grip: the grip shifts under the cursor
+    // mid-drag and pointer capture is unreliable across browsers/inputs
+    grip.addEventListener("pointerdown", (e) => {
+      e.preventDefault()
+      const left = sb.getBoundingClientRect().left
+      const move = (ev) => {
+        const w = Math.round(Math.min(Math.max(ev.clientX - left, 180), innerWidth * 0.4))
+        document.documentElement.style.setProperty("--sidebar-w", w + "px")
+        localStorage.setItem("vb-sidebar-w", w)
+      }
+      const up = () => {
+        window.removeEventListener("pointermove", move)
+        window.removeEventListener("pointerup", up)
+        document.body.style.userSelect = ""
+      }
+      document.body.style.userSelect = "none"
+      window.addEventListener("pointermove", move)
+      window.addEventListener("pointerup", up)
+    })
+  }
+
   // explorer toggle: ☰ on every page collapses the left sidebar column and
   // the layout reflows into its space (CSS body.nav-off in custom.scss).
   // Choice persists across pages and visits.
@@ -567,19 +686,23 @@
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       initNavToggle()
+      initSidebarResize()
       init()
       initLegend()
       initDoors()
       initShelf()
       initQuotes()
       initAudio()
+      initFolderAssets()
     })
   }
   initNavToggle()
+  initSidebarResize()
   init()
   initLegend()
   initDoors()
   initShelf()
   initQuotes()
   initAudio()
+  initFolderAssets()
 })()
