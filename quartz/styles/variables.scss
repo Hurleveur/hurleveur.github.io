@@ -35,9 +35,10 @@ $mobileGrid: (
       "grid-sidebar-right"\
       "grid-footer"',
 );
+// left column is min-content so the resizable .sidebar.left drives its width
 $tabletGrid: (
   templateRows: "auto auto auto auto",
-  templateColumns: "#{$sidePanelWidth} auto",
+  templateColumns: "min-content auto",
   rowGap: "5px",
   columnGap: "5px",
   templateAreas:
@@ -48,7 +49,7 @@ $tabletGrid: (
 );
 $desktopGrid: (
   templateRows: "auto auto auto",
-  templateColumns: "#{$sidePanelWidth} auto #{$sidePanelWidth}",
+  templateColumns: "min-content auto #{$sidePanelWidth}",
   rowGap: "5px",
   columnGap: "5px",
   templateAreas:

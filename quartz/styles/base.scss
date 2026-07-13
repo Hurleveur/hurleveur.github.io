@@ -232,6 +232,13 @@ a {
       z-index: 1;
       grid-area: grid-sidebar-left;
       flex-direction: column;
+      // ponytail: native resize handle (bottom-right corner), width not persisted —
+      // add a JS drag-handle + localStorage if it should survive reloads
+      resize: horizontal;
+      overflow: hidden;
+      width: $sidePanelWidth;
+      min-width: 180px;
+      max-width: 40vw;
       @media all and ($mobile) {
         gap: 0;
         align-items: center;
@@ -241,6 +248,11 @@ a {
         flex-direction: row;
         padding: 0;
         padding-top: 2rem;
+        resize: none;
+        overflow: visible;
+        width: auto;
+        min-width: 0;
+        max-width: none;
       }
     }
 

@@ -21,6 +21,10 @@
 }
 
 /* ---------- default identity: palace-adjacent light ---------- */
+/* body-level so it beats Quartz's :root theme vars; the dark variant below
+   must therefore also live on body, or the theme toggle does nothing.
+   Brain/books rooms keep their fixed identity: their blocks come later in
+   the file and win at equal specificity. */
 body {
   --light: #f5f3ee;
   --lightgray: #e9e5dc;
@@ -30,6 +34,18 @@ body {
   --secondary: #a8843c;
   --tertiary: #7a7362;
   --highlight: rgba(168, 132, 60, 0.12);
+}
+
+/* palace by night: same warm stone + gold, inverted */
+[saved-theme="dark"] body {
+  --light: #191713;
+  --lightgray: #2e2b24;
+  --gray: #8d8674;
+  --darkgray: #beb7a4;
+  --dark: #e6e1d4;
+  --secondary: #c9a45c;
+  --tertiary: #8d8674;
+  --highlight: rgba(201, 164, 92, 0.12);
 }
 
 .eyebrow {
@@ -265,7 +281,7 @@ body[data-slug="index"] {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(245, 243, 238, 0) 55%, #f5f3ee 100%);
+    background: linear-gradient(180deg, transparent 55%, var(--light) 100%);
     pointer-events: none;
   }
 
