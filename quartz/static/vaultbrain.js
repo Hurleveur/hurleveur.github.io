@@ -525,13 +525,18 @@
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
       // words sit on the entablature band ellipse (fitted to the carve line,
-      // image coords) and rotate with its tangent, exaggerated so the turn of
-      // the band reads clearly even in the flat stretch beside the brain
-      const CX = 630, CY = -372, RX = 800, RY = 688, EXAG = 1.35
+      // image coords) and rotate with its tangent — exaggerated toward the
+      // edges where the band turns hard, true-to-tangent beside the brain
+      const CX = 630, CY = -372, RX = 800, RY = 688
       const bandS = (x) => Math.sqrt(1 - ((x - CX) / RX) ** 2)
       const bandY = (x) => CY + RY * bandS(x)
-      const bandDeg = (x) =>
-        (Math.atan((-RY * (x - CX)) / (RX * RX * bandS(x))) * 180 / Math.PI) * EXAG
+      const bandDeg = (x) => {
+        const u = Math.abs(x - CX) / 570 // 0 at the brain, 1 at the image edge
+        return (
+          (Math.atan((-RY * (x - CX)) / (RX * RX * bandS(x))) * 180 / Math.PI) *
+          (0.85 + 0.5 * u * u)
+        )
+      }
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
       // per-side x ranges, stopping short of the brain canvas box (x 426-851)
@@ -539,12 +544,16 @@
       ;[[folders.slice(0, half), 60, 420], [folders.slice(half), 856, 1165]].forEach(
         ([list, x0, x1]) => {
           list.forEach((folder, i) => {
-            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0)
+            // the last word of each side sat a touch low on the stone;
+            // lift it one word-height, and nudge the left one off the brain
+            const last = i === list.length - 1
+            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0) + (last && x0 < CX ? 15 : 0)
+            const y = bandY(x) - (last ? 13 : 0)
             const text = document.createElementNS(NS, "text")
             text.setAttribute("text-anchor", "middle")
             text.setAttribute(
               "transform",
-              `translate(${x.toFixed(1)} ${bandY(x).toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
+              `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
             )
             const a = document.createElementNS(NS, "a")
             a.setAttribute("href", "/" + folder + "/")
