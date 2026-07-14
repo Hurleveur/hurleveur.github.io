@@ -14,6 +14,12 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
+  // stars, hovering a star lights its frieze word. detail = folder or null.
+  function hlEmit(folder) {
+    window.dispatchEvent(new CustomEvent("vb-folder-hl", { detail: folder }))
+  }
+
   // canvas colors follow the theme: Quartz's darkmode script stamps saved-theme
   // on <html> and fires "themechange". Day = ink on pale sky, night = starlight.
   // The home rotunda mini brain sits on the dark dome image — always night there.
@@ -258,6 +264,13 @@
     }
 
     let hovered = null
+    // section under highlight (from a hovered star here or a frieze word)
+    let hlFolder = null
+    const onHl = (e) => {
+      hlFolder = e.detail
+      if (reduceMotion) draw()
+    }
+    window.addEventListener("vb-folder-hl", onHl)
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
@@ -268,6 +281,8 @@
           break
         }
       }
+      const hf = hovered && hovered.folder !== "~" ? hovered.folder : null
+      if (hf !== hlFolder) hlEmit(hf)
       if (hovered) {
         tip.textContent = hovered.label
         tip.style.left = hovered.x * view.s + view.x + "px"
@@ -331,6 +346,7 @@
       ctx.translate(view.x, view.y)
       ctx.scale(view.s, view.s)
       links.forEach(([a, b]) => {
+        ctx.globalAlpha = !hlFolder || (a.folder === hlFolder && b.folder === hlFolder) ? 1 : 0.15
         ctx.strokeStyle = sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -338,23 +354,28 @@
         ctx.lineTo(b.x, b.y)
         ctx.stroke()
       })
+      ctx.globalAlpha = 1
       nodes.forEach((n, i) => {
+        // highlighted section burns brighter, the rest of the sky recedes
+        const lit = hlFolder && n.folder === hlFolder
+        const dim = !hlFolder || lit ? 1 : 0.15
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glowR = n.r * (n.hub ? 3 : 4) * pulse
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (lit ? 1.5 : 1)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = n.hub ? 0.4 : big ? 0.3 : 0.2
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (lit ? 1.8 : 1))
         ctx.fillStyle = g
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
-        ctx.globalAlpha = 1
+        ctx.globalAlpha = dim
         ctx.fillStyle = n.color
         ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r * pulse, 0, 7)
+        ctx.arc(n.x, n.y, n.r * pulse * (lit && n.hub ? 1.15 : 1), 0, 7)
         ctx.fill()
+        ctx.globalAlpha = 1
         // only section stars get names; note titles live in the hover tip
         if (n.hub && !mini) {
           ctx.textAlign = "center"
@@ -385,7 +406,13 @@
     }
     document.addEventListener("themechange", onTheme)
 
+    function onLeave() {
+      hovered = null
+      tip.style.opacity = 0
+      if (hlFolder) hlEmit(null)
+    }
     cv.addEventListener("pointermove", onMove)
+    cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
     if (!mini) {
       cv.addEventListener("wheel", onWheel, { passive: false })
@@ -406,7 +433,9 @@
     cleanup = () => {
       cancelAnimationFrame(raf)
       document.removeEventListener("themechange", onTheme)
+      window.removeEventListener("vb-folder-hl", onHl)
       cv.removeEventListener("pointermove", onMove)
+      cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
       if (!mini) {
         cv.removeEventListener("wheel", onWheel)
@@ -495,39 +524,47 @@
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      const path = document.createElementNS(NS, "path")
-      path.setAttribute("id", "vb-frieze-arc")
-      path.setAttribute("d", "M 20 75 Q 626 530 1232 85")
-      path.setAttribute("fill", "none")
-      svg.appendChild(path)
+      // one arc per side, fitted to the image's carve line; both stop short
+      // of the brain canvas box (x 426-851) where it would swallow the clicks
+      ;["M 45 113 Q 232 217 418 290", "M 858 291 Q 1036 212 1215 119"].forEach((d, i) => {
+        const p = document.createElementNS(NS, "path")
+        p.setAttribute("id", "vb-arc-" + i)
+        p.setAttribute("d", d)
+        p.setAttribute("fill", "none")
+        svg.appendChild(p)
+      })
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
-      const side = (list, anchor, offset) => {
-        const text = document.createElementNS(NS, "text")
-        text.setAttribute("text-anchor", anchor)
-        const tp = document.createElementNS(NS, "textPath")
-        tp.setAttribute("href", "#vb-frieze-arc")
-        tp.setAttribute("startOffset", offset)
+      ;[folders.slice(0, half), folders.slice(half)].forEach((list, s) => {
+        // words spaced evenly along the band, like the original carving
         list.forEach((folder, i) => {
-          if (i > 0) {
-            const sep = document.createElementNS(NS, "tspan")
-            sep.setAttribute("class", "sep")
-            sep.textContent = " · "
-            tp.appendChild(sep)
-          }
+          const text = document.createElementNS(NS, "text")
+          text.setAttribute("text-anchor", "middle")
+          const tp = document.createElementNS(NS, "textPath")
+          tp.setAttribute("href", "#vb-arc-" + s)
+          tp.setAttribute("startOffset", ((i + 0.5) / list.length) * 100 + "%")
           const a = document.createElementNS(NS, "a")
           a.setAttribute("href", "/" + folder + "/")
           a.setAttribute("class", "frieze-word")
+          a.dataset.folder = folder
           a.style.setProperty("--tint", folderColor(folder))
           a.textContent = folder.replace(/-/g, " ")
+          a.addEventListener("pointerenter", () => hlEmit(folder))
+          a.addEventListener("pointerleave", () => hlEmit(null))
           tp.appendChild(a)
+          text.appendChild(tp)
+          svg.appendChild(text)
         })
-        text.appendChild(tp)
-        svg.appendChild(text)
-      }
-      side(folders.slice(0, half), "start", "2.5%")
-      side(folders.slice(half), "end", "97.5%")
+      })
       frieze.appendChild(svg)
+      // the brain echoes back: hovering a section star lights its word
+      const onHl = (e) => {
+        svg
+          .querySelectorAll(".frieze-word")
+          .forEach((w) => w.classList.toggle("hl", w.dataset.folder === e.detail))
+      }
+      window.addEventListener("vb-folder-hl", onHl)
+      if (window.addCleanup) window.addCleanup(() => window.removeEventListener("vb-folder-hl", onHl))
     }
   }
 

@@ -313,9 +313,10 @@ body[data-slug="index"] {
     }
 
     text {
+      /* sized like the original carving (letters ~14px in image coords) */
       font-family: var(--headerFont);
-      font-size: 19px;
-      letter-spacing: 0.14em;
+      font-size: 14px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
@@ -330,17 +331,15 @@ body[data-slug="index"] {
         filter 0.25s ease;
 
       &:hover,
-      &:focus-visible {
-        /* lit: full tint, halo like light raking across the carving */
+      &:focus-visible,
+      &.hl {
+        /* lit: full tint, halo like light raking across the carving.
+           .hl echoes a hovered section star in the brain canvas */
         fill: var(--tint);
         filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
           drop-shadow(0 0 5px var(--tint))
           drop-shadow(0 0 14px color-mix(in srgb, var(--tint) 60%, transparent));
       }
-    }
-
-    .sep {
-      fill: #8a92a0;
     }
   }
 
