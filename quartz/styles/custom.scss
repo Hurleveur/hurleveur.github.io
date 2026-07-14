@@ -299,6 +299,51 @@ body[data-slug="index"] {
     pointer-events: none;
   }
 
+  /* room names carved along the entablature, where the old latin ran.
+     SVG viewBox = image pixels (1252x428), so the arc maps 1:1 onto the
+     stone band at every width — same trick as the brain insets below */
+  .frieze {
+    position: absolute;
+    inset: 0;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    text {
+      font-family: var(--headerFont);
+      font-size: 19px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .frieze-word {
+      /* carved: stone-shadow fill with the room's tint breathing through;
+         light falls from the oculus — bright groove edge below, shade above */
+      fill: color-mix(in srgb, var(--tint) 45%, #5c6470);
+      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
+        drop-shadow(0 -1px 1px rgba(40, 45, 55, 0.55));
+      transition:
+        fill 0.25s ease,
+        filter 0.25s ease;
+
+      &:hover,
+      &:focus-visible {
+        /* lit: full tint, halo like light raking across the carving */
+        fill: var(--tint);
+        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
+          drop-shadow(0 0 5px var(--tint))
+          drop-shadow(0 0 14px color-mix(in srgb, var(--tint) 60%, transparent));
+      }
+    }
+
+    .sep {
+      fill: #8a92a0;
+    }
+  }
+
   /* the mini brain sits over the image's glowing-brain region */
   #vault-brain {
     position: absolute;
@@ -322,8 +367,9 @@ body[data-slug="index"] {
 }
 
 @media (max-width: 640px) {
-  .rotunda-band #vault-brain {
-    display: none; /* too small to hover; doors below carry navigation */
+  .rotunda-band #vault-brain,
+  .rotunda-band .frieze {
+    display: none; /* too small to hover/read; doors below carry navigation */
   }
 }
 

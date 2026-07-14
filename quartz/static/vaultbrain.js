@@ -483,6 +483,52 @@
         a.append(name, count)
         row.appendChild(a)
       })
+
+    // frieze: room names carved along the rotunda entablature, where the
+    // baked pseudo-latin used to run (inpainted out of rotunda.png). SVG
+    // textPath on the entablature arc, fitted to the image's carve line;
+    // the brain image occludes the middle, so the rooms split left/right.
+    const frieze = document.getElementById("vb-frieze")
+    if (frieze && !frieze.dataset.vbDone) {
+      frieze.dataset.vbDone = "1"
+      const NS = "http://www.w3.org/2000/svg"
+      const svg = document.createElementNS(NS, "svg")
+      svg.setAttribute("viewBox", "0 0 1252 428")
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
+      const path = document.createElementNS(NS, "path")
+      path.setAttribute("id", "vb-frieze-arc")
+      path.setAttribute("d", "M 20 75 Q 626 530 1232 85")
+      path.setAttribute("fill", "none")
+      svg.appendChild(path)
+      const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+      const half = Math.ceil(folders.length / 2)
+      const side = (list, anchor, offset) => {
+        const text = document.createElementNS(NS, "text")
+        text.setAttribute("text-anchor", anchor)
+        const tp = document.createElementNS(NS, "textPath")
+        tp.setAttribute("href", "#vb-frieze-arc")
+        tp.setAttribute("startOffset", offset)
+        list.forEach((folder, i) => {
+          if (i > 0) {
+            const sep = document.createElementNS(NS, "tspan")
+            sep.setAttribute("class", "sep")
+            sep.textContent = " · "
+            tp.appendChild(sep)
+          }
+          const a = document.createElementNS(NS, "a")
+          a.setAttribute("href", "/" + folder + "/")
+          a.setAttribute("class", "frieze-word")
+          a.style.setProperty("--tint", folderColor(folder))
+          a.textContent = folder.replace(/-/g, " ")
+          tp.appendChild(a)
+        })
+        text.appendChild(tp)
+        svg.appendChild(text)
+      }
+      side(folders.slice(0, half), "start", "2.5%")
+      side(folders.slice(half), "end", "97.5%")
+      frieze.appendChild(svg)
+    }
   }
 
   // library shelf: one spine per published book note, built from the same index

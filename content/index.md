@@ -4,6 +4,7 @@ publish: true
 ---
 
 <div class="rotunda-band">
+  <nav class="frieze" id="vb-frieze" aria-label="Rooms of the vault"></nav>
   <div id="vault-brain" data-mini="1">
     <canvas id="vb-stars" aria-hidden="true"></canvas>
     <canvas id="vb-graph" role="img" aria-label="Live constellation of the vault — click to enter the observatory"></canvas>
