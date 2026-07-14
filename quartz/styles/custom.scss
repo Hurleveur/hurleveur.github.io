@@ -86,7 +86,7 @@ body {
   }
 
   h1 {
-    font-size: clamp(2.6rem, 7vw, 5.2rem);
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -167,8 +167,15 @@ body {
 
 .door-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  /* all rooms on one line; equal shares of the row */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 1.2rem;
+
+  @media (max-width: 800px) {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
 }
 
 .door {
@@ -204,10 +211,15 @@ body {
   &:hover,
   &:focus-visible {
     transform: translateY(-6px);
-    box-shadow: 0 18px 34px -18px rgba(58, 55, 47, 0.35);
+    box-shadow: 0 18px 34px -18px rgba(58, 55, 47, 0.45);
+    border-color: var(--tint);
 
     &::before {
-      opacity: 0.5;
+      opacity: 0.85;
+    }
+
+    .name {
+      color: color-mix(in srgb, var(--tint) 65%, #3a372f);
     }
   }
 
@@ -235,7 +247,8 @@ body {
 body[data-slug="index"] {
   .sidebar.right,
   h1.article-title,
-  .content-meta {
+  .content-meta,
+  a[role="anchor"] {
     display: none;
   }
 
@@ -270,9 +283,9 @@ body[data-slug="index"] {
 /* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
 .rotunda-band {
   position: relative;
-  /* same aspect as rotunda.png (1252x360): image fits exactly, so the
+  /* same aspect as rotunda.png (1252x428): image fits exactly, so the
      overlay's % insets map 1:1 onto image regions at every width */
-  aspect-ratio: 1252 / 360;
+  aspect-ratio: 1252 / 428;
   border-radius: 6px;
   overflow: hidden;
   background: url("/static/rotunda.png") center / cover no-repeat;
@@ -290,9 +303,9 @@ body[data-slug="index"] {
   #vault-brain {
     position: absolute;
     left: 34%;
-    right: 34%;
-    top: 40%;
-    bottom: 2%;
+    right: 32%;
+    top: 31%;
+    bottom: 9%;
     height: auto;
     min-height: 0;
     z-index: 1;

@@ -192,9 +192,10 @@
     }
 
     function homeOf(n) {
-      // ellipse, not circle: the canvas is wide, use the width
+      // ellipse, not circle: the canvas is wide, use the width.
+      // mini: the canvas IS the image's brain — spread wider to fill it
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      return [W / 2 + hub.ax * W * 0.24, H / 2 + hub.ay * H * 0.4]
+      return [W / 2 + hub.ax * W * (mini ? 0.32 : 0.24), H / 2 + hub.ay * H * 0.4]
     }
 
     function initPositions() {
@@ -240,8 +241,8 @@
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
         // ellipse sits well inside the canvas: node glows reach ~4x node radius,
         // and anything past the canvas edge clips to a hard bright rectangle
-        const ex = (n.x - W / 2) / (W * 0.38)
-        const ey = (n.y - H / 2) / (H * 0.36)
+        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.38))
+        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.36))
         const d = ex * ex + ey * ey
         if (d > 1) {
           n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
@@ -662,7 +663,11 @@
   // the layout reflows into its space (CSS body.nav-off in custom.scss).
   // Choice persists across pages and visits.
   function initNavToggle() {
-    const off = localStorage.getItem("vb-nav-off") === "1"
+    // home is a hall, not a document: explorer always starts closed there.
+    // Leaving home to a note re-runs this (nav event) and the stored
+    // preference (default: open) takes over.
+    const off =
+      document.body.dataset.slug === "index" || localStorage.getItem("vb-nav-off") === "1"
     document.body.classList.toggle("nav-off", off)
     let btn = document.getElementById("vb-nav-btn")
     if (!btn) {
