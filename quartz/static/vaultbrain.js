@@ -524,40 +524,41 @@
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // one elliptical arc per side (band ellipse: center 630,-380 rx 800 ry 688)
-      // so glyph tangents turn with the 3d band — 41° at the edges easing to 13°
-      // beside the brain; both stop short of the brain canvas box (x 426-851)
-      // where it would swallow the clicks
-      ;["M 60 103 A 800 688 0 0 0 418 284", "M 858 280 A 800 688 0 0 0 1200 103"].forEach((d, i) => {
-        const p = document.createElementNS(NS, "path")
-        p.setAttribute("id", "vb-arc-" + i)
-        p.setAttribute("d", d)
-        p.setAttribute("fill", "none")
-        svg.appendChild(p)
-      })
+      // words sit on the entablature band ellipse (fitted to the carve line,
+      // image coords) and rotate with its tangent, exaggerated so the turn of
+      // the band reads clearly even in the flat stretch beside the brain
+      const CX = 630, CY = -372, RX = 800, RY = 688, EXAG = 1.35
+      const bandS = (x) => Math.sqrt(1 - ((x - CX) / RX) ** 2)
+      const bandY = (x) => CY + RY * bandS(x)
+      const bandDeg = (x) =>
+        (Math.atan((-RY * (x - CX)) / (RX * RX * bandS(x))) * 180 / Math.PI) * EXAG
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
-      ;[folders.slice(0, half), folders.slice(half)].forEach((list, s) => {
-        // words spaced evenly along the band, like the original carving
-        list.forEach((folder, i) => {
-          const text = document.createElementNS(NS, "text")
-          text.setAttribute("text-anchor", "middle")
-          const tp = document.createElementNS(NS, "textPath")
-          tp.setAttribute("href", "#vb-arc-" + s)
-          tp.setAttribute("startOffset", ((i + 0.5) / list.length) * 100 + "%")
-          const a = document.createElementNS(NS, "a")
-          a.setAttribute("href", "/" + folder + "/")
-          a.setAttribute("class", "frieze-word")
-          a.dataset.folder = folder
-          a.style.setProperty("--tint", folderColor(folder))
-          a.textContent = folder.replace(/-/g, " ")
-          a.addEventListener("pointerenter", () => hlEmit(folder))
-          a.addEventListener("pointerleave", () => hlEmit(null))
-          tp.appendChild(a)
-          text.appendChild(tp)
-          svg.appendChild(text)
-        })
-      })
+      // per-side x ranges, stopping short of the brain canvas box (x 426-851)
+      // where it would swallow the clicks
+      ;[[folders.slice(0, half), 60, 420], [folders.slice(half), 856, 1165]].forEach(
+        ([list, x0, x1]) => {
+          list.forEach((folder, i) => {
+            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0)
+            const text = document.createElementNS(NS, "text")
+            text.setAttribute("text-anchor", "middle")
+            text.setAttribute(
+              "transform",
+              `translate(${x.toFixed(1)} ${bandY(x).toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
+            )
+            const a = document.createElementNS(NS, "a")
+            a.setAttribute("href", "/" + folder + "/")
+            a.setAttribute("class", "frieze-word")
+            a.dataset.folder = folder
+            a.style.setProperty("--tint", folderColor(folder))
+            a.textContent = folder.replace(/-/g, " ")
+            a.addEventListener("pointerenter", () => hlEmit(folder))
+            a.addEventListener("pointerleave", () => hlEmit(null))
+            text.appendChild(a)
+            svg.appendChild(text)
+          })
+        },
+      )
       frieze.appendChild(svg)
       // the brain echoes back: hovering a section star lights its word
       const onHl = (e) => {
