@@ -524,9 +524,11 @@
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // one arc per side, fitted to the image's carve line; both stop short
-      // of the brain canvas box (x 426-851) where it would swallow the clicks
-      ;["M 45 113 Q 232 217 418 290", "M 858 291 Q 1036 212 1215 119"].forEach((d, i) => {
+      // one elliptical arc per side (band ellipse: center 630,-380 rx 800 ry 688)
+      // so glyph tangents turn with the 3d band — 41° at the edges easing to 13°
+      // beside the brain; both stop short of the brain canvas box (x 426-851)
+      // where it would swallow the clicks
+      ;["M 60 103 A 800 688 0 0 0 418 284", "M 858 280 A 800 688 0 0 0 1200 103"].forEach((d, i) => {
         const p = document.createElementNS(NS, "path")
         p.setAttribute("id", "vb-arc-" + i)
         p.setAttribute("d", d)

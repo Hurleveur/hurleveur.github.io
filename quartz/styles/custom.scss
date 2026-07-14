@@ -313,9 +313,9 @@ body[data-slug="index"] {
     }
 
     text {
-      /* sized like the original carving (letters ~14px in image coords) */
+      /* a touch under the original carving (~14px in image coords) */
       font-family: var(--headerFont);
-      font-size: 14px;
+      font-size: 12px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
