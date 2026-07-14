@@ -543,12 +543,13 @@
       // where it would swallow the clicks
       ;[[folders.slice(0, half), 60, 420], [folders.slice(half), 856, 1165]].forEach(
         ([list, x0, x1]) => {
+          const leftSide = x0 < CX
           list.forEach((folder, i) => {
-            // the last word of each side sat a touch low on the stone;
-            // lift it one word-height, and nudge the left one off the brain
-            const last = i === list.length - 1
-            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0) + (last && x0 < CX ? 15 : 0)
-            const y = bandY(x) - (last ? 13 : 0)
+            // the outermost word of each side sits low on the stone: lift it one
+            // word-height. it's list-first on the left, list-last on the right
+            const edge = i === (leftSide ? 0 : list.length - 1)
+            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0) + (edge && leftSide ? 15 : 0)
+            const y = bandY(x) - (edge ? 13 : 0)
             const text = document.createElementNS(NS, "text")
             text.setAttribute("text-anchor", "middle")
             text.setAttribute(
