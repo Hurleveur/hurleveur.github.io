@@ -153,6 +153,19 @@
       })
     })
 
+    // hub per folder — used both to draw section stars and to hit-test the
+    // brain "areas": the circle around a hub that selects its section on hover
+    const hubByFolder = {}
+    nodes.forEach((n) => {
+      if (n.hub) hubByFolder[n.folder] = n
+    })
+    // central cluster = root notes (the main pages); give it a selectable area
+    // centred on the canvas, not tied to any section star. lets hovering the
+    // white central notes select the centre instead of a ring section.
+    const centerHub = nodes.some((n) => n.folder === "~" && !n.hub)
+      ? (hubByFolder["~"] = { folder: "~", x: 0, y: 0, areaR: 0 })
+      : null
+
     const links = []
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
@@ -261,6 +274,22 @@
         a.vx += dx * 0.0006; a.vy += dy * 0.0006
         b.vx -= dx * 0.0006; b.vy -= dy * 0.0006
       })
+      // each area = a circle reaching just past its farthest note, so hovering
+      // the cluster (not only a star) selects it. the centre cluster claims the
+      // canvas middle so the white main-page notes never trip a ring section.
+      if (centerHub) { centerHub.x = W / 2; centerHub.y = H / 2 }
+      for (const f in hubByFolder) hubByFolder[f].areaR = 0
+      nodes.forEach((n) => {
+        if (n.hub) return
+        const h = hubByFolder[n.folder]
+        if (!h) return
+        const d = Math.hypot(n.x - h.x, n.y - h.y) + n.r
+        if (d > h.areaR) h.areaR = d
+      })
+      for (const f in hubByFolder) {
+        const h = hubByFolder[f]
+        h.areaR = Math.max(h.areaR * 1.3, 70)
+      }
     }
 
     let hovered = null
@@ -281,7 +310,17 @@
           break
         }
       }
-      const hf = hovered && hovered.folder !== "~" ? hovered.folder : null
+      // select an area when the pointer is on a star OR anywhere inside its
+      // circle; overlapping areas (incl. the centre) resolve to the nearest hub
+      let hf = hovered ? hovered.folder : null
+      if (!hf) {
+        let best = Infinity
+        for (const f in hubByFolder) {
+          const h = hubByFolder[f]
+          const d = Math.hypot(h.x - x, h.y - y)
+          if (d < (h.areaR || 0) && d < best) { best = d; hf = f }
+        }
+      }
       if (hf !== hlFolder) hlEmit(hf)
       if (hovered) {
         tip.textContent = hovered.label
