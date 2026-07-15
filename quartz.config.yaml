@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: plausible
   locale: en-US
-  baseUrl: loci.pages.dev
+  baseUrl: hurleveur.github.io
   ignorePatterns:
     - private
     - templates
