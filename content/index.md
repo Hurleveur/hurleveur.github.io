@@ -10,6 +10,10 @@ publish: true
     <canvas id="vb-graph" role="img" aria-label="Live constellation of the vault — click to enter the observatory"></canvas>
     <div id="vb-tip"></div>
   </div>
+  <button id="vb-expand" type="button" aria-label="Expand the constellation into the observatory" aria-expanded="false">
+    <span class="vb-expand-ico" aria-hidden="true">⤢</span>
+    <span class="vb-expand-txt">Enter the mind</span>
+  </button>
 </div>
 
 <section class="palace-hero">
@@ -23,10 +27,4 @@ publish: true
     <blockquote id="rotating-quote">How others treat you is not a reflection of who you are. How you treat others is.</blockquote>
     <p class="attribution eyebrow" id="quote-source">from the hall of quotes</p>
   </div>
-</section>
-
-<section class="doors">
-  <h2>The rooms</h2>
-  <p class="sub">one door per wing of the vault — drawn from the live index, never by hand</p>
-  <div class="door-row" id="vb-doors"></div>
 </section>

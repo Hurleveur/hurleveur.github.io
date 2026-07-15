@@ -86,7 +86,7 @@ body {
   }
 
   h1 {
-    font-size: clamp(2.2rem, 5.5vw, 4rem);
+    font-size: clamp(2rem, 4.6vw, 3.3rem);
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -122,7 +122,7 @@ body {
 }
 
 .quote-slab {
-  margin: 3rem auto 0;
+  margin: 1.4rem auto 0;
   max-width: 34rem;
   padding: 0 1rem;
   min-height: 5.2rem;
@@ -362,7 +362,8 @@ body[data-slug="index"] {
 
 .rotunda-band + .palace-hero {
   min-height: 0;
-  padding-top: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
 }
 
 @media (max-width: 640px) {
@@ -373,83 +374,74 @@ body[data-slug="index"] {
 }
 
 /* ============================================================
-   BRAIN — the observatory  body[data-slug="brain"]
+   THE OBSERVATORY — full-screen overlay expanded from the home
+   rotunda brain. vaultbrain.js toggles #vault-brain.vb-expanded
+   and body.vb-open; the same init() runs in full (non-mini) mode.
    ============================================================ */
-/* day observatory — pale morning sky; night comes back with the theme toggle */
-body[data-slug="brain"] {
-  --light: #e9eef8;
-  --lightgray: #d4dcee;
-  --gray: #5f6b8e;
-  --darkgray: #333c5c;
-  --dark: #202741;
-  --secondary: #3d7cab;
-  --tertiary: #5f6b8e;
-  --highlight: rgba(61, 124, 171, 0.1);
 
-  .sidebar.right {
+/* expand entry: sibling of #vault-brain so it survives the phone
+   brain-hide below and stays the way in on small screens */
+#vb-expand {
+  position: absolute;
+  top: 27%;
+  right: 30%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(223, 227, 242, 0.5);
+  background: rgba(11, 14, 31, 0.55);
+  color: #dfe3f2;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+
+  .vb-expand-ico {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+  .vb-expand-txt {
     display: none;
   }
 
-  /* the observatory owns the whole viewport, edge to edge */
-  .page {
-    max-width: none;
-  }
-
-  #quartz-body {
-    row-gap: 0; /* empty header/footer rows must not leave gap slivers */
-  }
-
-  /* explorer is a real column beside the sky (collapses via body.nav-off below) */
-  @media all and not ($mobile) {
-    #quartz-body {
-      // min-content: the resizable .sidebar.left drives the column width
-      grid-template-columns: min-content auto;
-      grid-template-rows: auto auto auto;
-      grid-template-areas:
-        "grid-sidebar-left grid-header"
-        "grid-sidebar-left grid-center"
-        "grid-sidebar-left grid-footer";
-    }
-  }
-
-  &.nav-off #quartz-body {
-    grid-template-columns: auto;
-    grid-template-areas:
-      "grid-header"
-      "grid-center"
-      "grid-footer";
-  }
-
-  .sidebar.left {
-    background: color-mix(in srgb, var(--light) 70%, transparent);
-    border-right: 1px solid color-mix(in srgb, var(--dark) 10%, transparent);
-  }
-
-  h1.article-title,
-  .content-meta,
-  .breadcrumb-container,
-  .center > hr,
-  .page-footer,
-  footer {
-    display: none; /* the caption inside the dome already names the room; the sky needs no rule-offs */
-  }
-
-  .page-header {
-    margin-top: 0;
-  }
-
-  article {
-    margin: 0;
-  }
-
-  #vault-brain {
-    height: 100vh;
-    height: 100dvh;
+  &:hover,
+  &:focus-visible {
+    background: rgba(11, 14, 31, 0.82);
+    border-color: #6ab7e0;
+    color: #fff;
   }
 }
 
-/* night observatory — the original fixed palette, now only when the theme is dark */
-[saved-theme="dark"] body[data-slug="brain"] {
+@media (max-width: 640px) {
+  /* the tiny brain + frieze hide on phones; the button becomes the
+     labelled entrance, centred low over the dome */
+  #vb-expand {
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: 14%;
+    transform: translateX(-50%);
+
+    .vb-expand-txt {
+      display: inline;
+    }
+  }
+}
+
+/* expanded: the wrapper leaves the rotunda and owns the viewport */
+#vault-brain.vb-expanded {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  height: auto;
+  background: #0b0e1f; /* night default — matches skyColors() */
+  /* space palette for the chrome children (caption/legend/tip/✕) */
   --light: #0b0e1f;
   --lightgray: #1a1f3d;
   --gray: #8b93b8;
@@ -457,7 +449,50 @@ body[data-slug="brain"] {
   --dark: #dfe3f2;
   --secondary: #6ab7e0;
   --tertiary: #8b93b8;
-  --highlight: rgba(223, 227, 242, 0.08);
+
+  #vb-stars {
+    display: block; /* un-hide the starfield the dome had switched off */
+  }
+  canvas {
+    touch-action: none; /* pan + pinch own the gestures, no page scroll */
+  }
+}
+
+[saved-theme="light"] #vault-brain.vb-expanded {
+  background: #e9eef8; /* day sky, same as the old day observatory */
+  --light: #e9eef8;
+  --lightgray: #d4dcee;
+  --gray: #5f6b8e;
+  --darkgray: #333c5c;
+  --dark: #202741;
+  --secondary: #3d7cab;
+  --tertiary: #5f6b8e;
+}
+
+body.vb-open {
+  overflow: hidden; /* lock the page behind the overlay */
+}
+
+/* ✕ close, injected into the overlay by vaultbrain.js */
+#vb-collapse {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 52;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  background: color-mix(in srgb, var(--light) 85%, transparent);
+  color: var(--secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--secondary);
+    color: var(--light);
+  }
 }
 
 /* explorer toggle, injected by vaultbrain.js on every page — colors follow the world */
