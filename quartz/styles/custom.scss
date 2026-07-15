@@ -433,6 +433,14 @@ body[data-slug="index"] {
   }
 }
 
+/* explorer overlay open (mobile) = the nav drawer is up; drop the floating
+   "Enter the mind" entrance so it doesn't hover over the folder list */
+@media all and ($mobile) {
+  body:has(.explorer:not(.collapsed)) #vb-expand {
+    display: none;
+  }
+}
+
 /* expanded: the wrapper leaves the rotunda and owns the viewport */
 #vault-brain.vb-expanded {
   display: block;
@@ -519,6 +527,12 @@ body.vb-open {
   &:focus-visible {
     outline: 2px solid var(--secondary);
     outline-offset: 3px;
+  }
+
+  /* on phones the sidebar stays put and the explorer's own ☰ opens the nav,
+     so this desktop column-collapse toggle is redundant — hide it */
+  @media all and ($mobile) {
+    display: none;
   }
 }
 
@@ -800,7 +814,14 @@ body[data-slug^="books"] {
    Per-world pages (index/brain) declare their own higher-specificity variant. */
 body.nav-off {
   .sidebar.left {
-    display: none;
+    // nav-off reclaims the left column for reading width — a desktop/tablet
+    // idea. On mobile the left sidebar is just the top toolbar (search,
+    // day/night, explorer ☰); hiding it there strips those controls and, with
+    // the .mobile-explorer toggle then invisible, the explorer never self-
+    // collapses so its overlay covers the page. Keep the toolbar on phones.
+    @media all and not ($mobile) {
+      display: none;
+    }
   }
 
   #quartz-body {
