@@ -62,7 +62,6 @@
   // which room gets which tone — tracks are plain mp3 files, swap freely.
   const AMBIENCE = [
     ["books", "library"],
-    ["brain", "space"],
     ["meaning", "meaning"],
     ["travel", "travel"],
     ["friends", "friends"],
@@ -77,6 +76,10 @@
     wrap.dataset.vbActive = "1"
     // mini mode (home-page rotunda): no labels, whole canvas is a door to /brain
     const mini = !!wrap.dataset.mini
+    // the observatory spreads the constellation wider than the tight rotunda
+    // brain so notes and labels stay legible at the zoomed-out overview
+    const spread = mini ? 1 : 1.8
+    const repelRange = mini ? 1600 : 3000
 
     const cv = document.getElementById("vb-graph")
     const starsCv = document.getElementById("vb-stars")
@@ -153,6 +156,19 @@
       })
     })
 
+    // hub per folder — used both to draw section stars and to hit-test the
+    // brain "areas": the circle around a hub that selects its section on hover
+    const hubByFolder = {}
+    nodes.forEach((n) => {
+      if (n.hub) hubByFolder[n.folder] = n
+    })
+    // central cluster = root notes (the main pages); give it a selectable area
+    // centred on the canvas, not tied to any section star. lets hovering the
+    // white central notes select the centre instead of a ring section.
+    const centerHub = nodes.some((n) => n.folder === "~" && !n.hub)
+      ? (hubByFolder["~"] = { folder: "~", x: 0, y: 0, areaR: 0 })
+      : null
+
     const links = []
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
@@ -201,7 +217,7 @@
       // ellipse, not circle: the canvas is wide, use the width.
       // mini: the canvas IS the image's brain — spread wider to fill it
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      return [W / 2 + hub.ax * W * (mini ? 0.32 : 0.24), H / 2 + hub.ay * H * 0.4]
+      return [W / 2 + hub.ax * W * (mini ? 0.32 : 0.3), H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)]
     }
 
     function initPositions() {
@@ -230,9 +246,10 @@
         nodes.forEach((m) => {
           if (m === n) return
           const dx = n.x - m.x, dy = n.y - m.y, d2 = dx * dx + dy * dy
-          if (d2 < 1600 && d2 > 0) {
-            // big stars carve out more space than dust
-            const f = m.hub ? 12 : 2
+          if (d2 < repelRange && d2 > 0) {
+            // big stars carve out more space than dust; spread pushes the
+            // observatory's clusters apart so the overview reads clearly
+            const f = (m.hub ? 12 : 2) * spread
             n.vx += (dx / d2) * f
             n.vy += (dy / d2) * f
           }
@@ -247,8 +264,8 @@
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
         // ellipse sits well inside the canvas: node glows reach ~4x node radius,
         // and anything past the canvas edge clips to a hard bright rectangle
-        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.38))
-        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.36))
+        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.47))
+        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.45))
         const d = ex * ex + ey * ey
         if (d > 1) {
           n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
@@ -261,6 +278,22 @@
         a.vx += dx * 0.0006; a.vy += dy * 0.0006
         b.vx -= dx * 0.0006; b.vy -= dy * 0.0006
       })
+      // each area = a circle reaching just past its farthest note, so hovering
+      // the cluster (not only a star) selects it. the centre cluster claims the
+      // canvas middle so the white main-page notes never trip a ring section.
+      if (centerHub) { centerHub.x = W / 2; centerHub.y = H / 2 }
+      for (const f in hubByFolder) hubByFolder[f].areaR = 0
+      nodes.forEach((n) => {
+        if (n.hub) return
+        const h = hubByFolder[n.folder]
+        if (!h) return
+        const d = Math.hypot(n.x - h.x, n.y - h.y) + n.r
+        if (d > h.areaR) h.areaR = d
+      })
+      for (const f in hubByFolder) {
+        const h = hubByFolder[f]
+        h.areaR = Math.max(h.areaR * 1.3, 70)
+      }
     }
 
     let hovered = null
@@ -281,7 +314,17 @@
           break
         }
       }
-      const hf = hovered && hovered.folder !== "~" ? hovered.folder : null
+      // select an area when the pointer is on a star OR anywhere inside its
+      // circle; overlapping areas (incl. the centre) resolve to the nearest hub
+      let hf = hovered ? hovered.folder : null
+      if (!hf) {
+        let best = Infinity
+        for (const f in hubByFolder) {
+          const h = hubByFolder[f]
+          const d = Math.hypot(h.x - x, h.y - y)
+          if (d < (h.areaR || 0) && d < best) { best = d; hf = f }
+        }
+      }
       if (hf !== hlFolder) hlEmit(hf)
       if (hovered) {
         tip.textContent = hovered.label
@@ -297,7 +340,7 @@
     function onClick() {
       if (dragged) return // pan release, not a pick
       if (hovered) window.location.href = "/" + hovered.slug
-      else if (mini) window.location.href = "/brain"
+      else if (mini) document.getElementById("vb-expand")?.click()
     }
 
     // wheel zooms toward the cursor; drag pans when zoomed in. Full mode only —
@@ -316,11 +359,35 @@
     }
     let dragged = false
     let dragFrom = null
+    // active pointers by id: one drags/pans, two pinch-zoom around their midpoint
+    const ptrs = new Map()
+    let pinch = null // { d: start finger gap, s: start view.s }
     function onDown(e) {
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY })
       dragFrom = { px: e.clientX, py: e.clientY, vx: view.x, vy: view.y }
       dragged = false
+      if (ptrs.size === 2) {
+        const [a, b] = [...ptrs.values()]
+        pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: view.s }
+        dragged = true // a two-finger gesture is never a tap
+      }
     }
     function onDrag(e) {
+      if (!ptrs.has(e.pointerId)) return
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (ptrs.size >= 2 && pinch) {
+        const [a, b] = [...ptrs.values()]
+        const rect = cv.getBoundingClientRect()
+        const mx = (a.x + b.x) / 2 - rect.left, my = (a.y + b.y) / 2 - rect.top
+        const [wx, wy] = toWorld(mx, my)
+        view.s = Math.min(8, Math.max(1, (pinch.s * Math.hypot(a.x - b.x, a.y - b.y)) / pinch.d))
+        view.x = mx - wx * view.s
+        view.y = my - wy * view.s
+        clampView()
+        tip.style.opacity = 0
+        dragged = true
+        return
+      }
       if (!dragFrom) return
       const dx = e.clientX - dragFrom.px, dy = e.clientY - dragFrom.py
       if (dx * dx + dy * dy > 16) dragged = true
@@ -331,8 +398,16 @@
         tip.style.opacity = 0
       }
     }
-    function onUp() {
-      dragFrom = null
+    function onUp(e) {
+      if (e) ptrs.delete(e.pointerId)
+      if (ptrs.size < 2) pinch = null
+      // dropped from pinch to one finger: re-anchor the pan to it, not stale coords
+      if (ptrs.size === 1) {
+        const [p] = [...ptrs.values()]
+        dragFrom = { px: p.x, py: p.y, vx: view.x, vy: view.y }
+      } else if (ptrs.size === 0) {
+        dragFrom = null
+      }
     }
 
     let t = 0
@@ -418,6 +493,7 @@
       cv.addEventListener("wheel", onWheel, { passive: false })
       cv.addEventListener("pointerdown", onDown)
       cv.addEventListener("pointermove", onDrag)
+      cv.addEventListener("pointercancel", onUp)
       window.addEventListener("pointerup", onUp)
     }
     // observe the wrapper, not the window: the explorer toggle resizes the
@@ -441,6 +517,7 @@
         cv.removeEventListener("wheel", onWheel)
         cv.removeEventListener("pointerdown", onDown)
         cv.removeEventListener("pointermove", onDrag)
+        cv.removeEventListener("pointercancel", onUp)
         window.removeEventListener("pointerup", onUp)
       }
       ro.disconnect()
@@ -450,12 +527,10 @@
     if (window.addCleanup) window.addCleanup(cleanup)
   }
 
-  // brain legend: one entry per real top-level folder present in the published
-  // set, colored the same way the graph colors its nodes — no fixed category list.
-  async function initLegend() {
-    const legend = document.getElementById("vb-legend")
-    if (!legend || legend.dataset.vbDone) return
-    legend.dataset.vbDone = "1"
+  // legend: one entry per real top-level folder in the published set, colored
+  // the same way the graph colors its nodes — no fixed category list. Built into
+  // the overlay chrome each time the observatory opens.
+  async function buildLegend(legend) {
     let data
     try {
       data = await loadIndex()
@@ -476,6 +551,61 @@
         span.textContent = folder === "~" ? "root" : folder
         legend.appendChild(span)
       })
+  }
+
+  // expand the home rotunda brain into a full-screen observatory overlay — the
+  // same init() re-runs in full (non-mini) mode over the whole viewport. No new
+  // page: caption, legend and the ✕ are injected into the wrapper, torn down on
+  // close. Esc and the ✕ both close; a node click SPA-navigates (nav clears it).
+  function toggleExpand(wrap, btn) {
+    const opening = !wrap.classList.contains("vb-expanded")
+    if (cleanup) cleanup() // tear the running sim down before switching modes
+    if (opening) {
+      wrap.classList.add("vb-expanded")
+      document.body.classList.add("vb-open")
+      delete wrap.dataset.mini
+      buildOverlayChrome(wrap, btn)
+    } else {
+      wrap.classList.remove("vb-expanded")
+      document.body.classList.remove("vb-open")
+      wrap.dataset.mini = "1"
+      wrap.querySelectorAll(".brain-caption, .brain-legend, #vb-collapse").forEach((el) => el.remove())
+    }
+    if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
+    init() // rebuild in the new mode
+    initAudio() // swap ambience: space while open, the room's tone on close
+  }
+
+  function buildOverlayChrome(wrap, btn) {
+    if (wrap.querySelector(".brain-caption")) return
+    const cap = document.createElement("div")
+    cap.className = "brain-caption"
+    cap.innerHTML =
+      "<h1>The Observatory</h1><p>Every note is a star; every link a thread. This view rebuilds itself from the vault on each publish — nothing here is arranged by hand.</p>"
+    const legend = document.createElement("div")
+    legend.className = "brain-legend"
+    legend.id = "vb-legend"
+    const close = document.createElement("button")
+    close.type = "button"
+    close.id = "vb-collapse"
+    close.setAttribute("aria-label", "Close the observatory")
+    close.textContent = "✕"
+    close.addEventListener("click", () => toggleExpand(wrap, btn))
+    wrap.append(cap, legend, close)
+    buildLegend(legend)
+  }
+
+  function initExpand() {
+    const btn = document.getElementById("vb-expand")
+    const wrap = document.getElementById("vault-brain")
+    if (!btn || !wrap || btn.dataset.vbDone) return
+    btn.dataset.vbDone = "1"
+    btn.addEventListener("click", () => toggleExpand(wrap, btn))
+    const onKey = (e) => {
+      if (e.key === "Escape" && wrap.classList.contains("vb-expanded")) toggleExpand(wrap, btn)
+    }
+    document.addEventListener("keydown", onKey)
+    if (window.addCleanup) window.addCleanup(() => document.removeEventListener("keydown", onKey))
   }
 
   // home-page doors: one arched portal per real top-level folder, colored like
@@ -650,7 +780,9 @@
 
   function initAudio() {
     const slug = document.body.dataset.slug || ""
-    const track = AMBIENCE.find(([p]) => slug.startsWith(p))[1]
+    const track = document.body.classList.contains("vb-open")
+      ? "space"
+      : AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
       btn = document.createElement("button")
@@ -786,10 +918,11 @@
     window.__vaultbrainWired = true
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
+      document.body.classList.remove("vb-open") // overlay can't survive a page swap
       initNavToggle()
       initSidebarResize()
       init()
-      initLegend()
+      initExpand()
       initDoors()
       initShelf()
       initQuotes()
@@ -800,7 +933,7 @@
   initNavToggle()
   initSidebarResize()
   init()
-  initLegend()
+  initExpand()
   initDoors()
   initShelf()
   initQuotes()
