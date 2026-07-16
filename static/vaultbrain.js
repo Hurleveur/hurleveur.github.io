@@ -740,22 +740,24 @@
     }
   }
 
-  // palace quote slab: rotate through the hall of quotes
-  const QUOTES = [
-    ["How others treat you is not a reflection of who you are. How you treat others is.", "from the hall of quotes"],
-    ["Be a seeker of silence first, for therein lies the truth.", "from the hall of quotes"],
-    ["Dum spiro spero — while I breathe, I hope.", "from the latin inscriptions"],
-    ["Nobody is paying as much attention to you as you are.", "from the hall of quotes"],
-    ["The internet is the largest database. Please don’t pollute it.", "from guardians of knowledge"],
-    ["Solvitur ambulando — it is solved by walking.", "from the latin inscriptions"],
-    ["There isn’t so much to think about really. Just be, feel and do.", "from the hall of quotes"],
-  ]
-  function initQuotes() {
+  // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
+  // from #quote lines + dashed lines in quote files). Each entry is
+  // [text, source]; source is the note's folder, e.g. "from website".
+  async function initQuotes() {
     const q = document.getElementById("rotating-quote")
     const src = document.getElementById("quote-source")
     if (!q || q.dataset.vbDone) return
     q.dataset.vbDone = "1"
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+    let QUOTES
+    try {
+      QUOTES = await fetch("/static/quotes.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    if (!QUOTES.length) return
+
     let i = 0
     const timer = setInterval(() => {
       if (!q.isConnected) return clearInterval(timer)
