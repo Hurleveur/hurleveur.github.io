@@ -80,6 +80,9 @@
     // brain so notes and labels stay legible at the zoomed-out overview
     const spread = mini ? 1 : 1.8
     const repelRange = mini ? 1600 : 3000
+    // phones: the observatory is a ~400px-wide sky — shrink stars (and their
+    // glows, which follow r) so the labels and caption aren't drowned in glow
+    const rs = mini ? 1 : Math.max(0.55, Math.min(1, wrap.clientWidth / 1100))
 
     const cv = document.getElementById("vb-graph")
     const starsCv = document.getElementById("vb-stars")
@@ -126,7 +129,7 @@
         color: folder === "~" ? sky.root : folderColor(folder),
         r: mini
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
-          : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5),
+          : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
         hubWeight: backlinks[slug] || 0,
         x: 0, y: 0, vx: 0, vy: 0,
       }
@@ -150,7 +153,7 @@
         label: f.replace(/-/g, " ") + " · " + counts[f] + " notes",
         folder: f,
         color: folderColor(f),
-        r: (mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2),
+        r: ((mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2)) * rs,
         hubWeight: 0,
         x: 0, y: 0, vx: 0, vy: 0,
       })
