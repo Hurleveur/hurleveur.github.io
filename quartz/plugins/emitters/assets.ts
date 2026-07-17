@@ -72,11 +72,18 @@ const filesToCopy = async (argv: Argv, cfg: QuartzConfig, excludeExtensions: Set
 // (quartz/static/assetnav.js) so they keep a door back into the site
 const NAV_TAG = `<script defer src="/static/assetnav.js"></script>`
 
+// html keeps its extension on disk: static hosts (GitHub Pages) serve
+// extensionless files as application/octet-stream (browser downloads them),
+// but resolve the clean URL /foo from foo.html themselves
+const outputName = (fp: FilePath): string => {
+  const name = slugifyFilePath(fp) as string
+  return path.extname(fp).toLowerCase() === ".html" ? name + ".html" : name
+}
+
 const copyFile = async (argv: Argv, fp: FilePath) => {
   const src = joinSegments(argv.directory, fp) as FilePath
 
-  const name = slugifyFilePath(fp)
-  const dest = joinSegments(argv.output, name) as FilePath
+  const dest = joinSegments(argv.output, outputName(fp)) as FilePath
 
   const dir = path.dirname(dest) as FilePath
   await fs.promises.mkdir(dir, { recursive: true })
@@ -118,8 +125,7 @@ export const Assets: QuartzEmitterPlugin = () => {
         if (changeEvent.type === "add" || changeEvent.type === "change") {
           yield copyFile(ctx.argv, changeEvent.path)
         } else if (changeEvent.type === "delete") {
-          const name = slugifyFilePath(changeEvent.path)
-          const dest = joinSegments(ctx.argv.output, name) as FilePath
+          const dest = joinSegments(ctx.argv.output, outputName(changeEvent.path)) as FilePath
           await fs.promises.unlink(dest)
         }
       }

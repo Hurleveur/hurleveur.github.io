@@ -481,6 +481,23 @@ body.vb-open {
   overflow: hidden; /* lock the page behind the overlay */
 }
 
+/* phone observatory: compact caption, clear of the ✕ and off the sky's top stars */
+@media (max-width: 640px) {
+  #vault-brain.vb-expanded .brain-caption {
+    left: 1rem;
+    right: 3.8rem; /* clear the fixed ✕ */
+    max-width: none;
+
+    h1 {
+      font-size: 1.35rem;
+    }
+    p {
+      font-size: 0.72rem;
+      line-height: 1.45;
+    }
+  }
+}
+
 /* ✕ close, injected into the overlay by vaultbrain.js */
 #vb-collapse {
   position: fixed;

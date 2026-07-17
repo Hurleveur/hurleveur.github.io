@@ -17,6 +17,8 @@ rsync -a --delete \
   --include '/Website/the prophet.md' \
   --include '/Website/Interesting persons to follow.md' \
   --include '/Website/Recommended app list.md' \
+  --include '/Website/Latin.md' \
+  --include '/Website/quote.md' \
   --include '/Website/*.html' \
   --exclude '/Website/*' \
   --exclude '/index.md' --exclude '/brain.md' --exclude '/Books/index.md' \
