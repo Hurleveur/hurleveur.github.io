@@ -619,6 +619,8 @@
   async function initFrieze() {
     const frieze = document.getElementById("vb-frieze")
     if (!frieze || frieze.dataset.vbDone) return
+    // set before the await — initial load fires both the direct call and "nav"
+    frieze.dataset.vbDone = "1"
     let data
     try {
       data = await loadIndex()
@@ -636,7 +638,6 @@
     // textPath on the entablature arc, fitted to the image's carve line;
     // the brain image occludes the middle, so the rooms split left/right.
     {
-      frieze.dataset.vbDone = "1"
       const NS = "http://www.w3.org/2000/svg"
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
