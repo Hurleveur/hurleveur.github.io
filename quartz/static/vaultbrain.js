@@ -59,8 +59,15 @@
 
   // per-world ambience: slug prefix -> SoundCloud track URL, played through
   // an offscreen widget iframe. First matching prefix wins; "" is the
-  // fallback. Only Iron Sky is picked so far — add per-room tracks here.
+  // fallback.
   const AMBIENCE = [
+    ["friends", "https://soundcloud.com/nicolas-peyrac/il-suffirait"],
+    ["movie-serie", "https://soundcloud.com/eurythmics-official/sweet-dreams-are-made-of-3"],
+    ["work", "https://soundcloud.com/thomash_voodoohop/rachel-tobac-security-hackers-and-password"],
+    ["website", "https://soundcloud.com/madonna/la-isla-bonita"],
+    ["clippings", "https://soundcloud.com/michelberger/le-paradis-blanc"],
+    ["travel", "https://soundcloud.com/eaglesofficial/eagles-hotel-california"],
+    ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
