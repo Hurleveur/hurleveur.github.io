@@ -307,16 +307,20 @@
       if (reduceMotion) draw()
     }
     window.addEventListener("vb-folder-hl", onHl)
+    // coarse pointers (touch) get a fatter hit circle than a mouse needs
+    const slop = matchMedia("(pointer: coarse)").matches ? 16 : 8
+    function nodeAt(e) {
+      const rect = cv.getBoundingClientRect()
+      const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
+      for (const n of nodes) {
+        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + slop / view.s) ** 2) return n
+      }
+      return null
+    }
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
-      hovered = null
-      for (const n of nodes) {
-        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + 8 / view.s) ** 2) {
-          hovered = n
-          break
-        }
-      }
+      hovered = nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub
       let hf = hovered ? hovered.folder : null
@@ -340,9 +344,12 @@
         cv.style.cursor = mini ? "pointer" : "default"
       }
     }
-    function onClick() {
+    function onClick(e) {
       if (dragged) return // pan release, not a pick
-      if (hovered) window.location.href = "/" + hovered.slug
+      // hit-test the click's own coords: on touch, pointerleave fires before
+      // click and clears `hovered`, and a stationary tap never fires pointermove
+      const hit = nodeAt(e)
+      if (hit) window.location.href = "/" + hit.slug
       else if (mini) document.getElementById("vb-expand")?.click()
     }
 
