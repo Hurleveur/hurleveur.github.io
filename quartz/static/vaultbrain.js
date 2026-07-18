@@ -614,12 +614,11 @@
     if (window.addCleanup) window.addCleanup(() => document.removeEventListener("keydown", onKey))
   }
 
-  // home-page doors: one arched portal per real top-level folder, colored like
+  // rotunda frieze: one room name per real top-level folder, colored like
   // the constellation, counts live from the index — never a hand-kept list
-  async function initDoors() {
-    const row = document.getElementById("vb-doors")
-    if (!row || row.dataset.vbDone) return
-    row.dataset.vbDone = "1"
+  async function initFrieze() {
+    const frieze = document.getElementById("vb-frieze")
+    if (!frieze || frieze.dataset.vbDone) return
     let data
     try {
       data = await loadIndex()
@@ -632,29 +631,11 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    Object.keys(counts)
-      .sort((a, b) => counts[b] - counts[a])
-      .forEach((folder) => {
-        const a = document.createElement("a")
-        a.className = "door"
-        a.href = "/" + folder + "/"
-        a.style.setProperty("--tint", folderColor(folder))
-        const name = document.createElement("span")
-        name.className = "name"
-        name.textContent = folder.replace(/-/g, " ")
-        const count = document.createElement("span")
-        count.className = "count"
-        count.textContent = counts[folder] + (counts[folder] === 1 ? " note" : " notes")
-        a.append(name, count)
-        row.appendChild(a)
-      })
-
-    // frieze: room names carved along the rotunda entablature, where the
-    // baked pseudo-latin used to run (inpainted out of rotunda.png). SVG
+    // words carved along the rotunda entablature, where the baked
+    // pseudo-latin used to run (inpainted out of rotunda.png). SVG
     // textPath on the entablature arc, fitted to the image's carve line;
     // the brain image occludes the middle, so the rooms split left/right.
-    const frieze = document.getElementById("vb-frieze")
-    if (frieze && !frieze.dataset.vbDone) {
+    {
       frieze.dataset.vbDone = "1"
       const NS = "http://www.w3.org/2000/svg"
       const svg = document.createElementNS(NS, "svg")
@@ -785,6 +766,102 @@
         q.style.opacity = 1
       }, 600)
     }, 7000)
+  }
+
+  // taskbar help icon: sits beside darkmode/reader-mode in the toolbar (found
+  // via .darkmode's flex-component parent, since the toolbar has no id of its
+  // own). The toolbar is rebuilt on every SPA nav, so the button is re-created
+  // each time; the popover panel lives on <body> (survives nav) and its
+  // content is fetched from static/help.json (built from content/Help.md by
+  // the VaultPages emitter) once, on first open.
+  let helpHtml = null
+  function initHelp() {
+    const darkBtn = document.querySelector(".darkmode")
+    const toolbar = darkBtn?.closest(".flex-component")
+    if (!toolbar) return
+
+    let panel = document.getElementById("vb-help-panel")
+    if (!panel) {
+      panel = document.createElement("div")
+      panel.id = "vb-help-panel"
+      panel.hidden = true
+      document.body.appendChild(panel)
+
+      const onOutside = (e) => {
+        if (!panel.hidden && !panel.contains(e.target) && e.target.id !== "vb-help-btn") {
+          panel.hidden = true
+        }
+      }
+      const onKey = (e) => {
+        if (e.key === "Escape" && !panel.hidden) panel.hidden = true
+      }
+      document.addEventListener("pointerdown", onOutside)
+      document.addEventListener("keydown", onKey)
+      if (window.addCleanup) {
+        window.addCleanup(() => {
+          document.removeEventListener("pointerdown", onOutside)
+          document.removeEventListener("keydown", onKey)
+        })
+      }
+    }
+
+    if (toolbar.querySelector("#vb-help-btn")) return
+    const wrap = document.createElement("div")
+    const btn = document.createElement("button")
+    btn.id = "vb-help-btn"
+    btn.type = "button"
+    btn.textContent = "?"
+    btn.setAttribute("aria-label", "Help")
+    btn.addEventListener("click", async () => {
+      if (!panel.hidden) {
+        panel.hidden = true
+        return
+      }
+      if (helpHtml === null) {
+        try {
+          const data = await fetch("/static/help.json").then((r) => r.json())
+          helpHtml = data.html || ""
+        } catch (e) {
+          helpHtml = "<p>Couldn't load help.</p>"
+        }
+        panel.innerHTML = helpHtml
+      }
+      panel.hidden = false
+    })
+    wrap.appendChild(btn)
+    toolbar.appendChild(wrap)
+  }
+
+  // homepage whoami card: avatar + live text from content/woami.md, via
+  // static/whoami.json (built by the VaultPages emitter). Teaser is the first
+  // paragraph; "Read more" swaps in the full rendered note, inline, no nav.
+  async function initWhoami() {
+    const body = document.getElementById("whoami-body")
+    const more = document.getElementById("whoami-more")
+    if (!body || body.dataset.vbDone) return
+    body.dataset.vbDone = "1"
+
+    let data
+    try {
+      data = await fetch("/static/whoami.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const html = data.html || ""
+    const tmp = document.createElement("div")
+    tmp.innerHTML = html
+    const firstPara = tmp.querySelector("p")
+
+    if (firstPara && tmp.children.length > 1) {
+      body.appendChild(firstPara.cloneNode(true))
+      more.hidden = false
+      more.addEventListener("click", () => {
+        body.replaceChildren(...tmp.children)
+        more.hidden = true
+      })
+    } else {
+      body.innerHTML = html
+    }
   }
 
   // room ambience: real music via an offscreen SoundCloud widget (AMBIENCE
@@ -978,9 +1055,11 @@
       initSidebarResize()
       init()
       initExpand()
-      initDoors()
+      initFrieze()
       initShelf()
       initQuotes()
+      initHelp()
+      initWhoami()
       initAudio()
       initFolderAssets()
     })
@@ -989,9 +1068,11 @@
   initSidebarResize()
   init()
   initExpand()
-  initDoors()
+  initFrieze()
   initShelf()
   initQuotes()
+  initHelp()
+  initWhoami()
   initAudio()
   initFolderAssets()
 })()

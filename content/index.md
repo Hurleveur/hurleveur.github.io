@@ -28,3 +28,9 @@ publish: true
     <p class="attribution eyebrow" id="quote-source">from the hall of quotes</p>
   </div>
 </section>
+
+<section class="whoami-card" id="whoami-card">
+  <img class="whoami-avatar" src="/attachments/the-knight-without-an-armor.jpeg" alt="A placeholder portrait" />
+  <div class="whoami-body" id="whoami-body"></div>
+  <button class="whoami-more" id="whoami-more" type="button" hidden>Read more</button>
+</section>
