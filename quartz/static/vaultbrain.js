@@ -795,6 +795,8 @@
   function setAudioLabel(btn) {
     btn.textContent = btn._paused ? "♪ play the room" : "♪ hush"
     btn.classList.toggle("on", !btn._paused)
+    // mini-player slides in while the room is playing (CSS #vb-audio-frame)
+    document.getElementById("vb-audio-frame")?.classList.toggle("on", !btn._paused)
   }
 
   function initAudio() {
@@ -804,13 +806,13 @@
     if (!btn) {
       const iframe = document.createElement("iframe")
       iframe.id = "vb-audio-frame"
-      iframe.allow = "autoplay"
+      // encrypted-media is required: major-label tracks (policy MONETIZE)
+      // stream via DRM — without it the widget fires PLAY then PAUSE at 0
+      iframe.allow = "autoplay; encrypted-media"
       iframe.src =
         "https://w.soundcloud.com/player/?url=" +
         encodeURIComponent(track) +
         "&auto_play=false&show_artwork=false"
-      // parked offscreen: the brass toggle is the only visible control
-      iframe.style.cssText = "position:fixed;left:-9999px;bottom:0;width:2px;height:2px;border:0"
       document.body.appendChild(iframe)
 
       btn = document.createElement("button")

@@ -757,6 +757,27 @@ body[data-slug^="books"] {
 
 /* ambience toggle — lives on <body>, every page has a matching room tone
    (vaultbrain.js AMBIENCE map). Colors follow whichever world the page is in. */
+// SoundCloud mini-player: parked offscreen until the room is playing,
+// then slides in above the brass toggle (title + scrub + SC attribution)
+#vb-audio-frame {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 4rem;
+  width: min(320px, calc(100vw - 2.4rem));
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+
+  &.on {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 #vb-audio-btn {
   position: fixed;
   right: 1.2rem;
