@@ -68,6 +68,8 @@
     ["clippings", "https://soundcloud.com/michelberger/le-paradis-blanc"],
     ["travel", "https://soundcloud.com/eaglesofficial/eagles-hotel-california"],
     ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
+    ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
+    ["alignement", "https://soundcloud.com/imaginedragons/natural"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
