@@ -139,6 +139,14 @@ body {
 
   .attribution {
     margin-top: 0.7rem;
+
+    a {
+      color: inherit;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 }
 

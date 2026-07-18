@@ -752,7 +752,9 @@
 
   // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
   // from #quote lines + dashed lines in quote files). Each entry is
-  // [text, source]; source is the note's folder, e.g. "from website".
+  // [text, source, url?]; source is the note's folder, e.g. "from website",
+  // and url (only set for individual inline-tagged quotes, not quote files)
+  // points at the note the quote came from.
   async function initQuotes() {
     const q = document.getElementById("rotating-quote")
     const src = document.getElementById("quote-source")
@@ -774,8 +776,16 @@
       q.style.opacity = 0
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
-        q.textContent = QUOTES[i][0]
-        src.textContent = QUOTES[i][1]
+        const [text, from, url] = QUOTES[i]
+        q.textContent = text
+        if (url) {
+          const a = document.createElement("a")
+          a.href = url
+          a.textContent = from
+          src.replaceChildren(a)
+        } else {
+          src.textContent = from
+        }
         q.style.opacity = 1
       }, 600)
     }, 7000)

@@ -5,7 +5,9 @@ import { BuildCtx } from "../../util/ctx"
 import path from "path"
 import fs from "fs"
 
-// Emits static/quotes.json ([text, source]) for the palace quote slab
+// Emits static/quotes.json ([text, source, url?]) for the palace quote slab;
+// url (the note's slug) is only set for lines carrying an inline #quote tag
+// (individual quotes), not for dash-only lines from dedicated quote files.
 // (quartz/static/vaultbrain.js). A line is a quote when it carries an inline
 // #quote / #quotes tag (anywhere in the vault), or it starts with "- " inside a
 // "quote file" — filename like Quotes.md, frontmatter tags: quote/quotes, or
@@ -33,9 +35,11 @@ function clean(line: string): string {
     .trim()
 }
 
-function extract(raw: string, quoteFile: boolean, source: string): [string, string][] {
+// tagged = line carried an inline #quote tag (an individual quote, links back
+// to its note); dash-only lines from quote files stay unlinked
+function extract(raw: string, quoteFile: boolean, source: string): [string, string, boolean][] {
   const body = raw.replace(/^---\n[\s\S]*?\n---\n?/, "")
-  const out: [string, string][] = []
+  const out: [string, string, boolean][] = []
   let inCode = false
   for (const line of body.split("\n")) {
     if (line.trimStart().startsWith("```")) {
@@ -47,13 +51,13 @@ function extract(raw: string, quoteFile: boolean, source: string): [string, stri
     const isDash = quoteFile && /^\s*-\s+/.test(line)
     if (!hasTag && !isDash) continue
     const text = clean(line)
-    if (text) out.push([text, source])
+    if (text) out.push([text, source, hasTag])
   }
   return out
 }
 
 async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath> {
-  const quotes: [string, string][] = []
+  const quotes: [string, string, string?][] = []
   for (const [, vfile] of content) {
     // filePath is the full openable path; relativePath is relative to content/
     const filePath = vfile.data.filePath as string | undefined
@@ -67,7 +71,10 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
     } catch {
       continue
     }
-    quotes.push(...extract(raw, isQuoteFile(relPath, vfile.data), source))
+    const url = "/" + ((vfile.data.slug as string | undefined) ?? "")
+    for (const [text, src, tagged] of extract(raw, isQuoteFile(relPath, vfile.data), source)) {
+      quotes.push(tagged ? [text, src, url] : [text, src])
+    }
   }
   const dest = joinSegments(ctx.argv.output, "static", "quotes.json") as FilePath
   await fs.promises.mkdir(path.dirname(dest), { recursive: true })
