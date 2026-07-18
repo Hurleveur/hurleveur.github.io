@@ -961,9 +961,36 @@ body.nav-off {
     // idea. On mobile the left sidebar is just the top toolbar (search,
     // day/night, explorer ☰); hiding it there strips those controls and, with
     // the .mobile-explorer toggle then invisible, the explorer never self-
-    // collapses so its overlay covers the page. Keep the toolbar on phones.
+    // collapses so its overlay covers the page. Keep the toolbar on phones —
+    // and, same reasoning, keep it floating over the reclaimed width on
+    // desktop/tablet too: only the file tree + page title leave the grid,
+    // the search/darkmode/reader-mode/help row stays put, pinned to the top.
     @media all and not ($mobile) {
-      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 4.2rem; // clear of the fixed ☰ drawer toggle (#vb-nav-btn)
+      z-index: 5;
+      height: auto;
+      width: auto;
+      min-width: 0;
+      max-width: calc(100vw - 5.5rem);
+      padding: 0;
+      gap: 0;
+
+      > .page-title,
+      > .explorer {
+        display: none;
+      }
+
+      // the toolbar (search/darkmode/reader-mode/help) is the only child left;
+      // give it a frosted pill so it reads over arbitrary page content
+      > .flex-component {
+        background: color-mix(in srgb, var(--light) 85%, transparent);
+        border: 1px solid color-mix(in srgb, var(--secondary) 25%, transparent);
+        border-radius: 999px;
+        padding: 0.4rem 0.8rem;
+        box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.35);
+      }
     }
   }
 
