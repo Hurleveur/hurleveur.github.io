@@ -57,15 +57,11 @@
     return data
   }
 
-  // per-world ambience: slug prefix -> track in /static/audio/<name>.mp3.
-  // First matching prefix wins; "" is the fallback. Edit this list to choose
-  // which room gets which tone — tracks are plain mp3 files, swap freely.
+  // per-world ambience: slug prefix -> SoundCloud track URL, played through
+  // an offscreen widget iframe. First matching prefix wins; "" is the
+  // fallback. Only Iron Sky is picked so far — add per-room tracks here.
   const AMBIENCE = [
-    ["books", "library"],
-    ["meaning", "meaning"],
-    ["travel", "travel"],
-    ["friends", "friends"],
-    ["", "palace"],
+    ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
   let cleanup = null
@@ -583,7 +579,7 @@
     }
     if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
     init() // rebuild in the new mode
-    initAudio() // swap ambience: space while open, the room's tone on close
+    initAudio() // re-sync toggle; per-room tracks swap here if configured
   }
 
   function buildOverlayChrome(wrap, btn) {
@@ -791,51 +787,86 @@
     }, 7000)
   }
 
-  // room ambience: every page has a matching tone (AMBIENCE map above); one
-  // toggle, no autoplay ever — user gesture starts it. Button + audio live on
-  // <body> (outside Quartz's swapped content) so playback survives SPA nav;
-  // crossing into another room swaps the track and each room resumes where it left off.
+  // room ambience: real music via an offscreen SoundCloud widget (AMBIENCE
+  // map above); one toggle, no autoplay ever — user gesture starts it.
+  // Button + iframe live on <body> (outside Quartz's swapped content) so
+  // playback survives SPA nav; crossing into a room with its own track swaps
+  // it and each track resumes where it left off.
   function setAudioLabel(btn) {
-    btn.textContent = btn._audio.paused ? "♪ play the room" : "♪ hush"
-    btn.classList.toggle("on", !btn._audio.paused)
+    btn.textContent = btn._paused ? "♪ play the room" : "♪ hush"
+    btn.classList.toggle("on", !btn._paused)
   }
 
   function initAudio() {
     const slug = document.body.dataset.slug || ""
-    const track = document.body.classList.contains("vb-open")
-      ? "space"
-      : AMBIENCE.find(([p]) => slug.startsWith(p))[1]
+    const track = AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
+      const iframe = document.createElement("iframe")
+      iframe.id = "vb-audio-frame"
+      iframe.allow = "autoplay"
+      iframe.src =
+        "https://w.soundcloud.com/player/?url=" +
+        encodeURIComponent(track) +
+        "&auto_play=false&show_artwork=false"
+      // parked offscreen: the brass toggle is the only visible control
+      iframe.style.cssText = "position:fixed;left:-9999px;bottom:0;width:2px;height:2px;border:0"
+      document.body.appendChild(iframe)
+
       btn = document.createElement("button")
       btn.id = "vb-audio-btn"
       btn.type = "button"
-      const audio = new Audio()
-      audio.loop = true
-      btn._audio = audio
-      audio.addEventListener("play", () => setAudioLabel(btn))
-      audio.addEventListener("pause", () => setAudioLabel(btn))
+      btn._track = track
+      btn._paused = true
       btn.addEventListener("click", () => {
-        if (audio.paused) {
-          sessionStorage.setItem("vb-audio-on", "1")
-          audio.play().catch(() => sessionStorage.removeItem("vb-audio-on"))
-        } else {
-          sessionStorage.removeItem("vb-audio-on")
-          sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
-          audio.pause()
-        }
+        if (!btn._widget) return // widget script still loading
+        btn._paused ? (sessionStorage.setItem("vb-audio-on", "1"), btn._widget.play())
+          : (sessionStorage.removeItem("vb-audio-on"), btn._widget.pause())
       })
       document.body.appendChild(btn)
+
+      const script = document.createElement("script")
+      script.src = "https://w.soundcloud.com/player/api.js"
+      script.onload = () => {
+        const w = SC.Widget(iframe)
+        btn._widget = w
+        w.bind(SC.Widget.Events.READY, () => {
+          // resume is applied on PLAY: seekTo before playback starts is ignored
+          btn._resume = +sessionStorage.getItem("vb-audio-t:" + btn._track) || 0
+          // mid-session reload with music on: try to pick back up; if the
+          // browser blocks it (no gesture yet) PLAY never fires, label stays
+          if (sessionStorage.getItem("vb-audio-on")) w.play()
+        })
+        w.bind(SC.Widget.Events.PLAY, () => {
+          if (btn._resume) w.seekTo(btn._resume)
+          btn._resume = 0
+          btn._paused = false
+          setAudioLabel(btn)
+        })
+        w.bind(SC.Widget.Events.PAUSE, () => {
+          btn._paused = true
+          setAudioLabel(btn)
+        })
+        w.bind(SC.Widget.Events.FINISH, () => {
+          // loop the room
+          w.seekTo(0)
+          w.play()
+        })
+        w.bind(SC.Widget.Events.PLAY_PROGRESS, (e) => {
+          sessionStorage.setItem("vb-audio-t:" + btn._track, Math.floor(e.currentPosition))
+        })
+      }
+      document.head.appendChild(script)
     }
-    const audio = btn._audio
-    if (btn._track !== track) {
-      if (!audio.paused) sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
+    if (btn._track !== track && btn._widget) {
       btn._track = track
-      audio.src = "/static/audio/" + track + ".mp3"
-      audio.currentTime = +sessionStorage.getItem("vb-audio-t:" + track) || 0
-      // resume mid-session (SPA nav); browsers allow play() after a prior
-      // gesture, and the catch covers fresh page loads where they don't
-      if (sessionStorage.getItem("vb-audio-on")) audio.play().catch(() => {})
+      btn._widget.load(track, {
+        auto_play: !!sessionStorage.getItem("vb-audio-on"),
+        show_artwork: false,
+        callback: () => {
+          btn._resume = +sessionStorage.getItem("vb-audio-t:" + track) || 0
+        },
+      })
     }
     setAudioLabel(btn)
   }
