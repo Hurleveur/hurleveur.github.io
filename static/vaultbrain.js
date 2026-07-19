@@ -57,15 +57,20 @@
     return data
   }
 
-  // per-world ambience: slug prefix -> track in /static/audio/<name>.mp3.
-  // First matching prefix wins; "" is the fallback. Edit this list to choose
-  // which room gets which tone — tracks are plain mp3 files, swap freely.
+  // per-world ambience: slug prefix -> SoundCloud track URL, played through
+  // an offscreen widget iframe. First matching prefix wins; "" is the
+  // fallback.
   const AMBIENCE = [
-    ["books", "library"],
-    ["meaning", "meaning"],
-    ["travel", "travel"],
-    ["friends", "friends"],
-    ["", "palace"],
+    ["friends", "https://soundcloud.com/nicolas-peyrac/il-suffirait"],
+    ["movie-serie", "https://soundcloud.com/eurythmics-official/sweet-dreams-are-made-of-3"],
+    ["work", "https://soundcloud.com/thomash_voodoohop/rachel-tobac-security-hackers-and-password"],
+    ["website", "https://soundcloud.com/madonna/la-isla-bonita"],
+    ["clippings", "https://soundcloud.com/michelberger/le-paradis-blanc"],
+    ["travel", "https://soundcloud.com/eaglesofficial/eagles-hotel-california"],
+    ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
+    ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
+    ["alignement", "https://soundcloud.com/imaginedragons/natural"],
+    ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
   let cleanup = null
@@ -307,16 +312,20 @@
       if (reduceMotion) draw()
     }
     window.addEventListener("vb-folder-hl", onHl)
+    // coarse pointers (touch) get a fatter hit circle than a mouse needs
+    const slop = matchMedia("(pointer: coarse)").matches ? 16 : 8
+    function nodeAt(e) {
+      const rect = cv.getBoundingClientRect()
+      const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
+      for (const n of nodes) {
+        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + slop / view.s) ** 2) return n
+      }
+      return null
+    }
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
-      hovered = null
-      for (const n of nodes) {
-        if ((n.x - x) ** 2 + (n.y - y) ** 2 < (n.r + 8 / view.s) ** 2) {
-          hovered = n
-          break
-        }
-      }
+      hovered = nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub
       let hf = hovered ? hovered.folder : null
@@ -340,9 +349,12 @@
         cv.style.cursor = mini ? "pointer" : "default"
       }
     }
-    function onClick() {
+    function onClick(e) {
       if (dragged) return // pan release, not a pick
-      if (hovered) window.location.href = "/" + hovered.slug
+      // hit-test the click's own coords: on touch, pointerleave fires before
+      // click and clears `hovered`, and a stationary tap never fires pointermove
+      const hit = nodeAt(e)
+      if (hit) window.location.href = "/" + hit.slug
       else if (mini) document.getElementById("vb-expand")?.click()
     }
 
@@ -576,7 +588,7 @@
     }
     if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
     init() // rebuild in the new mode
-    initAudio() // swap ambience: space while open, the room's tone on close
+    initAudio() // re-sync toggle; per-room tracks swap here if configured
   }
 
   function buildOverlayChrome(wrap, btn) {
@@ -611,12 +623,13 @@
     if (window.addCleanup) window.addCleanup(() => document.removeEventListener("keydown", onKey))
   }
 
-  // home-page doors: one arched portal per real top-level folder, colored like
+  // rotunda frieze: one room name per real top-level folder, colored like
   // the constellation, counts live from the index — never a hand-kept list
-  async function initDoors() {
-    const row = document.getElementById("vb-doors")
-    if (!row || row.dataset.vbDone) return
-    row.dataset.vbDone = "1"
+  async function initFrieze() {
+    const frieze = document.getElementById("vb-frieze")
+    if (!frieze || frieze.dataset.vbDone) return
+    // set before the await — initial load fires both the direct call and "nav"
+    frieze.dataset.vbDone = "1"
     let data
     try {
       data = await loadIndex()
@@ -629,30 +642,11 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    Object.keys(counts)
-      .sort((a, b) => counts[b] - counts[a])
-      .forEach((folder) => {
-        const a = document.createElement("a")
-        a.className = "door"
-        a.href = "/" + folder + "/"
-        a.style.setProperty("--tint", folderColor(folder))
-        const name = document.createElement("span")
-        name.className = "name"
-        name.textContent = folder.replace(/-/g, " ")
-        const count = document.createElement("span")
-        count.className = "count"
-        count.textContent = counts[folder] + (counts[folder] === 1 ? " note" : " notes")
-        a.append(name, count)
-        row.appendChild(a)
-      })
-
-    // frieze: room names carved along the rotunda entablature, where the
-    // baked pseudo-latin used to run (inpainted out of rotunda.png). SVG
+    // words carved along the rotunda entablature, where the baked
+    // pseudo-latin used to run (inpainted out of rotunda.png). SVG
     // textPath on the entablature arc, fitted to the image's carve line;
     // the brain image occludes the middle, so the rooms split left/right.
-    const frieze = document.getElementById("vb-frieze")
-    if (frieze && !frieze.dataset.vbDone) {
-      frieze.dataset.vbDone = "1"
+    {
       const NS = "http://www.w3.org/2000/svg"
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
@@ -745,7 +739,9 @@
 
   // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
   // from #quote lines + dashed lines in quote files). Each entry is
-  // [text, source]; source is the note's folder, e.g. "from website".
+  // [text, source, url?]; source is the note's folder, e.g. "from website",
+  // and url (only set for individual inline-tagged quotes, not quote files)
+  // points at the note the quote came from.
   async function initQuotes() {
     const q = document.getElementById("rotating-quote")
     const src = document.getElementById("quote-source")
@@ -767,58 +763,199 @@
       q.style.opacity = 0
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
-        q.textContent = QUOTES[i][0]
-        src.textContent = QUOTES[i][1]
+        const [text, from, url] = QUOTES[i]
+        q.textContent = text
+        if (url) {
+          const a = document.createElement("a")
+          a.href = url
+          a.textContent = from
+          src.replaceChildren(a)
+        } else {
+          src.textContent = from
+        }
         q.style.opacity = 1
       }, 600)
     }, 7000)
   }
 
-  // room ambience: every page has a matching tone (AMBIENCE map above); one
-  // toggle, no autoplay ever — user gesture starts it. Button + audio live on
-  // <body> (outside Quartz's swapped content) so playback survives SPA nav;
-  // crossing into another room swaps the track and each room resumes where it left off.
+  // taskbar help icon: sits beside darkmode/reader-mode in the toolbar (found
+  // via .darkmode's flex-component parent, since the toolbar has no id of its
+  // own). The toolbar is rebuilt on every SPA nav, so the button is re-created
+  // each time; the popover panel lives on <body> (survives nav) and its
+  // content is fetched from static/help.json (built from content/Help.md by
+  // the VaultPages emitter) once, on first open.
+  let helpHtml = null
+  function initHelp() {
+    const darkBtn = document.querySelector(".darkmode")
+    const toolbar = darkBtn?.closest(".flex-component")
+    if (!toolbar) return
+
+    let panel = document.getElementById("vb-help-panel")
+    if (!panel) {
+      panel = document.createElement("div")
+      panel.id = "vb-help-panel"
+      panel.hidden = true
+      document.body.appendChild(panel)
+
+      const onOutside = (e) => {
+        if (!panel.hidden && !panel.contains(e.target) && e.target.id !== "vb-help-btn") {
+          panel.hidden = true
+        }
+      }
+      const onKey = (e) => {
+        if (e.key === "Escape" && !panel.hidden) panel.hidden = true
+      }
+      document.addEventListener("pointerdown", onOutside)
+      document.addEventListener("keydown", onKey)
+      if (window.addCleanup) {
+        window.addCleanup(() => {
+          document.removeEventListener("pointerdown", onOutside)
+          document.removeEventListener("keydown", onKey)
+        })
+      }
+    }
+
+    if (toolbar.querySelector("#vb-help-btn")) return
+    const wrap = document.createElement("div")
+    const btn = document.createElement("button")
+    btn.id = "vb-help-btn"
+    btn.type = "button"
+    btn.textContent = "?"
+    btn.setAttribute("aria-label", "Help")
+    btn.addEventListener("click", async () => {
+      if (!panel.hidden) {
+        panel.hidden = true
+        return
+      }
+      if (helpHtml === null) {
+        try {
+          const data = await fetch("/static/help.json").then((r) => r.json())
+          helpHtml = data.html || ""
+        } catch (e) {
+          helpHtml = "<p>Couldn't load help.</p>"
+        }
+        panel.innerHTML = helpHtml
+      }
+      panel.hidden = false
+    })
+    wrap.appendChild(btn)
+    toolbar.appendChild(wrap)
+  }
+
+  // homepage whoami card: avatar + live text from content/woami.md, via
+  // static/whoami.json (built by the VaultPages emitter). Teaser is the first
+  // paragraph; "Read more" swaps in the full rendered note, inline, no nav.
+  async function initWhoami() {
+    const body = document.getElementById("whoami-body")
+    const more = document.getElementById("whoami-more")
+    if (!body || body.dataset.vbDone) return
+    body.dataset.vbDone = "1"
+
+    let data
+    try {
+      data = await fetch("/static/whoami.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const html = data.html || ""
+    const tmp = document.createElement("div")
+    tmp.innerHTML = html
+    const firstPara = tmp.querySelector("p")
+
+    if (firstPara && tmp.children.length > 1) {
+      body.appendChild(firstPara.cloneNode(true))
+      more.hidden = false
+      more.addEventListener("click", () => {
+        body.replaceChildren(...tmp.children)
+        more.hidden = true
+      })
+    } else {
+      body.innerHTML = html
+    }
+  }
+
+  // room ambience: real music via an offscreen SoundCloud widget (AMBIENCE
+  // map above); one toggle, no autoplay ever — user gesture starts it.
+  // Button + iframe live on <body> (outside Quartz's swapped content) so
+  // playback survives SPA nav; crossing into a room with its own track swaps
+  // it and each track resumes where it left off.
   function setAudioLabel(btn) {
-    btn.textContent = btn._audio.paused ? "♪ play the room" : "♪ hush"
-    btn.classList.toggle("on", !btn._audio.paused)
+    btn.textContent = btn._paused ? "♪ play the room" : "♪ hush"
+    btn.classList.toggle("on", !btn._paused)
+    // mini-player slides in while the room is playing (CSS #vb-audio-frame)
+    document.getElementById("vb-audio-frame")?.classList.toggle("on", !btn._paused)
   }
 
   function initAudio() {
     const slug = document.body.dataset.slug || ""
-    const track = document.body.classList.contains("vb-open")
-      ? "space"
-      : AMBIENCE.find(([p]) => slug.startsWith(p))[1]
+    const track = AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
+      const iframe = document.createElement("iframe")
+      iframe.id = "vb-audio-frame"
+      // encrypted-media is required: major-label tracks (policy MONETIZE)
+      // stream via DRM — without it the widget fires PLAY then PAUSE at 0
+      iframe.allow = "autoplay; encrypted-media"
+      iframe.src =
+        "https://w.soundcloud.com/player/?url=" +
+        encodeURIComponent(track) +
+        "&auto_play=false&show_artwork=false"
+      document.body.appendChild(iframe)
+
       btn = document.createElement("button")
       btn.id = "vb-audio-btn"
       btn.type = "button"
-      const audio = new Audio()
-      audio.loop = true
-      btn._audio = audio
-      audio.addEventListener("play", () => setAudioLabel(btn))
-      audio.addEventListener("pause", () => setAudioLabel(btn))
+      btn._track = track
+      btn._paused = true
       btn.addEventListener("click", () => {
-        if (audio.paused) {
-          sessionStorage.setItem("vb-audio-on", "1")
-          audio.play().catch(() => sessionStorage.removeItem("vb-audio-on"))
-        } else {
-          sessionStorage.removeItem("vb-audio-on")
-          sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
-          audio.pause()
-        }
+        if (!btn._widget) return // widget script still loading
+        btn._paused ? (sessionStorage.setItem("vb-audio-on", "1"), btn._widget.play())
+          : (sessionStorage.removeItem("vb-audio-on"), btn._widget.pause())
       })
       document.body.appendChild(btn)
+
+      const script = document.createElement("script")
+      script.src = "https://w.soundcloud.com/player/api.js"
+      script.onload = () => {
+        const w = SC.Widget(iframe)
+        btn._widget = w
+        w.bind(SC.Widget.Events.READY, () => {
+          // resume is applied on PLAY: seekTo before playback starts is ignored
+          btn._resume = +sessionStorage.getItem("vb-audio-t:" + btn._track) || 0
+          // mid-session reload with music on: try to pick back up; if the
+          // browser blocks it (no gesture yet) PLAY never fires, label stays
+          if (sessionStorage.getItem("vb-audio-on")) w.play()
+        })
+        w.bind(SC.Widget.Events.PLAY, () => {
+          if (btn._resume) w.seekTo(btn._resume)
+          btn._resume = 0
+          btn._paused = false
+          setAudioLabel(btn)
+        })
+        w.bind(SC.Widget.Events.PAUSE, () => {
+          btn._paused = true
+          setAudioLabel(btn)
+        })
+        w.bind(SC.Widget.Events.FINISH, () => {
+          // loop the room
+          w.seekTo(0)
+          w.play()
+        })
+        w.bind(SC.Widget.Events.PLAY_PROGRESS, (e) => {
+          sessionStorage.setItem("vb-audio-t:" + btn._track, Math.floor(e.currentPosition))
+        })
+      }
+      document.head.appendChild(script)
     }
-    const audio = btn._audio
-    if (btn._track !== track) {
-      if (!audio.paused) sessionStorage.setItem("vb-audio-t:" + btn._track, audio.currentTime)
+    if (btn._track !== track && btn._widget) {
       btn._track = track
-      audio.src = "/static/audio/" + track + ".mp3"
-      audio.currentTime = +sessionStorage.getItem("vb-audio-t:" + track) || 0
-      // resume mid-session (SPA nav); browsers allow play() after a prior
-      // gesture, and the catch covers fresh page loads where they don't
-      if (sessionStorage.getItem("vb-audio-on")) audio.play().catch(() => {})
+      btn._widget.load(track, {
+        auto_play: !!sessionStorage.getItem("vb-audio-on"),
+        show_artwork: false,
+        callback: () => {
+          btn._resume = +sessionStorage.getItem("vb-audio-t:" + track) || 0
+        },
+      })
     }
     setAudioLabel(btn)
   }
@@ -865,17 +1002,18 @@
   function initSidebarResize() {
     const saved = +localStorage.getItem("vb-sidebar-w")
     if (saved) document.documentElement.style.setProperty("--sidebar-w", saved + "px")
-    const sb = document.querySelector(".sidebar.left")
-    if (!sb || document.getElementById("vb-resize")) return
+    // the grip lives on the fixed explorer panel, not the top bar
+    const panel = document.querySelector(".sidebar.left .explorer")
+    if (!panel || document.getElementById("vb-resize")) return
     const grip = document.createElement("div")
     grip.id = "vb-resize"
     grip.setAttribute("aria-hidden", "true")
-    sb.appendChild(grip)
+    panel.appendChild(grip)
     // listeners go on window, not the grip: the grip shifts under the cursor
     // mid-drag and pointer capture is unreliable across browsers/inputs
     grip.addEventListener("pointerdown", (e) => {
       e.preventDefault()
-      const left = sb.getBoundingClientRect().left
+      const left = panel.getBoundingClientRect().left
       const move = (ev) => {
         const w = Math.round(Math.min(Math.max(ev.clientX - left, 180), innerWidth * 0.4))
         document.documentElement.style.setProperty("--sidebar-w", w + "px")
@@ -892,7 +1030,7 @@
     })
   }
 
-  // explorer toggle: ☰ on every page collapses the left sidebar column and
+  // explorer toggle: ☰ in the top bar hides the fixed explorer panel and
   // the layout reflows into its space (CSS body.nav-off in custom.scss).
   // Choice persists across pages and visits.
   function initNavToggle() {
@@ -914,7 +1052,10 @@
         localStorage.setItem("vb-nav-off", nowOff ? "1" : "")
         btn.classList.toggle("on", !nowOff)
       })
-      document.body.appendChild(btn)
+      // first slot of the top bar; body fallback keeps the toggle alive on
+      // pages without a left sidebar
+      const bar = document.querySelector(".sidebar.left")
+      ;(bar || document.body).prepend(btn)
     }
     btn.classList.toggle("on", !off)
   }
@@ -928,9 +1069,11 @@
       initSidebarResize()
       init()
       initExpand()
-      initDoors()
+      initFrieze()
       initShelf()
       initQuotes()
+      initHelp()
+      initWhoami()
       initAudio()
       initFolderAssets()
     })
@@ -939,9 +1082,11 @@
   initSidebarResize()
   init()
   initExpand()
-  initDoors()
+  initFrieze()
   initShelf()
   initQuotes()
+  initHelp()
+  initWhoami()
   initAudio()
   initFolderAssets()
 })()
