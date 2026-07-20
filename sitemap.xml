@@ -1,6 +1,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
     <loc>https://hurleveur.github.io/agents</loc>
-    <lastmod>2026-07-15T18:14:27.825Z</lastmod>
+    <lastmod>2026-07-20T14:18:43.405Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignement/a-story-is-a-deal</loc>
     <lastmod>2026-07-03T22:00:00.000Z</lastmod>
@@ -90,7 +90,7 @@
     <lastmod>2026-07-12T12:14:37.844Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/books/</loc>
-    <lastmod>2026-07-12T12:38:46.000Z</lastmod>
+    <lastmod>2026-07-20T14:20:15.554Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/books/emotional-intelligence-why-it-can-matter-more-than-iq</loc>
     <lastmod>2026-07-12T12:14:37.856Z</lastmod>
@@ -308,9 +308,6 @@
     <loc>https://hurleveur.github.io/guides/team-organization</loc>
     <lastmod>2026-07-15T08:24:15.881Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/home</loc>
-    <lastmod>2026-07-18T17:31:08.196Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/meaning/art</loc>
     <lastmod>2026-07-12T15:28:03.205Z</lastmod>
   </url><url>
@@ -470,21 +467,6 @@
     <loc>https://hurleveur.github.io/meaning/deep/new-me/working-on-it</loc>
     <lastmod>2026-07-12T15:28:03.216Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/change-the-world</loc>
-    <lastmod>2026-07-15T09:06:36.365Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/impactmatch</loc>
-    <lastmod>2026-07-15T09:43:37.750Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/live-what-you-preach</loc>
-    <lastmod>2026-07-15T09:43:19.026Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/real-media</loc>
-    <lastmod>2026-07-12T15:28:03.219Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/story-of-separation</loc>
-    <lastmod>2026-07-15T11:25:34.160Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/meaning/deep/questions/answers</loc>
     <lastmod>2026-07-12T15:28:03.216Z</lastmod>
   </url><url>
@@ -572,6 +554,30 @@
     <loc>https://hurleveur.github.io/meaning/deep/why-i-write</loc>
     <lastmod>2026-07-12T15:28:03.219Z</lastmod>
   </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/ai-suggestions</loc>
+    <lastmod>2026-07-18T17:28:47.907Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/change-the-world</loc>
+    <lastmod>2026-07-15T09:06:36.365Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/realize</loc>
+    <lastmod>2026-07-18T17:29:47.427Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/</loc>
+    <lastmod>2026-07-20T14:16:55.186Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/impactmatch</loc>
+    <lastmod>2026-07-15T09:43:37.750Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/live-what-you-preach</loc>
+    <lastmod>2026-07-15T09:43:19.026Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/real-media</loc>
+    <lastmod>2026-07-12T15:28:03.219Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/deep/world-change/story-of-separation</loc>
+    <lastmod>2026-07-15T11:25:34.160Z</lastmod>
+  </url><url>
     <loc>https://hurleveur.github.io/meaning/deep/belief-makes-no-sense</loc>
     <lastmod>2026-07-12T15:28:03.219Z</lastmod>
   </url><url>
@@ -599,38 +605,29 @@
     <loc>https://hurleveur.github.io/meaning/write/</loc>
     <lastmod>2026-07-12T15:28:03.220Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/blade-runner</loc>
-    <lastmod>2026-07-12T15:28:03.220Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/matrix</loc>
-    <lastmod>2026-07-12T15:28:03.220Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/rick-and-morty</loc>
-    <lastmod>2026-07-05T22:00:00.000Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/hazbin-hotel</loc>
-    <lastmod>2026-07-12T15:28:03.221Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/helluvaboss</loc>
-    <lastmod>2026-07-12T15:28:03.221Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/lucifer</loc>
-    <lastmod>2026-06-16T22:00:00.000Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/plugins</loc>
+    <loc>https://hurleveur.github.io/obsidian-plugins</loc>
     <lastmod>2026-07-12T15:28:03.221Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/readme</loc>
+    <lastmod>2026-07-20T14:22:17.297Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tv/blade-runner</loc>
+    <lastmod>2026-07-12T15:28:03.220Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tv/matrix</loc>
+    <lastmod>2026-07-12T15:28:03.220Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tv/rick-and-morty</loc>
+    <lastmod>2026-07-05T22:00:00.000Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tv/hazbin-hotel</loc>
     <lastmod>2026-07-12T15:28:03.221Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/tags</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <loc>https://hurleveur.github.io/tv/helluvaboss</loc>
+    <lastmod>2026-07-12T15:28:03.221Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/to-sort/to-x/convince/change/ai-suggestions</loc>
-    <lastmod>2026-07-18T17:28:47.907Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/to-sort/to-x/convince/change/realize</loc>
-    <lastmod>2026-07-18T17:29:47.427Z</lastmod>
+    <loc>https://hurleveur.github.io/tv/lucifer</loc>
+    <lastmod>2026-06-16T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/travel/artists</loc>
     <lastmod>2026-07-12T15:28:03.221Z</lastmod>
@@ -654,7 +651,7 @@
     <lastmod>2026-07-12T15:28:03.221Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/vault-map</loc>
-    <lastmod>2026-07-18T19:44:16.176Z</lastmod>
+    <lastmod>2026-07-20T14:18:43.450Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/website/interesting-persons-to-follow</loc>
     <lastmod>2026-07-15T17:34:49.612Z</lastmod>
@@ -677,363 +674,351 @@
     <loc>https://hurleveur.github.io/work/open-source</loc>
     <lastmod>2026-07-15T11:12:03.555Z</lastmod>
   </url><url>
+    <loc>https://hurleveur.github.io/help</loc>
+    <lastmod>2026-07-20T14:28:45.980Z</lastmod>
+  </url><url>
     <loc>https://hurleveur.github.io/</loc>
     <lastmod>2026-07-18T20:12:13.000Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/woami</loc>
-    <lastmod>2026-07-20T13:05:17.443Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/alignement/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignement/life-structure/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/clippings/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/meaning/deep/projects/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/movie-serie/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/to-sort/to-x/convince/change/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/to-sort/to-x/convince/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/to-sort/to-x/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/to-sort/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <loc>https://hurleveur.github.io/tv/</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/website/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/llm-written</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/question</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/connection</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/limitation</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/todo</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/blocked</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/important</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/rules</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/to-read</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/opinion</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/idea</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/insight</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/quote</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/value</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/incomplete</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/excalidraw</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/business</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/nonfiction</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/leadership</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/psychology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/education</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/personaldevelopment</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/selfhelp</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/science</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/communication</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/relationships</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/france</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/sociology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/journalism</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/audiobook</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/mentalhealth</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/spirituality</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/read</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/biography</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/memoir</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/autobiography</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/biographymemoir</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/startrek</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/philosophy</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/mythology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/psychoanalysis</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/classics</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/history</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/roman</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/linguistics</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/language</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/writing</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/politics</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/economics</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/health</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/food</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/nutrition</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/unfinished</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/religion</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/hinduism</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/medicine</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/finance</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/fiction</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/fantasy</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/bookclub</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/novels</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/adventure</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/adult</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/literature</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/travel</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/american</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/reference</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/inspirational</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/buddhism</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/love</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/marriage</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/nature</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/environment</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/biology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/ecology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/contemporary</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/magicalrealism</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/sciencefiction</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/theology</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/king</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/emotions</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/0%F0%9F%8C%B2</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/ai</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/clippings</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/developper</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/code</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/makeyourmyth</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/llm-written/60</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/arrange</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/llm-written/85</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/answer</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/waiting</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/verify</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/recurring</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/shadow-work</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/ladakh</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/india</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/greatness</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/thought</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/modern-society</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/question/idea</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/question/idea/incomplete</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo/blocked</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/answer</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/waiting</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/verify</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/recurring</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/friends</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/llm-written/60</loc>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/</loc>
-    <lastmod>2026-07-20T13:51:22.326Z</lastmod>
+    <lastmod>2026-07-20T14:31:17.871Z</lastmod>
   </url></urlset>
