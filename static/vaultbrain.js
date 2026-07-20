@@ -664,25 +664,27 @@
           (0.85 + 0.5 * u * u)
         )
       }
+      // manual pixel overrides, keyed by folder slug — x/y/deg are viewBox px
+      // (0 0 1252 428), same space as the math below. Any field can be left
+      // out to keep the computed default for just that field. Empty by
+      // default: the band formula above positions everything until a room
+      // needs a hand-placed nudge.
+      const FRIEZE_OVERRIDES = {}
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
+      const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
+      const EDGE_LIFT = 27.5 // px the outermost word is raised above the ellipse
+      const EDGE_ROT_BOOST = 0.15 // extra rotation fraction for the outermost word
+      // attach before measuring: getComputedTextLength needs a laid-out tree
+      frieze.appendChild(svg)
       // per-side x ranges, stopping short of the brain canvas box (x 426-851)
       // where it would swallow the clicks
-      ;[[folders.slice(0, half), 60, 420], [folders.slice(half), 856, 1165]].forEach(
+      ;[[folders.slice(0, half), 85, 420], [folders.slice(half), 856, 1140]].forEach(
         ([list, x0, x1]) => {
           const leftSide = x0 < CX
-          list.forEach((folder, i) => {
-            // the outermost word of each side sits low on the stone: lift it one
-            // word-height. it's list-first on the left, list-last on the right
-            const edge = i === (leftSide ? 0 : list.length - 1)
-            const x = x0 + ((i + 0.5) / list.length) * (x1 - x0) + (edge && leftSide ? 15 : 0)
-            const y = bandY(x) - (edge ? 13 : 0)
+          const words = list.map((folder) => {
             const text = document.createElementNS(NS, "text")
             text.setAttribute("text-anchor", "middle")
-            text.setAttribute(
-              "transform",
-              `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
-            )
             const a = document.createElementNS(NS, "a")
             a.setAttribute("href", "/" + folder + "/")
             a.setAttribute("class", "frieze-word")
@@ -693,10 +695,37 @@
             a.addEventListener("pointerleave", () => hlEmit(null))
             text.appendChild(a)
             svg.appendChild(text)
+            return { folder, text, a }
+          })
+          // measure actual glyph widths (only possible once attached to the
+          // DOM) so long words get real room instead of a fixed index slot
+          const widths = words.map((w) => w.text.getComputedTextLength())
+          const span = widths.reduce((s, w) => s + w, 0) + WORD_GAP * (words.length - 1)
+          const scale = Math.min(1, (x1 - x0) / (span || 1))
+          let cursor = x0 + Math.max(0, (x1 - x0 - span * scale) / 2)
+          words.forEach(({ folder, text }, i) => {
+            const w = widths[i] * scale
+            const x = cursor + w / 2
+            cursor += w + WORD_GAP * scale
+            // the outermost two words per side sit right where the band
+            // ducks behind the columns and the ellipse model undershoots
+            // the real curve there — pull just those up/around faster
+            const outerRank = leftSide ? i : words.length - 1 - i
+            const edgeBoost = outerRank === 0 ? 1 : outerRank === 1 ? 0.35 : 0
+            // half a line-height back down for the outermost two — the edge
+            // lift above overshoots by a hair right at the two end words
+            const outerDrop = outerRank <= 1 ? 6 : 0
+            const o = FRIEZE_OVERRIDES[folder] || {}
+            const fx = o.x ?? x
+            const fy = o.y ?? bandY(x) - edgeBoost * EDGE_LIFT + outerDrop
+            const fdeg = o.deg ?? bandDeg(x) * (1 + edgeBoost * EDGE_ROT_BOOST)
+            text.setAttribute(
+              "transform",
+              `translate(${fx.toFixed(1)} ${fy.toFixed(1)}) rotate(${fdeg.toFixed(1)})`,
+            )
           })
         },
       )
-      frieze.appendChild(svg)
       // the brain echoes back: hovering a section star lights its word
       const onHl = (e) => {
         svg
