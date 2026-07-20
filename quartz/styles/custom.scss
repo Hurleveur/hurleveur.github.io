@@ -156,7 +156,7 @@ body {
   padding: 0 1.5rem;
   display: flex;
   gap: 1.2rem;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
 
   .whoami-avatar {
@@ -166,6 +166,13 @@ body {
     object-fit: cover;
     flex-shrink: 0;
     border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+    order: 2;
+  }
+
+  .whoami-text {
+    order: 1;
+    min-width: 0;
+    flex: 1;
   }
 
   .whoami-body {
@@ -178,6 +185,35 @@ body {
     }
   }
 
+  .whoami-random-row {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .whoami-random {
+    font-size: 0.85rem;
+    color: var(--gray);
+
+    a {
+      color: var(--secondary);
+    }
+  }
+
+  .whoami-reroll {
+    all: unset;
+    cursor: pointer;
+    margin-left: 0.3rem;
+    font-size: 0.85rem;
+    vertical-align: -0.05em;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 0.7;
+    }
+  }
+
   .whoami-more {
     all: unset;
     cursor: pointer;
@@ -186,8 +222,8 @@ body {
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--secondary);
-    align-self: center;
     flex-shrink: 0;
+    margin-left: auto;
 
     &:hover,
     &:focus-visible {
@@ -199,6 +235,14 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
+
+    .whoami-avatar {
+      order: 0;
+    }
+
+    .whoami-text {
+      order: 1;
+    }
   }
 }
 
@@ -319,19 +363,10 @@ body[data-slug="index"] {
 
   @media all and ($desktop) {
     #quartz-body {
-      // min-content: the resizable .sidebar.left drives the column width
-      grid-template-columns: min-content auto;
-      grid-template-rows: auto auto auto;
-      grid-template-areas:
-        "grid-sidebar-left grid-header"
-        "grid-sidebar-left grid-center"
-        "grid-sidebar-left grid-footer";
-    }
-  }
-
-  &.nav-off #quartz-body {
-    @media all and ($desktop) {
+      // the left sidebar is a fixed top bar (see below), so the grid is a
+      // single column: the band gets the full width
       grid-template-columns: auto;
+      grid-template-rows: auto auto auto;
       grid-template-areas:
         "grid-header"
         "grid-center"
@@ -580,14 +615,11 @@ body.vb-open {
   }
 }
 
-/* explorer toggle, injected by vaultbrain.js on every page — colors follow the world */
+/* explorer toggle, injected by vaultbrain.js into the top bar — colors follow the world */
 #vb-nav-btn {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 6;
-  width: 2.4rem;
-  height: 2.4rem;
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
   background: color-mix(in srgb, var(--light) 85%, transparent);
@@ -658,7 +690,7 @@ body.vb-open {
   }
 }
 
-/* explorer width grip (vaultbrain.js) — full-height strip on the sidebar's right edge */
+/* explorer width grip (vaultbrain.js) — full-height strip on the explorer panel's right edge */
 #vb-resize {
   position: absolute;
   top: 0;
@@ -694,7 +726,7 @@ body.vb-open {
   .brain-caption {
     position: absolute;
     top: 1.2rem;
-    left: 4.2rem; /* clear of the fixed ☰ drawer toggle */
+    left: 1.2rem;
     max-width: 21rem;
     z-index: 2;
     pointer-events: none;
@@ -952,65 +984,89 @@ body[data-slug^="books"] {
   }
 }
 
-/* collapsed explorer — ☰ (vaultbrain.js) sets body.nav-off, persisted; the
-   left column leaves the grid entirely so content reflows into its space.
-   Per-world pages (index/brain) declare their own higher-specificity variant. */
-body.nav-off {
-  .sidebar.left {
-    // nav-off reclaims the left column for reading width — a desktop/tablet
-    // idea. On mobile the left sidebar is just the top toolbar (search,
-    // day/night, explorer ☰); hiding it there strips those controls and, with
-    // the .mobile-explorer toggle then invisible, the explorer never self-
-    // collapses so its overlay covers the page. Keep the toolbar on phones —
-    // and, same reasoning, keep it floating over the reclaimed width on
-    // desktop/tablet too: only the file tree + page title leave the grid,
-    // the search/darkmode/reader-mode/help row stays put, pinned to the top.
-    @media all and not ($mobile) {
+/* ============================================================
+   static top bar (desktop/tablet) — the left "sidebar" is really
+   a site header: ☰ (vaultbrain.js) + page title + search/darkmode/
+   reader-mode/help, fixed across the top like a normal site.
+   The explorer tree is a fixed panel under it; ☰ sets body.nav-off
+   (persisted) which just hides the panel and gives content the
+   width back — the bar itself never moves between states.
+   Mobile keeps the stock stacked layout (explorer's own ☰ drawer).
+   ============================================================ */
+:root {
+  --topbar-h: 3.4rem;
+}
+
+@media all and not ($mobile) {
+  .page {
+    padding-top: var(--topbar-h); /* clear the fixed bar */
+  }
+
+  #quartz-body .sidebar.left {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 6;
+    height: var(--topbar-h);
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 0 1.2rem;
+    background: var(--light);
+    border-bottom: 1px solid var(--lightgray);
+
+    > .page-title {
+      font-size: 1.3rem;
+    }
+
+    /* search / darkmode / reader-mode / help live on the bar's right end */
+    > .flex-component {
+      margin-left: auto;
+    }
+
+    /* file tree: fixed panel below the bar; nothing else in the bar moves */
+    > .explorer {
       position: fixed;
-      top: 1rem;
-      left: 4.2rem; // clear of the fixed ☰ drawer toggle (#vb-nav-btn)
+      top: var(--topbar-h);
+      left: 0;
+      bottom: 0;
       z-index: 5;
-      height: auto;
-      width: auto;
-      min-width: 0;
-      max-width: calc(100vw - 5.5rem);
-      padding: 0;
-      gap: 0;
-
-      > .page-title,
-      > .explorer {
-        display: none;
-      }
-
-      // the toolbar (search/darkmode/reader-mode/help) is the only child left;
-      // give it a frosted pill so it reads over arbitrary page content
-      > .flex-component {
-        background: color-mix(in srgb, var(--light) 85%, transparent);
-        border: 1px solid color-mix(in srgb, var(--secondary) 25%, transparent);
-        border-radius: 999px;
-        padding: 0.4rem 0.8rem;
-        box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.35);
-      }
+      box-sizing: border-box;
+      width: var(--sidebar-w, #{$sidePanelWidth});
+      padding: 1.2rem 1rem 1.2rem 1.4rem;
+      background: var(--light);
+      border-right: 1px solid var(--lightgray);
     }
   }
 
+  /* content never touches the viewport edge under the bar */
   #quartz-body {
-    @media all and ($desktop) {
-      grid-template-columns: auto $sidePanelWidth;
-      grid-template-areas:
-        "grid-header grid-sidebar-right"
-        "grid-center grid-sidebar-right"
-        "grid-footer grid-sidebar-right";
-    }
+    padding: 0 2rem;
+  }
 
-    @media all and ($tablet) {
-      grid-template-columns: auto;
-      grid-template-areas:
-        "grid-header"
-        "grid-center"
-        "grid-sidebar-right"
-        "grid-footer";
-    }
+  /* explorer open: content gives the panel its width; closed: full width */
+  body:not(.nav-off) #quartz-body {
+    padding-left: calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem);
+  }
+
+  body.nav-off .sidebar.left > .explorer {
+    display: none;
+  }
+
+  /* content used to clear the tall sidebar top-padding; with the bar the
+     old 6rem forecourt is too much. (.center > keeps this below the
+     body[data-slug="index"] 1.2rem override in specificity) */
+  .center > .page-header {
+    margin-top: 2.5rem;
+  }
+
+  /* right column: align with the shorter forecourt and stick below the bar */
+  #quartz-body .sidebar.right {
+    padding-top: 2.5rem;
+    top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
   }
 }
 

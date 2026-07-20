@@ -8,12 +8,12 @@ import path from "path"
 import fs from "fs"
 
 // Emits static/help.json and static/whoami.json — the rendered HTML body of
-// content/Help.md and content/woami.md — so the taskbar help popover and the
+// content/help.md and content/woami.md — so the taskbar help popover and the
 // homepage whoami card can show live vault content instead of a copy baked
 // into index.md. Both source notes publish unlisted (off nav/graph, still
 // reachable by direct URL); editing either and rebuilding updates both spots.
 const TARGETS: Record<string, string> = {
-  "Help.md": "help.json",
+  "help.md": "help.json",
   "woami.md": "whoami.json",
 }
 

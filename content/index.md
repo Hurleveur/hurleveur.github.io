@@ -30,7 +30,12 @@ publish: true
 </section>
 
 <section class="whoami-card" id="whoami-card">
-  <img class="whoami-avatar" src="/attachments/the-knight-without-an-armor.jpeg" alt="A placeholder portrait" />
-  <div class="whoami-body" id="whoami-body"></div>
-  <button class="whoami-more" id="whoami-more" type="button" hidden>Read more</button>
+  <div class="whoami-text">
+    <div class="whoami-body" id="whoami-body"></div>
+    <p class="whoami-random-row">
+      <span class="whoami-random" id="whoami-random"></span>
+      <button class="whoami-more" id="whoami-more" type="button" hidden>Read more</button>
+    </p>
+  </div>
+  <img class="whoami-avatar" src="/attachments/bh-profile.jpg" alt="Profile portrait" />
 </section>

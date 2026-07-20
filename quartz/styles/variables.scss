@@ -35,25 +35,26 @@ $mobileGrid: (
       "grid-sidebar-right"\
       "grid-footer"',
 );
-// left column is min-content so the resizable .sidebar.left drives its width
+// no grid-sidebar-left on tablet/desktop: the left sidebar is a fixed top
+// bar there (custom.scss) and the explorer panel pushes content via padding
 $tabletGrid: (
   templateRows: "auto auto auto auto",
-  templateColumns: "min-content auto",
+  templateColumns: "auto",
   rowGap: "5px",
   columnGap: "5px",
   templateAreas:
-    '"grid-sidebar-left grid-header"\
-      "grid-sidebar-left grid-center"\
-      "grid-sidebar-left grid-sidebar-right"\
-      "grid-sidebar-left grid-footer"',
+    '"grid-header"\
+      "grid-center"\
+      "grid-sidebar-right"\
+      "grid-footer"',
 );
 $desktopGrid: (
   templateRows: "auto auto auto",
-  templateColumns: "min-content auto #{$sidePanelWidth}",
+  templateColumns: "auto #{$sidePanelWidth}",
   rowGap: "5px",
   columnGap: "5px",
   templateAreas:
-    '"grid-sidebar-left grid-header grid-sidebar-right"\
-      "grid-sidebar-left grid-center grid-sidebar-right"\
-      "grid-sidebar-left grid-footer grid-sidebar-right"',
+    '"grid-header grid-sidebar-right"\
+      "grid-center grid-sidebar-right"\
+      "grid-footer grid-sidebar-right"',
 );
