@@ -755,7 +755,7 @@
     let h = 0
     for (const slug of books) {
       const a = document.createElement("a")
-      a.className = "spine"
+      a.className = "spine internal"
       a.href = "/" + slug
       const t = data[slug].title || slug
       a.textContent = t.length > 42 ? t.slice(0, 40) + "…" : t
@@ -764,6 +764,9 @@
       a.style.setProperty("--cloth", CLOTHS[h])
       shelf.appendChild(a)
     }
+    // spines built after popover.inline's setupPopovers already scanned the DOM;
+    // re-fire render so it binds hover-preview handlers to the new a.internal links
+    document.dispatchEvent(new CustomEvent("render"))
   }
 
   // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
