@@ -863,15 +863,59 @@
     const firstPara = tmp.querySelector("p")
 
     if (firstPara && tmp.children.length > 1) {
-      body.appendChild(firstPara.cloneNode(true))
+      const teaser = [firstPara.cloneNode(true)]
+      const full = [...tmp.children]
+      body.replaceChildren(...teaser)
       more.hidden = false
+      let expanded = false
       more.addEventListener("click", () => {
-        body.replaceChildren(...tmp.children)
-        more.hidden = true
+        expanded = !expanded
+        body.replaceChildren(...(expanded ? full : teaser))
+        more.textContent = expanded ? "Read less" : "Read more"
       })
     } else {
       body.innerHTML = html
     }
+  }
+
+  // whoami card: "surprise me" link to a random published note, from the same
+  // contentIndex.json as the shelf/graph. Excludes empty notes (folder/tag
+  // index pages have no content) and anything tagged #unfinished. Reroll
+  // swaps the link without a page nav.
+  async function initRandomNote() {
+    const el = document.getElementById("whoami-random")
+    if (!el || el.dataset.vbDone) return
+    el.dataset.vbDone = "1"
+
+    let data
+    try {
+      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const pool = Object.entries(data).filter(
+      ([, v]) => v.content && v.content.trim() && !(v.tags || []).includes("unfinished"),
+    )
+    if (!pool.length) return
+
+    const render = () => {
+      const [slug, v] = pool[Math.floor(Math.random() * pool.length)]
+      el.replaceChildren()
+      const a = document.createElement("a")
+      a.href = "/" + slug
+      a.textContent = v.title || slug
+      const dice = document.createElement("button")
+      dice.type = "button"
+      dice.className = "whoami-reroll"
+      dice.setAttribute("aria-label", "Show another random note")
+      dice.textContent = "🎲"
+      dice.addEventListener("click", (e) => {
+        e.preventDefault()
+        render()
+      })
+      el.append("Random note: ", a, dice)
+    }
+    render()
   }
 
   // room ambience: real music via an offscreen SoundCloud widget (AMBIENCE
@@ -886,9 +930,16 @@
     document.getElementById("vb-audio-frame")?.classList.toggle("on", !btn._paused)
   }
 
+  // main page swaps its track by theme: daylight gets Imagine, night keeps
+  // the Iron Sky fallback everyone else gets. The official Lennon master is
+  // geo-locked by the estate on SoundCloud, so this is a cover instead.
+  const HOME_DAY_TRACK = "https://soundcloud.com/cardell/imagine-remastered"
+
   function initAudio() {
     const slug = document.body.dataset.slug || ""
-    const track = AMBIENCE.find(([p]) => slug.startsWith(p))[1]
+    const day = document.documentElement.getAttribute("saved-theme") === "light"
+    const track =
+      slug === "index" && day ? HOME_DAY_TRACK : AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
       const iframe = document.createElement("iframe")
@@ -1062,6 +1113,8 @@
 
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
+    // home's track depends on day/night, so a toggle mid-visit must re-pick it
+    document.addEventListener("themechange", initAudio)
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
@@ -1074,6 +1127,7 @@
       initQuotes()
       initHelp()
       initWhoami()
+      initRandomNote()
       initAudio()
       initFolderAssets()
     })
@@ -1087,6 +1141,7 @@
   initQuotes()
   initHelp()
   initWhoami()
+  initRandomNote()
   initAudio()
   initFolderAssets()
 })()
