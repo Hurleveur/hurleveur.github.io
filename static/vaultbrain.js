@@ -153,8 +153,17 @@
       if (p.length > 2) (subSets[p[0]] || (subSets[p[0]] = new Set())).add(p[1])
     })
     const subTint = {}
+    // each sub-folder also gets a home offset — a unit vector fanned around the
+    // section hub by its sorted slot — so its notes clump in their own corner of
+    // the lobe instead of smearing across the whole section (see homeOf).
+    const subOff = {}
     for (const f in subSets) {
-      ;[...subSets[f]].sort().forEach((s, i) => (subTint[f + "/" + s] = TINTS[i % TINTS.length]))
+      const subs = [...subSets[f]].sort()
+      subs.forEach((s, i) => {
+        subTint[f + "/" + s] = TINTS[i % TINTS.length]
+        const a = (i / subs.length) * Math.PI * 2
+        subOff[f + "/" + s] = [Math.cos(a), Math.sin(a)]
+      })
     }
     const hubs = {}
     // sections ring the sky; loose root notes gather in the middle
@@ -176,6 +185,7 @@
         slug,
         label: data[slug].title || slug,
         folder,
+        sub,
         color: sub ? lighten(base, subTint[folder + "/" + sub]) : base,
         r: mini
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
@@ -270,7 +280,17 @@
       // ellipse, not circle: the canvas is wide, use the width.
       // mini: the canvas IS the image's brain — spread wider to fill it
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      return [W / 2 + hub.ax * W * (mini ? 0.32 : 0.3), H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)]
+      let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
+      let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
+      // sub-folder notes home to a spot offset from the section hub so each
+      // sub-folder settles as its own clump; hubs and no-sub notes sit at core.
+      const off = !n.hub && n.sub && subOff[n.folder + "/" + n.sub]
+      if (off) {
+        const R = Math.min(W, H) * (mini ? 0.1 : 0.085)
+        hx += off[0] * R
+        hy += off[1] * R
+      }
+      return [hx, hy]
     }
 
     function initPositions() {
