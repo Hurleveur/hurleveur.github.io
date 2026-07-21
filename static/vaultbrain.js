@@ -65,11 +65,11 @@
     ["movie-serie", "https://soundcloud.com/eurythmics-official/sweet-dreams-are-made-of-3"],
     ["work", "https://soundcloud.com/thomash_voodoohop/rachel-tobac-security-hackers-and-password"],
     ["website", "https://soundcloud.com/madonna/la-isla-bonita"],
-    ["clippings", "https://soundcloud.com/michelberger/le-paradis-blanc"],
-    ["travel", "https://soundcloud.com/eaglesofficial/eagles-hotel-california"],
+    ["clippings", "https://soundcloud.com/rickgoldman2/le-paradis-blanc-michel-berger-1990"],
+    ["travel", "https://soundcloud.com/rockclassichitsallstars/hotel-california-3"],
     ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
     ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
-    ["alignement", "https://soundcloud.com/imaginedragons/natural"],
+    ["alignement", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
