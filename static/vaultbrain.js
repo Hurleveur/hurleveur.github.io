@@ -14,8 +14,7 @@
     travel: "#ef8b4e",     // sacral — experience / exploration
     work: "#e8c14e",       // solar plexus — will / action
     friends: "#7fb069",    // heart — connection
-    clippings: "#6ab7e0",  // throat — media / communication
-    tv: "#6ab7e0",         // throat — media (paired with clippings)
+    shared: "#6ab7e0",     // throat — media / communication (tv + clippings)
     library: "#6a5acd",    // third eye — knowledge / insight
     meaning: "#9b7ede",    // crown — purpose / spirit
   }
