@@ -4,15 +4,45 @@
 (function () {
   "use strict"
 
-  // top-level folder -> color. Categories are whatever folders actually exist
-  // in the vault; every folder gets a stable hash-picked color, none hardcoded.
+  // top-level folder -> color. Known sections get a hand-picked, fitting hue
+  // (keyed by lowercase folder slug) so no two neighbours collide; any folder
+  // not listed falls back to a stable hash pick from the palette.
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
+  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
+  const COLORS = {
+    alignement: "#e05a5a", // root — grounding / foundation
+    travel: "#ef8b4e",     // sacral — experience / exploration
+    work: "#e8c14e",       // solar plexus — will / action
+    friends: "#7fb069",    // heart — connection
+    clippings: "#6ab7e0",  // throat — media / communication
+    tv: "#6ab7e0",         // throat — media (paired with clippings)
+    library: "#6a5acd",    // third eye — knowledge / insight
+    meaning: "#9b7ede",    // crown — purpose / spirit
+  }
 
   function folderColor(folder) {
+    const key = folder.toLowerCase()
+    if (COLORS[key]) return COLORS[key]
     let h = 0
     for (let i = 0; i < folder.length; i++) h = (h * 31 + folder.charCodeAt(i)) >>> 0
     return PALETTE[h % PALETTE.length]
   }
+
+  // lerp a hex toward white by t (0..1) — lighten while keeping the hue.
+  function lighten(hex, t) {
+    const n = parseInt(hex.slice(1), 16)
+    const r = n >> 16, g = (n >> 8) & 255, b = n & 255
+    const f = (v) => Math.round(v + (255 - v) * t)
+    return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
+  }
+
+  // note color = its section's chakra hue, tinted lighter by sub-folder so
+  // sub-groups read by shade. Section stars/legend keep the base hue (sub=null).
+  // Tint step comes from the sub-folder's sorted position within its section
+  // (not a free hash) so two sub-folders never collide on the same shade. The
+  // tints pop on the dark constellation and hold their hue on the pale day sky.
+  // ponytail: 7 distinct steps, wraps past 7 sub-folders in one section.
+  const TINTS = [0.24, 0.12, 0.33, 0.06, 0.42, 0.18, 0.3]
 
   // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
   // stars, hovering a star lights its frieze word. detail = folder or null.
@@ -116,6 +146,17 @@
 
     // group notes by top-level folder; folder hubs sit on a brain-lobe ellipse
     const folders = [...new Set(slugs.map((s) => (s.includes("/") ? s.split("/")[0] : "~")))]
+    // sub-folder -> stable tint slot within its section (sorted so slots don't
+    // shuffle between builds); feeds the per-note shade in the nodes map below.
+    const subSets = {}
+    slugs.forEach((s) => {
+      const p = s.split("/")
+      if (p.length > 2) (subSets[p[0]] || (subSets[p[0]] = new Set())).add(p[1])
+    })
+    const subTint = {}
+    for (const f in subSets) {
+      ;[...subSets[f]].sort().forEach((s, i) => (subTint[f + "/" + s] = TINTS[i % TINTS.length]))
+    }
     const hubs = {}
     // sections ring the sky; loose root notes gather in the middle
     const ring = folders.filter((f) => f !== "~")
@@ -126,12 +167,17 @@
     hubs["~"] = { ax: 0, ay: 0 }
 
     const nodes = slugs.map((slug) => {
-      const folder = slug.includes("/") ? slug.split("/")[0] : "~"
+      const parts = slug.split("/")
+      const folder = parts.length > 1 ? parts[0] : "~"
+      // sub-folder = first segment under the section (folder/sub/.../note);
+      // notes sitting directly in the section (folder/note) have none.
+      const sub = parts.length > 2 ? parts[1] : null
+      const base = folder === "~" ? sky.root : folderColor(folder)
       return {
         slug,
         label: data[slug].title || slug,
         folder,
-        color: folder === "~" ? sky.root : folderColor(folder),
+        color: sub ? lighten(base, subTint[folder + "/" + sub]) : base,
         r: mini
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
           : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
