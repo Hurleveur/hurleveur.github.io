@@ -958,6 +958,47 @@
     tmp.innerHTML = html
     const firstPara = tmp.querySelector("p")
 
+    // wrap the "Hey there stranger" opener in a clickable span (clones into both
+    // teaser and full views); one delegated listener plays the easter-egg track
+    if (firstPara) {
+      for (const node of firstPara.childNodes) {
+        if (node.nodeType !== 3) continue
+        const i = node.nodeValue.indexOf("Hey there stranger")
+        if (i < 0) continue
+        const rest = node.splitText(i)
+        rest.splitText("Hey there stranger".length)
+        const span = document.createElement("span")
+        span.className = "whoami-hey"
+        span.title = "♪ hey you"
+        span.textContent = rest.nodeValue
+        rest.replaceWith(span)
+        break
+      }
+    }
+    body.addEventListener("click", (e) => {
+      if (e.target.closest(".whoami-hey")) playHeyYou()
+    })
+
+    // easter egg: each click feeds the black hole (avatar grows + accretion
+    // glow); past the event horizon it collapses back to a point and resets
+    const avatar = document.querySelector(".whoami-avatar")
+    if (avatar && !avatar.dataset.vbBh) {
+      avatar.dataset.vbBh = "1"
+      let step = 0
+      avatar.addEventListener("click", () => {
+        if (step >= 5) {
+          // event horizon reached: collapse to a point, then spring back
+          step = 0
+          avatar.style.setProperty("--bh", 0)
+          avatar.classList.add("collapsing")
+          setTimeout(() => avatar.classList.remove("collapsing"), 250)
+        } else {
+          step++
+          avatar.style.setProperty("--bh", step)
+        }
+      })
+    }
+
     if (firstPara && tmp.children.length > 1) {
       const teaser = [firstPara.cloneNode(true)]
       const full = [...tmp.children]
@@ -1030,6 +1071,18 @@
   // the Iron Sky fallback everyone else gets. The official Lennon master is
   // geo-locked by the estate on SoundCloud, so this is a cover instead.
   const HOME_DAY_TRACK = "https://soundcloud.com/cardell/imagine-remastered"
+
+  // easter egg: clicking "Hey there stranger" on the home whoami card plays
+  // Pink Floyd's "Hey You" through the same shared widget the room toggle uses.
+  const HEY_YOU_TRACK = "https://soundcloud.com/yousefhisham/hey-you-pink-floyd"
+  function playHeyYou() {
+    const btn = document.getElementById("vb-audio-btn")
+    if (!btn || !btn._widget) return
+    btn._track = HEY_YOU_TRACK
+    btn._resume = 0
+    sessionStorage.setItem("vb-audio-on", "1")
+    btn._widget.load(HEY_YOU_TRACK, { auto_play: true, show_artwork: false })
+  }
 
   function initAudio() {
     const slug = document.body.dataset.slug || ""

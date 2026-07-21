@@ -167,6 +167,22 @@ body {
     flex-shrink: 0;
     border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
     order: 2;
+    cursor: pointer;
+    --bh: 0;
+    // accretion: scale + warm glowing ring grow with each click (--bh 0..5)
+    transform: scale(calc(1 + var(--bh) * 0.45));
+    box-shadow:
+      0 0 calc(var(--bh) * 8px) calc(var(--bh) * 2px) rgba(255, 150, 40, 0.55),
+      inset 0 0 calc(var(--bh) * 6px) rgba(0, 0, 0, 0.9);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+    position: relative;
+    z-index: 2;
+
+    &.collapsing {
+      // event horizon: snap to a point, then the base rule eases it back
+      transform: scale(0.1);
+      transition: transform 0.25s ease-in;
+    }
   }
 
   .whoami-text {
@@ -183,6 +199,12 @@ body {
     p {
       margin: 0 0 0.6rem;
     }
+  }
+
+  .whoami-hey {
+    cursor: pointer;
+    color: var(--secondary);
+    border-bottom: 1px dotted var(--secondary);
   }
 
   .whoami-random-row {
