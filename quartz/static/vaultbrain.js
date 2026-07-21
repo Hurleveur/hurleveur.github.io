@@ -4,11 +4,25 @@
 (function () {
   "use strict"
 
-  // top-level folder -> color. Categories are whatever folders actually exist
-  // in the vault; every folder gets a stable hash-picked color, none hardcoded.
+  // top-level folder -> color. Known sections get a hand-picked, fitting hue
+  // (keyed by lowercase folder slug) so no two neighbours collide; any folder
+  // not listed falls back to a stable hash pick from the palette.
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
+  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
+  const COLORS = {
+    alignement: "#e05a5a", // root — grounding / foundation
+    travel: "#ef8b4e",     // sacral — experience / exploration
+    work: "#e8c14e",       // solar plexus — will / action
+    friends: "#7fb069",    // heart — connection
+    clippings: "#6ab7e0",  // throat — media / communication
+    tv: "#6ab7e0",         // throat — media (paired with clippings)
+    library: "#6a5acd",    // third eye — knowledge / insight
+    meaning: "#9b7ede",    // crown — purpose / spirit
+  }
 
   function folderColor(folder) {
+    const key = folder.toLowerCase()
+    if (COLORS[key]) return COLORS[key]
     let h = 0
     for (let i = 0; i < folder.length; i++) h = (h * 31 + folder.charCodeAt(i)) >>> 0
     return PALETTE[h % PALETTE.length]
