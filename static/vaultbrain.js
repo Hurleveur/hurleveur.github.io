@@ -737,27 +737,26 @@
     }
   }
 
-  // library shelf: one spine per published book note, built from the same index
+  // library shelf: one spine per published Library-category note (build-emitted
+  // static/library.json = [{slug, title}]). Category, not folder, is the signal
+  // so book notes filed anywhere in the vault shelve alongside books/.
   const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
   async function initShelf() {
     const shelf = document.getElementById("vb-shelf")
     if (!shelf || shelf.dataset.vbDone) return
     shelf.dataset.vbDone = "1"
-    let data
+    let books
     try {
-      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+      books = await fetch("/static/library.json").then((r) => r.json())
     } catch (e) {
       return
     }
-    const books = Object.keys(data)
-      .filter((s) => s.startsWith("books/") && s !== "books/index")
-      .sort()
     let h = 0
-    for (const slug of books) {
+    for (const { slug, title } of books) {
       const a = document.createElement("a")
       a.className = "spine internal"
       a.href = "/" + slug
-      const t = data[slug].title || slug
+      const t = title || slug
       a.textContent = t.length > 42 ? t.slice(0, 40) + "…" : t
       a.title = t
       h = (h * 31 + slug.length + slug.charCodeAt(0)) % CLOTHS.length
