@@ -11,5 +11,5 @@
 Attachments/**
 
 Guides/prompting guide.pdf
-Website/knowledge-compendium.html
-Website/manual-of-alex.html
+knowledge-compendium.html
+manual-of-alex.html
