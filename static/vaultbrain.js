@@ -726,7 +726,7 @@
         const u = Math.abs(x - CX) / 570 // 0 at the brain, 1 at the image edge
         return (
           (Math.atan((-RY * (x - CX)) / (RX * RX * bandS(x))) * 180 / Math.PI) *
-          (0.85 + 0.5 * u * u)
+          (0.9 + 0.5 * u * u)
         )
       }
       // manual pixel overrides, keyed by folder slug — x/y/deg are viewBox px
@@ -737,9 +737,9 @@
       const FRIEZE_OVERRIDES = {}
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
-      const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
-      const EDGE_LIFT = 27.5 // px the outermost word is raised above the ellipse
-      const EDGE_ROT_BOOST = 0.15 // extra rotation fraction for the outermost word
+      const WORD_GAP = 5 // min gap between adjacent word boxes, viewBox px
+      const EDGE_LIFT = 14 // px the outermost word is raised above the ellipse
+      const EDGE_ROT_BOOST = 0.12 // extra rotation fraction for the outermost word
       // attach before measuring: getComputedTextLength needs a laid-out tree
       frieze.appendChild(svg)
       // per-side x ranges, stopping short of the brain canvas box (x 426-851)
