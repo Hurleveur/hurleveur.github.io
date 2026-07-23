@@ -7,9 +7,9 @@
 #
 # One glob per line. Full-line # comments only.
 
-# images embedded in published notes — broad on purpose; tighten to single files if needed
-Attachments/**
+# images/pdfs embedded or linked from a published note publish automatically —
+# only assets nothing published points at need a line here.
 
-Guides/prompting guide.pdf
+Work/Guides/prompting guide.pdf
 knowledge-compendium.html
 manual-of-alex.html

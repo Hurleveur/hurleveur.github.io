@@ -1,8 +1,11 @@
 import { FilePath, joinSegments, slugifyFilePath } from "../../util/path"
 import { QuartzEmitterPlugin, QuartzPageTypePluginInstance } from "../types"
+import { ProcessedContent } from "../vfile"
 import path from "path"
 import fs from "fs"
 import { minimatch } from "minimatch"
+import { visit } from "unist-util-visit"
+import { Root } from "hast"
 import { glob } from "../../util/glob"
 import { Argv, BuildCtx } from "../../util/ctx"
 import { QuartzConfig } from "../../cfg"
@@ -24,8 +27,30 @@ function loadAllowlist(): string[] {
   }
 }
 
-function isAllowed(fp: string, allowlist: string[]): boolean {
-  return allowlist.some((pattern) => minimatch(fp, pattern))
+// an asset shown by a published note publishes with it — otherwise every
+// embedded image would need its own allowlist line (and forgetting one breaks
+// the note). Anything no published note points at stays private.
+function referencedSlugs(content: ProcessedContent[]): Set<string> {
+  const refs = new Set<string>()
+  for (const [tree, file] of content) {
+    const base = "https://base.internal/" + (file.data.slug ?? "")
+    visit(tree as Root, "element", (node) => {
+      const raw = node.properties?.src ?? node.properties?.href
+      if (typeof raw !== "string") return
+      try {
+        // external urls resolve to some other host's path and simply never
+        // match a local file, so they need no special casing
+        refs.add(decodeURIComponent(new URL(raw, base).pathname).replace(/^\//, ""))
+      } catch {
+        // unparseable src/href — nothing to publish
+      }
+    })
+  }
+  return refs
+}
+
+function isAllowed(fp: FilePath, allowlist: string[], refs: Set<string>): boolean {
+  return allowlist.some((pattern) => minimatch(fp, pattern)) || refs.has(slugifyFilePath(fp))
 }
 
 // page-like assets (html/pdf) don't appear in the content index, so the
@@ -101,25 +126,39 @@ const copyFile = async (argv: Argv, fp: FilePath) => {
 export const Assets: QuartzEmitterPlugin = () => {
   return {
     name: "Assets",
-    async *emit(ctx) {
+    async *emit(ctx, content) {
       const excludeExtensions = getPageTypeExtensions(ctx)
       const allowlist = loadAllowlist()
+      const refs = referencedSlugs(content)
       const fps = (await filesToCopy(ctx.argv, ctx.cfg, excludeExtensions)).filter((fp) =>
-        isAllowed(fp, allowlist),
+        isAllowed(fp, allowlist, refs),
       )
       for (const fp of fps) {
         yield copyFile(ctx.argv, fp)
       }
       yield emitAssetIndex(ctx.argv, fps)
     },
-    async *partialEmit(ctx, _content, _resources, changeEvents) {
+    async *partialEmit(ctx, content, _resources, changeEvents) {
       const excludeExtensions = getPageTypeExtensions(ctx)
       const allowlist = loadAllowlist()
+      const refs = referencedSlugs(content)
       let touched = false
+
+      // an edited note can newly reference an asset that never changed itself,
+      // so it has no change event of its own — copy whatever is missing
+      if (changeEvents.some((e) => path.extname(e.path) === ".md")) {
+        for (const fp of await filesToCopy(ctx.argv, ctx.cfg, excludeExtensions)) {
+          if (!isAllowed(fp, allowlist, refs)) continue
+          if (fs.existsSync(joinSegments(ctx.argv.output, outputName(fp)))) continue
+          touched = true
+          yield copyFile(ctx.argv, fp)
+        }
+      }
+
       for (const changeEvent of changeEvents) {
         const ext = path.extname(changeEvent.path)
         if (ext === ".md" || excludeExtensions.has(ext)) continue
-        if (!isAllowed(changeEvent.path, allowlist)) continue
+        if (!isAllowed(changeEvent.path, allowlist, refs)) continue
         touched = true
 
         if (changeEvent.type === "add" || changeEvent.type === "change") {
@@ -131,7 +170,7 @@ export const Assets: QuartzEmitterPlugin = () => {
       }
       if (touched) {
         const fps = (await filesToCopy(ctx.argv, ctx.cfg, excludeExtensions)).filter((fp) =>
-          isAllowed(fp, allowlist),
+          isAllowed(fp, allowlist, refs),
         )
         yield emitAssetIndex(ctx.argv, fps)
       }
