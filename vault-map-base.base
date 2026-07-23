@@ -1,0 +1,42 @@
+filters:
+  and:
+    - file.ext == "md"
+views:
+  - type: table
+    name: Notes per folder
+    groupBy:
+      property: file.folder
+      direction: ASC
+    order:
+      - file.name
+      - file.mtime
+      - Description
+    summaries:
+      file.name: Filled
+  - type: table
+    name: By category
+    filters:
+      and:
+        - "!categories.isEmpty()"
+    groupBy:
+      property: categories
+      direction: ASC
+    order:
+      - file.name
+      - categories
+    summaries:
+      file.name: Filled
+  - type: table
+    name: Work queue
+    filters:
+      and:
+        - file.tags.containsAny("question","idea","incomplete","todo","blocked","waiting","verify","recurring")
+    groupBy:
+      property: file.folder
+      direction: ASC
+    order:
+      - file.name
+      - file.tags
+      - file.mtime
+    summaries:
+      file.name: Filled
