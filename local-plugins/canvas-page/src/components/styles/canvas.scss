@@ -1,0 +1,558 @@
+.canvas-page {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
+
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  background-color: var(--light);
+  background-image: radial-gradient(circle, var(--lightgray) 1px, transparent 1px);
+  background-size: 20px 20px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.canvas-viewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.canvas-nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.canvas-node {
+  position: absolute;
+  border: 2px solid var(--canvas-node-color, var(--lightgray));
+  border-radius: 6px;
+  background: var(--light);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.canvas-node-content {
+  padding: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--darkgray);
+  word-wrap: break-word;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.canvas-node-text {
+  .canvas-node-content {
+    white-space: pre-wrap;
+  }
+}
+
+.canvas-node-file {
+  overflow: visible;
+
+  .canvas-file-label {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    a {
+      color: var(--canvas-node-color, var(--secondary));
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &::before {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: var(--canvas-node-color, var(--secondary));
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        flex-shrink: 0;
+      }
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .canvas-embed-content {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 0.8em;
+      margin-bottom: 0.4em;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    p {
+      margin: 0.5em 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.5em;
+      margin: 0.5em 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 0.5em;
+      border-radius: 4px;
+      background: var(--lightgray);
+    }
+
+    code {
+      font-size: 0.85em;
+    }
+  }
+
+  .canvas-file-subpath {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-left: auto;
+  }
+
+  .canvas-node-content > .canvas-file-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 100%;
+    color: var(--secondary);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.canvas-node-link {
+  overflow: visible;
+
+  .canvas-node-content {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .canvas-link-label {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    a {
+      color: var(--canvas-node-color, var(--secondary));
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &::before {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: var(--canvas-node-color, var(--secondary));
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        flex-shrink: 0;
+      }
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .canvas-iframe-wrapper {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: var(--light);
+    }
+
+    .canvas-iframe-fallback {
+      display: none;
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      background: var(--light);
+      font-size: 0.85rem;
+
+      a {
+        color: var(--secondary);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.canvas-node-group {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--canvas-node-color, var(--gray));
+  border-radius: 12px;
+  overflow: visible;
+
+  .canvas-group-label {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    padding: 0 8px;
+    background: var(--light);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--canvas-node-color, var(--darkgray));
+  }
+}
+
+.canvas-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.canvas-edge {
+  path {
+    pointer-events: stroke;
+  }
+}
+
+.canvas-edge-label-bg {
+  fill: var(--light);
+  fill-opacity: 0.85;
+}
+
+.canvas-edge-label {
+  font-size: 0.8rem;
+  fill: var(--darkgray);
+  pointer-events: none;
+}
+
+.canvas-controls {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 25;
+  transition: top 0.25s ease;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    background: var(--light);
+    color: var(--darkgray);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: background 0.1s ease;
+
+    &:hover {
+      background: var(--lightgray);
+    }
+
+    svg {
+      pointer-events: none;
+    }
+  }
+
+  .canvas-zoom-group {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    overflow: hidden;
+
+    button {
+      border: none;
+      border-radius: 0;
+
+      &:first-child {
+        border-bottom: 1px solid var(--lightgray);
+      }
+    }
+  }
+}
+
+.page[data-frame="canvas"] {
+  --canvas-sidebar-width: 300px;
+}
+
+.page[data-frame="canvas"] .canvas-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding-left: 0;
+  transition: padding-left 0.2s ease;
+}
+
+.page[data-frame="canvas"] .canvas-stage {
+  width: 100%;
+  height: 100%;
+}
+
+.page[data-frame="canvas"] .canvas-sidebar {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: var(--canvas-sidebar-width);
+  box-sizing: border-box;
+  background: var(--light);
+  border-right: 1px solid var(--lightgray);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.12);
+  overflow-y: hidden;
+  left: calc(-1 * var(--canvas-sidebar-width));
+  transition: left 0.25s ease;
+  z-index: 20;
+}
+
+.page[data-frame="canvas"] .canvas-sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--darkgray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  transition:
+    background 0.1s ease,
+    left 0.25s ease;
+
+  &:hover {
+    background: var(--lightgray);
+  }
+
+  svg {
+    pointer-events: none;
+  }
+}
+
+.page[data-frame="canvas"] .canvas-sidebar-icon-close {
+  display: none;
+}
+
+.page[data-frame="canvas"].canvas-sidebar-open .canvas-frame {
+  padding-left: var(--canvas-sidebar-width);
+}
+
+.page[data-frame="canvas"].canvas-sidebar-open .canvas-sidebar {
+  left: 0;
+}
+
+.page[data-frame="canvas"].canvas-sidebar-open .canvas-sidebar-toggle {
+  left: calc(var(--canvas-sidebar-width) + 12px);
+}
+
+.page[data-frame="canvas"].canvas-sidebar-open .canvas-sidebar-icon-open {
+  display: none;
+}
+
+.page[data-frame="canvas"].canvas-sidebar-open .canvas-sidebar-icon-close {
+  display: block;
+}
+
+@media (max-width: 800px) {
+  .page[data-frame="canvas"] {
+    --canvas-sidebar-width: calc(100vw - 56px);
+  }
+
+  .page[data-frame="canvas"].canvas-sidebar-open .canvas-frame {
+    padding-left: 0;
+  }
+
+  .page[data-frame="canvas"].canvas-sidebar-open .canvas-sidebar-toggle {
+    left: calc(var(--canvas-sidebar-width) + 12px);
+  }
+
+  .page[data-frame="canvas"].canvas-sidebar-open .canvas-controls {
+    top: 48px;
+  }
+}
+
+// Canvas sidebar overrides
+// The sidebar itself is togglable, so components inside it should not
+// have their own collapse/toggle behavior.
+
+.page[data-frame="canvas"] .canvas-sidebar {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .spacer {
+    display: none;
+  }
+
+  .explorer button.desktop-explorer,
+  .explorer button.mobile-explorer {
+    display: none !important;
+  }
+
+  .explorer {
+    order: initial;
+    overflow-y: hidden;
+    overflow: hidden;
+    flex: 1 1 0;
+    min-height: 0;
+    flex-shrink: initial;
+    align-self: initial;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .explorer .explorer-content,
+  .explorer.collapsed > .explorer-content,
+  .explorer:not(.collapsed) > .explorer-content {
+    position: static;
+    width: auto;
+    max-width: none;
+    height: 100%;
+    max-height: 100%;
+    transform: none !important;
+    visibility: visible !important;
+    padding: 0;
+    overflow-y: auto;
+    z-index: auto;
+    background-color: transparent;
+  }
+
+  .explorer-content > .explorer-ul {
+    overscroll-behavior: auto;
+  }
+}
+
+// Canvas embeds inside transcludes
+// The .canvas-page and .canvas-container use height:100% which collapses
+// to 0 when there is no explicit height ancestor (e.g. inside a blockquote).
+// Provide an explicit min-height so the JS centerViewport() can calculate
+// proper zoom/pan values, and the canvas content is visible.
+.transclude {
+  .canvas-page {
+    height: auto;
+  }
+
+  .canvas-container {
+    height: auto;
+    min-height: 400px;
+  }
+
+  // Contain controls within the embedded canvas rather than viewport
+  .canvas-controls {
+    position: absolute;
+  }
+}
+
+// Popover previews of canvas pages
+.popover-inner {
+  .canvas-page {
+    height: auto;
+  }
+
+  .canvas-container {
+    height: auto;
+    min-height: 200px;
+    max-height: 300px;
+  }
+
+  .canvas-controls {
+    display: none;
+  }
+}
+
+// Fullscreen toggle — hidden on dedicated canvas pages (frame handles layout),
+// visible only in embedded/transclude contexts.
+.page[data-frame="canvas"] .canvas-fullscreen-toggle {
+  display: none;
+}
+
+// Fullscreen mode for embedded canvases
+.canvas-container:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  min-height: unset;
+  background-color: var(--light);
+
+  .canvas-controls {
+    position: fixed;
+  }
+}

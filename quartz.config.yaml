@@ -145,8 +145,8 @@ plugins:
     enabled: true
   - source: github:quartz-community/cname
     enabled: true
-  - source: github:quartz-community/canvas-page
-    enabled: false
+  - source: ./local-plugins/canvas-page # patched: generate() gated by publish-exceptions.txt (raw ctx.allFiles leak otherwise)
+    enabled: true
   - source: github:quartz-community/content-page
     enabled: true
   - source: github:quartz-community/folder-page
@@ -229,7 +229,13 @@ plugins:
         GitHub: https://github.com/jackyzha0/quartz
         Discord Community: https://discord.gg/cRFFHYye7t
   - source: github:quartz-community/recent-notes
-    enabled: false
+    enabled: true
+    options:
+      limit: 5
+      showTags: true
+    layout:
+      position: right
+      priority: 40
   - source: github:quartz-community/spacer
     enabled: true
     options: {}
@@ -266,8 +272,8 @@ plugins:
     enabled: false
     options:
       theme: default
-  - source: github:quartz-community/obsidian-plugin-excalidraw
-    enabled: false
+  - source: ./local-plugins/obsidian-plugin-excalidraw # patched: generate() gated by publish-exceptions.txt (raw ctx.allFiles leak otherwise)
+    enabled: true
     options:
       enableInteraction: true
       darkMode: auto
