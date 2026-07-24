@@ -803,9 +803,15 @@
   }
 
   // library shelf: one spine per published Library-category note (build-emitted
-  // static/library.json = [{slug, title}]). Category, not folder, is the signal
-  // so book notes filed anywhere in the vault shelve alongside books/.
+  // static/library.json = [{slug, title, topic?, toRead?}]). Category, not folder,
+  // is the signal so book notes filed anywhere in the vault shelve alongside books/.
   const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
+  // deterministic string -> CLOTHS index, shared by topic (color) and slug (fallback)
+  function clothHash(s) {
+    let h = 0
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % CLOTHS.length
+    return h
+  }
   async function initShelf() {
     const shelf = document.getElementById("vb-shelf")
     if (!shelf || shelf.dataset.vbDone) return
@@ -816,16 +822,15 @@
     } catch (e) {
       return
     }
-    let h = 0
-    for (const { slug, title } of books) {
+    for (const { slug, title, topic, toRead } of books) {
       const a = document.createElement("a")
-      a.className = "spine internal"
+      a.className = toRead ? "spine internal to-read" : "spine internal"
       a.href = "/" + slug
       const t = title || slug
       a.textContent = t.length > 42 ? t.slice(0, 40) + "…" : t
-      a.title = t
-      h = (h * 31 + slug.length + slug.charCodeAt(0)) % CLOTHS.length
-      a.style.setProperty("--cloth", CLOTHS[h])
+      a.title = toRead ? `${t} (to read)` : t
+      // same subject -> same cloth color; no subject -> fall back to slug hash
+      a.style.setProperty("--cloth", CLOTHS[clothHash(topic || slug)])
       shelf.appendChild(a)
     }
     // spines built after popover.inline's setupPopovers already scanned the DOM;
