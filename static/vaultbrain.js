@@ -10,7 +10,7 @@
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
   // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
   const COLORS = {
-    alignement: "#e05a5a", // root — grounding / foundation
+    alignment: "#e05a5a", // root — grounding / foundation
     travel: "#ef8b4e",     // sacral — experience / exploration
     work: "#e8c14e",       // solar plexus — will / action
     friends: "#7fb069",    // heart — connection
@@ -98,7 +98,7 @@
     ["travel", "https://soundcloud.com/rockclassichitsallstars/hotel-california-3"],
     ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
     ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
-    ["alignement", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
+    ["alignment", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
