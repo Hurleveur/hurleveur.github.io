@@ -863,6 +863,7 @@ body[data-slug^="books"] {
 
   .spine {
     --cloth: #3f5240;
+    position: relative;
     writing-mode: vertical-rl;
     min-height: 180px;
     padding: 1rem 0.55rem;
@@ -902,6 +903,31 @@ body[data-slug^="books"] {
     &:focus-visible {
       outline: 2px solid #c9973f;
       outline-offset: 3px;
+    }
+
+    // unread: dashed spine edge + a bookmark ribbon poking out the top,
+    // so status reads by shape, not just by color (cloth already means subject)
+    &.to-read {
+      border: 1px dashed color-mix(in srgb, #c9973f 65%, transparent);
+      opacity: 0.86;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 11px;
+        height: 18px;
+        background: #c9973f;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      }
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+      }
     }
   }
 }

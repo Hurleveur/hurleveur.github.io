@@ -10,7 +10,7 @@
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
   // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
   const COLORS = {
-    alignement: "#e05a5a", // root — grounding / foundation
+    alignment: "#e05a5a", // root — grounding / foundation
     travel: "#ef8b4e",     // sacral — experience / exploration
     work: "#e8c14e",       // solar plexus — will / action
     friends: "#7fb069",    // heart — connection
@@ -98,7 +98,7 @@
     ["travel", "https://soundcloud.com/rockclassichitsallstars/hotel-california-3"],
     ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
     ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
-    ["alignement", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
+    ["alignment", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
@@ -803,9 +803,15 @@
   }
 
   // library shelf: one spine per published Library-category note (build-emitted
-  // static/library.json = [{slug, title}]). Category, not folder, is the signal
-  // so book notes filed anywhere in the vault shelve alongside books/.
+  // static/library.json = [{slug, title, topic?, toRead?}]). Category, not folder,
+  // is the signal so book notes filed anywhere in the vault shelve alongside books/.
   const CLOTHS = ["#3f5240", "#5a3f24", "#4a3550", "#2f4858", "#6e3b2c", "#41474e", "#7a5c2e", "#35524a"]
+  // deterministic string -> CLOTHS index, shared by topic (color) and slug (fallback)
+  function clothHash(s) {
+    let h = 0
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % CLOTHS.length
+    return h
+  }
   async function initShelf() {
     const shelf = document.getElementById("vb-shelf")
     if (!shelf || shelf.dataset.vbDone) return
@@ -816,16 +822,15 @@
     } catch (e) {
       return
     }
-    let h = 0
-    for (const { slug, title } of books) {
+    for (const { slug, title, topic, toRead } of books) {
       const a = document.createElement("a")
-      a.className = "spine internal"
+      a.className = toRead ? "spine internal to-read" : "spine internal"
       a.href = "/" + slug
       const t = title || slug
       a.textContent = t.length > 42 ? t.slice(0, 40) + "…" : t
-      a.title = t
-      h = (h * 31 + slug.length + slug.charCodeAt(0)) % CLOTHS.length
-      a.style.setProperty("--cloth", CLOTHS[h])
+      a.title = toRead ? `${t} (to read)` : t
+      // same subject -> same cloth color; no subject -> fall back to slug hash
+      a.style.setProperty("--cloth", CLOTHS[clothHash(topic || slug)])
       shelf.appendChild(a)
     }
     // spines built after popover.inline's setupPopovers already scanned the DOM;
