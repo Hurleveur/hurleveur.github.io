@@ -90,15 +90,12 @@
   // an offscreen widget iframe. First matching prefix wins; "" is the
   // fallback.
   const AMBIENCE = [
-    ["friends", "https://soundcloud.com/nicolas-peyrac/il-suffirait"],
-    ["movie-serie", "https://soundcloud.com/eurythmics-official/sweet-dreams-are-made-of-3"],
-    ["work", "https://soundcloud.com/thomash_voodoohop/rachel-tobac-security-hackers-and-password"],
-    ["website", "https://soundcloud.com/madonna/la-isla-bonita"],
-    ["clippings", "https://soundcloud.com/rickgoldman2/le-paradis-blanc-michel-berger-1990"],
-    ["travel", "https://soundcloud.com/rockclassichitsallstars/hotel-california-3"],
-    ["guides", "https://soundcloud.com/wednesdayaddams-music/paint-it-black"],
-    ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
     ["alignment", "https://soundcloud.com/user-257190615/sets/imagine-dragon-natural"],
+    ["friends", "https://soundcloud.com/nicolas-peyrac/il-suffirait"],
+    ["meaning", "https://soundcloud.com/pepsofficial/liberta-1"],
+    ["shared", "https://soundcloud.com/rickgoldman2/le-paradis-blanc-michel-berger-1990"],
+    ["travel", "https://soundcloud.com/rockclassichitsallstars/hotel-california-3"],
+    ["work", "https://soundcloud.com/thomash_voodoohop/rachel-tobac-security-hackers-and-password"],
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
