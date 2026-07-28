@@ -18,3 +18,4 @@ Work/Guides/prompting guide.pdf
 knowledge-compendium.html
 manual-of-alex.html
 Alignment/Life structure/overview.excalidraw.md
+Shared/Naur.pdf
