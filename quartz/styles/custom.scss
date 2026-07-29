@@ -121,6 +121,36 @@ body {
   }
 }
 
+/* easter egg: Clippy peeking out from behind the bottom edge (.palace-hero
+   clips him with its overflow:hidden). Hover/focus pulls him fully into view. */
+.palace-hero .clippy {
+  position: absolute;
+  right: clamp(0.5rem, 6vw, 5rem);
+  bottom: 0;
+  width: clamp(34px, 5vw, 52px);
+  color: #6e6858;
+  opacity: 0.32;
+  transform: translateY(58%) rotate(-9deg);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* crawl-links tags external anchors with an icon — not on the easter egg */
+  svg.external-icon {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    transform: translateY(4%) rotate(3deg);
+  }
+}
+
 .quote-slab {
   margin: 1.4rem auto 0;
   max-width: 34rem;
@@ -1121,7 +1151,8 @@ body[data-slug^="books"] {
 @media (prefers-reduced-motion: reduce) {
   .door,
   .spine,
-  .quote-slab blockquote {
+  .quote-slab blockquote,
+  .palace-hero .clippy {
     transition: none !important;
   }
 }
