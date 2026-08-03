@@ -1,1021 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual of Alex</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0d0d0d;
-      --surface: #141414;
-      --surface-2: #1c1c1c;
-      --border: #252525;
-      --amber: #d4a853;
-      --amber-dim: rgba(212,168,83,0.12);
-      --sage: #7c9e8a;
-      --sage-dim: rgba(124,158,138,0.1);
-      --text: #e8e4dc;
-      --text-dim: #8a857d;
-      --text-faint: #3f3b36;
-      --red: #c96060;
-      --red-dim: rgba(201,96,96,0.1);
-      --green: #6b9e7a;
-      --green-dim: rgba(107,158,122,0.1);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px;
-      line-height: 1.75;
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: 230px;
-      min-width: 230px;
-      height: 100vh;
-      position: sticky;
-      top: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidebar-logo {
-      padding: 28px 22px 24px;
-      border-bottom: 1px solid var(--border);
-    }
-    .sidebar-logo .eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      margin-bottom: 6px;
-    }
-    .sidebar-logo h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 28px;
-      font-weight: 400;
-      color: var(--amber);
-      line-height: 1.1;
-    }
-    .sidebar-logo .version {
-      font-size: 9px;
-      color: var(--text-faint);
-      margin-top: 5px;
-    }
-
-    .perspective-toggle {
-      padding: 16px 22px;
-      border-bottom: 1px solid var(--border);
-    }
-    .toggle-label {
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      margin-bottom: 8px;
-    }
-    .toggle-buttons {
-      display: flex;
-      background: var(--bg);
-      border-radius: 4px;
-      padding: 2px;
-      border: 1px solid var(--border);
-      gap: 2px;
-    }
-    .toggle-btn {
-      flex: 1;
-      padding: 5px 3px;
-      font-size: 9px;
-      font-family: 'IBM Plex Mono', monospace;
-      letter-spacing: 0.04em;
-      border: none;
-      background: transparent;
-      color: var(--text-dim);
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.15s;
-      text-align: center;
-      line-height: 1.4;
-    }
-    .toggle-btn.active {
-      background: var(--amber);
-      color: #0d0d0d;
-      font-weight: 500;
-    }
-
-    .nav-wrap {
-      padding: 20px 14px;
-      flex: 1;
-    }
-    .nav-group-label {
-      font-size: 9px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      padding: 0 8px;
-      margin-bottom: 6px;
-    }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      color: var(--text-dim);
-      font-size: 11px;
-      text-decoration: none;
-      transition: all 0.14s ease;
-      margin-bottom: 1px;
-    }
-    .nav-item:hover { color: var(--text); background: var(--surface-2); }
-    .nav-item.active { color: var(--amber); background: var(--amber-dim); }
-    .nav-num {
-      font-size: 9px;
-      color: var(--text-faint);
-      width: 16px;
-      flex-shrink: 0;
-    }
-    .nav-item.active .nav-num { color: var(--amber); opacity: 0.6; }
-
-    /* ── MAIN ── */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 72px 88px 120px;
-      max-width: 880px;
-    }
-
-    /* ── HERO ── */
-    .hero {
-      margin-bottom: 80px;
-      padding-bottom: 64px;
-      border-bottom: 1px solid var(--border);
-    }
-    .hero-tag {
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--sage);
-      margin-bottom: 18px;
-    }
-    .hero h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 80px;
-      font-weight: 300;
-      line-height: 0.92;
-      color: var(--text);
-      margin-bottom: 28px;
-    }
-    .hero h2 em { color: var(--amber); font-style: italic; }
-    .hero > p {
-      max-width: 520px;
-      color: var(--text-dim);
-      font-size: 12.5px;
-      line-height: 1.85;
-    }
-    .hero-meta {
-      display: flex;
-      gap: 32px;
-      margin-top: 36px;
-      padding-top: 28px;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
-    }
-    .meta-item { display: flex; flex-direction: column; gap: 4px; }
-    .meta-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
-    .meta-value { font-size: 11.5px; color: var(--amber); }
-
-    /* ── SECTIONS ── */
-    .section {
-      margin-bottom: 88px;
-      scroll-margin-top: 40px;
-    }
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-      margin-bottom: 28px;
-    }
-    .section-num { font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; }
-    .section-header h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 38px;
-      font-weight: 400;
-      color: var(--text);
-      line-height: 1;
-    }
-    .section-divider { height: 1px; background: var(--border); margin-bottom: 32px; }
-    .sub-heading {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 400;
-      color: var(--text);
-      margin: 32px 0 16px;
-    }
-    .body-text {
-      color: var(--text-dim);
-      font-size: 12.5px;
-      line-height: 1.82;
-      margin-bottom: 20px;
-    }
-
-    /* ── CARDS ── */
-    .cards { display: grid; gap: 14px; margin-bottom: 20px; }
-    .cards.col-2 { grid-template-columns: 1fr 1fr; }
-    .cards.col-3 { grid-template-columns: 1fr 1fr 1fr; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 18px 20px;
-      transition: border-color 0.18s;
-    }
-    .card:hover { border-color: #323232; }
-    .card.amber { border-left: 2px solid var(--amber); }
-    .card.red   { border-left: 2px solid var(--red);   }
-    .card.green { border-left: 2px solid var(--green); }
-    .card.sage  { border-left: 2px solid var(--sage);  }
-
-    .card-label {
-      font-size: 9px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      color: var(--text-faint);
-    }
-    .card-label.amber { color: var(--amber); }
-    .card-label.red   { color: var(--red);   }
-    .card-label.green { color: var(--green); }
-    .card-label.sage  { color: var(--sage);  }
-
-    .card p { font-size: 12.5px; color: var(--text-dim); line-height: 1.75; }
-    .card strong { color: var(--text); font-weight: 500; }
-
-    /* ── SIGNAL ROWS ── */
-    .signal-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .signal-row:first-of-type { border-top: 1px solid var(--border); }
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      margin-top: 7px;
-      flex-shrink: 0;
-    }
-    .dot.green { background: var(--green); }
-    .dot.amber { background: var(--amber); }
-    .dot.red   { background: var(--red);   }
-    .signal-title { font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 2px; }
-    .signal-desc  { font-size: 12px; color: var(--text-dim); }
-
-    /* ── PULL QUOTE ── */
-    .pull-quote {
-      border-left: 2px solid var(--amber);
-      padding: 14px 22px;
-      margin: 28px 0;
-      background: var(--amber-dim);
-      border-radius: 0 4px 4px 0;
-    }
-    .pull-quote p {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 21px;
-      font-weight: 300;
-      font-style: italic;
-      color: var(--text);
-      line-height: 1.55;
-    }
-
-    /* ── EXPANDABLE ── */
-    .expandable {
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      overflow: hidden;
-      margin-bottom: 7px;
-    }
-    .exp-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      cursor: pointer;
-      background: var(--surface);
-      transition: background 0.14s;
-      user-select: none;
-    }
-    .exp-header:hover { background: var(--surface-2); }
-    .exp-title { font-size: 12.5px; color: var(--text); }
-    .exp-arrow { color: var(--text-faint); font-size: 11px; transition: transform 0.2s; }
-    .expandable.open .exp-arrow { transform: rotate(180deg); }
-    .exp-body {
-      display: none;
-      padding: 18px 20px;
-      border-top: 1px solid var(--border);
-      background: var(--bg);
-    }
-    .expandable.open .exp-body { display: block; }
-    .exp-body p { font-size: 12.5px; color: var(--text-dim); line-height: 1.8; }
-    .exp-body p + p { margin-top: 10px; }
-
-    /* ── INLINE NOTE ── */
-    .inline-note {
-      display: flex;
-      align-items: flex-start;
-      gap: 7px;
-      font-size: 11px;
-      color: var(--sage);
-      background: var(--sage-dim);
-      border: 1px solid rgba(124,158,138,0.18);
-      padding: 8px 12px;
-      border-radius: 3px;
-      margin-top: 12px;
-      line-height: 1.6;
-    }
-
-    /* ── TAGS ── */
-    .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
-    .tag {
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 10.5px;
-      border: 1px solid;
-    }
-    .tag.amber { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
-    .tag.sage  { border-color: var(--sage);  color: var(--sage);  background: var(--sage-dim);  }
-    .tag.red   { border-color: var(--red);   color: var(--red);   background: var(--red-dim);   }
-    .tag.green { border-color: var(--green); color: var(--green); background: var(--green-dim); }
-
-    /* ── PERSPECTIVE MODES ── */
-    .for-others { }
-    .for-self   { display: none; }
-    body.self-mode .for-others { display: none; }
-    body.self-mode .for-self   { display: block; }
-
-    /* scrollbar */
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    @media (max-width: 900px) {
-      .sidebar { display: none; }
-      .main { padding: 36px 24px 80px; max-width: 100%; }
-      .hero h2 { font-size: 52px; }
-      .cards.col-2, .cards.col-3 { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-<!-- ═══════════════ SIDEBAR ═══════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="eyebrow">// field manual</div>
-    <h1>Manual<br>of Alex</h1>
-    <div class="version">v1.0 · Brussels, 2025</div>
-  </div>
-
-  <div class="perspective-toggle">
-    <div class="toggle-label">Perspective</div>
-    <div class="toggle-buttons">
-      <button class="toggle-btn active" id="btn-others" onclick="setPerspective('others')">Working with Alex</button>
-      <button class="toggle-btn" id="btn-self" onclick="setPerspective('self')">Alex's reference</button>
-    </div>
-  </div>
-
-  <div class="nav-wrap">
-    <div class="nav-group-label">Contents</div>
-    <a class="nav-item" href="#operating"><span class="nav-num">01</span> Operating Conditions</a>
-    <a class="nav-item" href="#communication"><span class="nav-num">02</span> Communication</a>
-    <a class="nav-item" href="#collaboration"><span class="nav-num">03</span> Collaboration</a>
-    <a class="nav-item" href="#decisions"><span class="nav-num">04</span> Decision-Making</a>
-    <a class="nav-item" href="#interpersonal"><span class="nav-num">05</span> Trust & Conflict</a>
-    <a class="nav-item" href="#edge-cases"><span class="nav-num">06</span> Edge Cases</a>
-    <a class="nav-item" href="#feedback"><span class="nav-num">07</span> Feedback</a>
-    <a class="nav-item" href="#misreadings"><span class="nav-num">08</span> Misreadings</a>
-    <a class="nav-item" href="#values"><span class="nav-num">09</span> Values</a>
-    <a class="nav-item" href="#drive"><span class="nav-num">10</span> What Drives Alex</a>
-  </div>
-</aside>
-
-<!-- ═══════════════ MAIN ═══════════════ -->
-<main class="main">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-tag">manual_of.me — personal operating system</div>
-    <h2>This is<br><em>Alex.</em></h2>
-    <p>A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst. Read it as a reference, not a rulebook. Switch perspective in the sidebar: one view for people working with Alex, one for Alex working with himself.</p>
-    <div class="hero-meta">
-      <div class="meta-item"><span class="meta-label">Based in</span><span class="meta-value">Brussels, BE</span></div>
-      <div class="meta-item"><span class="meta-label">Domain</span><span class="meta-value">AI Security · Partnerships</span></div>
-      <div class="meta-item"><span class="meta-label">Mode</span><span class="meta-value">Flow-state operator</span></div>
-      <div class="meta-item"><span class="meta-label">Driven by</span><span class="meta-value">Meaning · Impact · People</span></div>
-    </div>
-  </section>
-
-  <!-- ── 01 OPERATING CONDITIONS ── -->
-  <section class="section" id="operating">
-    <div class="section-header">
-      <span class="section-num">01</span>
-      <h2>Operating Conditions</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="cards col-2">
-      <div class="card green">
-        <div class="card-label green">◉ Deep Work Mode</div>
-        <p><strong>Home, undisturbed.</strong> Best for personal projects, complex thinking, real progress — but only when the next step is clear. Needs direction before isolation can work.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">◉ Social Work Mode</div>
-        <p><strong>Office, collaborative.</strong> Less deep focus, more coordination, helping others, keeping things on track. Feeds a different kind of energy and is genuinely enjoyed.</p>
-      </div>
-    </div>
-
-    <div class="pull-quote">
-      <p>"Compass yes, map no. Set the destination — let Alex figure out the route."</p>
-    </div>
-
-    <div class="sub-heading">Flow & Rhythm</div>
-    <p class="body-text">Alex operates in flow. Once in it, output is intense, high quality, and self-sustaining. Once the rhythm breaks, re-entry takes time — sometimes weeks. This isn't laziness; it's the operating system. Plan around it rather than fight it.</p>
-
-    <div class="cards col-3">
-      <div class="card amber">
-        <div class="card-label amber">Activates flow</div>
-        <p>Genuine belief in the project. Meaning in the task. Clear direction. Freedom in how to execute. Good conversation with a peer or collaborator.</p>
-      </div>
-      <div class="card red">
-        <div class="card-label red">Breaks flow</div>
-        <p>Over-restriction. Rigid deadlines without flexibility. Tasks with no mentor + no familiarity. Emotional misalignment with the project or role.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">Re-entry</div>
-        <p>Time with friends. A meaningful project. Going to nature. Eating well. Variety — not only one type of work for too long.</p>
-      </div>
-    </div>
-
-    <div class="sub-heading">Recovery</div>
-    <p class="body-text">Depletion comes from working too fast (AI-assisted sprints hit quickly), or emotional misalignment with a project. Recovery is psychological — Alex doesn't find it easy to stop even when he can. Series and videos take the edge off but don't fix it.</p>
-
-    <div class="for-others">
-      <div class="card amber">
-        <div class="card-label amber">If you see Alex depleted</div>
-        <p>Don't wait for him to clock it — he often won't. <strong>Do something:</strong> name it directly ("you seem off"), offer a practical redirect, or just give space. Any of these works. Silence from both sides is the only wrong move.</p>
-      </div>
-    </div>
-    <div class="for-self">
-      <div class="card red">
-        <div class="card-label red">Note to self</div>
-        <p>The difficulty stopping is psychological, not structural. You know watching series doesn't fix it. Depletion signals to watch for in yourself: irritability, trapped in a loop, tired eyes, fast responses that aren't properly thought through. Friends, nature, variety, and meaning are what actually work.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 02 COMMUNICATION ── -->
-  <section class="section" id="communication">
-    <div class="section-header">
-      <span class="section-num">02</span>
-      <h2>Communication</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Default to async</div>
-        <div class="signal-desc">Async is the default preference. Sync is good for direction-setting, learning, and structured check-ins — but can't be too rigid or too frequent. A loose schedule with room to breathe is the sweet spot.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Minimum viable brief is enough</div>
-        <div class="signal-desc">Alex catches up fast. A short, clear brief is sufficient — no need to over-explain. In an active conversation, even less is needed. Trust that he'll ask if something's missing.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Direct and honest — always</div>
-        <div class="signal-desc">Honesty is non-negotiable. Alex will tell you when something is wrong — not to be harsh, but because he cares and expects the same in return. The same standard applies professionally and personally.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot amber"></div>
-      <div>
-        <div class="signal-title">Positive feedback matters too</div>
-        <div class="signal-desc">Alex appreciates knowing when he's doing well — not just when something needs fixing. That signal confirms the collaboration is working. He gives it generously; he appreciates receiving it the same way.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot red"></div>
-      <div>
-        <div class="signal-title">Lack of communication is a trust killer</div>
-        <div class="signal-desc">Going silent, being unpredictable, or avoiding hard conversations erodes trust. The recovery method is simple: show up and communicate again. Explanations help less than presence does.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 03 COLLABORATION ── -->
-  <section class="section" id="collaboration">
-    <div class="section-header">
-      <span class="section-num">03</span>
-      <h2>Collaboration</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <p class="body-text">Alex works well independently but thrives with the right collaborator. The ideal fit is one of two profiles:</p>
-
-    <div class="cards col-2">
-      <div class="card green">
-        <div class="card-label green">Profile A — Independent thinker</div>
-        <p>Can operate autonomously, bring their own ideas, hold their own in a technical or strategic conversation. Thinks at a similar level and doesn't need hand-holding.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">Profile B — Strong executor</div>
-        <p>Good at pushing tasks forward, keeping Alex accountable, making sure plans don't stay plans. Gets him to do things — not just think.</p>
-      </div>
-    </div>
-
-    <div class="expandable open" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">The deep thinker pattern — what to watch for</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex is self-aware about this: when stuck on a complex problem, there's a pull toward technical analysis as a way of avoiding a harder, less familiar challenge — sales, business development, or a task with no clear next step. If you notice him deep in a technical rabbit hole when something else needs moving, redirect. Don't criticize — a nudge is enough.</p>
-        <div class="inline-note">↳ Alex is actively working on this and it's improving. Don't make it a moment.</div>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Sales & business development — needs more than autonomy here</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex's native domain is technical and interpersonal — not sales. In that space, he needs mentorship and direction more than freedom. Too much "figure it out yourself" leads to stalling. A clear process + someone to learn from = unlocked. Don't leave him alone with a blank sales mandate and no map.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Independent ≠ resistant to direction</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex is self-directed but genuinely comfortable taking orders — especially from people who know more than him. Independence means operating without hand-holding, not refusing guidance. He'll follow a strong lead without ego about it.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 04 DECISION-MAKING ── -->
-  <section class="section" id="decisions">
-    <div class="section-header">
-      <span class="section-num">04</span>
-      <h2>Decision-Making</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="cards col-2" style="margin-bottom:24px;">
-      <div class="card amber">
-        <div class="card-label amber">The process</div>
-        <p>Take enough time. Write it down or talk it through with trusted people — or out loud with AI. Then gut check. The final call is always a feeling, not just a framework.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">Pressure</div>
-        <p>Handles pressure well — it can drive him. The real risk isn't intensity; it's <strong>meaningless pressure</strong>. Urgency without belief in the project is demotivating, not energizing.</p>
-      </div>
-    </div>
-
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">If Alex already knows what to do — get out of the way</div>
-        <div class="signal-desc">He'll execute. Don't add overhead, check-ins, or process to something that's already in motion.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot amber"></div>
-      <div>
-        <div class="signal-title">If Alex is thinking out loud — let it happen</div>
-        <div class="signal-desc">He's working it through. Participate if you have relevant input. Don't rush it; the decision that comes out is usually better for the process.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot red"></div>
-      <div>
-        <div class="signal-title">What causes a freeze</div>
-        <div class="signal-desc">No vision. Doesn't believe in the project. Doesn't want to do the thing. This isn't procrastination — it's a values signal worth paying attention to.</div>
-      </div>
-    </div>
-
-    <div class="for-self" style="margin-top:24px;">
-      <div class="card red">
-        <div class="card-label red">Note to self</div>
-        <p>When you're avoiding a task, ask: is this unfamiliarity or a signal you don't believe in it? Unfamiliarity is solvable — find a mentor, get a clearer process. Lack of belief might mean it's time to walk away or renegotiate the scope. The freeze is information, not failure.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 05 TRUST & CONFLICT ── -->
-  <section class="section" id="interpersonal">
-    <div class="section-header">
-      <span class="section-num">05</span>
-      <h2>Trust & Conflict</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="sub-heading">How trust is built</div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Do what you say you'll do</div>
-        <div class="signal-desc">Consistency between words and actions. No special gestures needed — just follow-through.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Care about others — actually</div>
-        <div class="signal-desc">Not performatively. Alex picks up quickly on whether someone genuinely cares how people feel. That's the baseline definition of respect for him.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Communicate, especially when it's hard</div>
-        <div class="signal-desc">Honesty under pressure is one of the strongest trust signals. Avoiding hard conversations does the opposite.</div>
-      </div>
-    </div>
-
-    <div class="sub-heading">How trust is broken</div>
-    <div class="cards col-2" style="margin-bottom:32px;">
-      <div class="card red">
-        <div class="card-label red">Hard breaks</div>
-        <p>Unpredictable behavior. Inconsistency between how someone presents and how they act. Conversations that feel like they aren't being trusted with the real thing. Rare — but when this happens, it's very hard to recover from.</p>
-      </div>
-      <div class="card amber">
-        <div class="card-label amber">Recoverable</div>
-        <p>Not following through, going quiet, not being accountable. These erode trust but aren't permanent. The repair is simple: <strong>show up</strong>. Not with explanations — with action.</p>
-      </div>
-    </div>
-
-    <div class="sub-heading">Conflict style</div>
-    <p class="body-text">Alex goes direct in conflict — not aggressive, just clear. He doesn't find himself in conflict often. When something goes wrong, the expectations are straightforward:</p>
-    <div class="cards col-2">
-      <div class="card green">
-        <div class="card-label green">If it's fixable</div>
-        <p>Fix it. Alex doesn't need a debrief — he needs the problem resolved.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">If Alex is in the wrong</div>
-        <p>Tell him directly. Give space. He'll figure it out and come back. No need to soften it excessively — that delays the process.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 06 EDGE CASES ── -->
-  <section class="section" id="edge-cases">
-    <div class="section-header">
-      <span class="section-num">06</span>
-      <h2>Edge Cases</h2>
-    </div>
-    <div class="section-divider"></div>
-    <p class="body-text">Known rough edges and operating patterns that help predict when things might get bumpy — and what to do about them.</p>
-
-    <div class="expandable open" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">⚠ Emotionally exhausted — but hasn't clocked it yet</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p><strong>What it looks like from the outside:</strong> Irritability. Trapped in a loop, over-focusing on one thing. Tired eyes. Responding fast but not with properly formed thoughts.</p>
-        <p><strong>What to do:</strong> Don't wait for Alex to bring it up. Do something — name it directly, offer to take something off his plate, or give space. The specific intervention matters less than the fact that something happens. Silence on both sides makes it worse.</p>
-        <div class="for-self" style="display:block; margin-top:12px;">
-          <div class="inline-note">↳ Self: this is psychological, not structural. You know the fix — friends, nature, variety, meaning. Stopping for a day costs a day. Ignoring it costs weeks.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">⚠ The priority drift — pulled toward the wrong project</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>When the next step on a high-priority project is something Alex doesn't like or is tired of, there's a pattern of drifting toward lower-priority work that feels more alive in the moment. This isn't conscious avoidance — but it is avoidance. A redirect or accountability nudge resolves it quickly. Alex knows about this and responds well when it's named.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">◈ Deep thinking that delays execution</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex is a deep thinker and self-aware of it. He's been actively working on closing the think → do gap. In team contexts, the risk is staying in analysis/planning mode longer than needed — especially when the next step is unfamiliar territory. An executor-type collaborator or a direct nudge counters this well.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">◈ Not resting enough — psychological, not structural</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex doesn't find it easy to stop even when he could. Over time this feeds the depletion cycle in section 01. Worth naming if you see it from the outside — not as criticism, just as observation.</p>
-        <div class="for-self" style="display:block; margin-top:12px;">
-          <div class="inline-note">↳ Self: stopping is not failure. Re-entry takes weeks. A day off costs a day, not your rhythm.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tags">
-      <span class="tag amber">Flow-state operator</span>
-      <span class="tag sage">Self-aware of patterns</span>
-      <span class="tag sage">Actively improving</span>
-      <span class="tag red">Slow to spot own depletion</span>
-      <span class="tag green">Responds well to direct redirects</span>
-    </div>
-  </section>
-
-  <!-- ── 07 FEEDBACK ── -->
-  <section class="section" id="feedback">
-    <div class="section-header">
-      <span class="section-num">07</span>
-      <h2>Feedback</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="pull-quote">
-      <p>"If I'm doing something wrong, tell me. I want to be able to talk about hard things — not have them avoided."</p>
-    </div>
-
-    <div class="cards col-2" style="margin-bottom:24px;">
-      <div class="card green">
-        <div class="card-label green">What works</div>
-        <p>Direct, properly thought-through feedback — or spontaneous and on the spot. Either format is fine. Doesn't matter who delivers it; Alex takes feedback on merit, not hierarchy or relationship.</p>
-      </div>
-      <div class="card red">
-        <div class="card-label red">What doesn't</div>
-        <p>Padded delivery that obscures the actual point. Feedback that hasn't been thought through properly. Consistently avoiding hard feedback entirely — that erodes the relationship.</p>
-      </div>
-    </div>
-
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Challenge activates — doesn't shut down</div>
-        <div class="signal-desc">Excitement about building something meaningful is the most reliable activator. Challenge that implies the work has no future, or that values aren't aligned, is when Alex retreats — not when things are hard.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot amber"></div>
-      <div>
-        <div class="signal-title">Same standard for professional and personal feedback</div>
-        <div class="signal-desc">Alex doesn't switch modes based on context. Direct and honest is the format in both domains.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot green"></div>
-      <div>
-        <div class="signal-title">Positive feedback matters — give it when it's true</div>
-        <div class="signal-desc">Alex gives positive feedback generously. He appreciates receiving it with the same sincerity, not as decoration around criticism.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 08 MISREADINGS ── -->
-  <section class="section" id="misreadings">
-    <div class="section-header">
-      <span class="section-num">08</span>
-      <h2>Misreadings</h2>
-    </div>
-    <div class="section-divider"></div>
-    <p class="body-text">Common ways people misread Alex — especially early. These are things that look like flags but aren't.</p>
-
-    <div class="expandable open" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">"Permanently online" ≠ unlimited availability</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex responds fast and can work intensely — but he has a full life. Not everything is cybersecurity. He goes to art events, music, varied social contexts. Don't assume his responsiveness means infinite bandwidth.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Directness ≠ coldness or aggression</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex will tell you when something is wrong — directly. This isn't adversarial; it's care. He says it because he'd want the same in return. Read directness as a sign of respect, not distance.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Taking time to think ≠ indecision</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex deliberates. He writes things down, talks them through, sits with them. This is quality control, not hesitation. The decisions that come out are usually more considered for it.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Pressure can energize — it's not always a problem</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex handles pressure well. It can drive him. Don't over-soften; the real risk isn't intensity — it's pressure without meaning behind it. Urgency tied to something he believes in works. Urgency for its own sake doesn't.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Independent ≠ resistant to direction</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Alex is self-directed but genuinely comfortable taking orders — especially from people who know more. Independence is about operating without hand-holding, not about resisting guidance.</p>
-      </div>
-    </div>
-
-    <div class="expandable" onclick="toggleExpand(this)">
-      <div class="exp-header">
-        <span class="exp-title">Alex is not only cybersecurity</span>
-        <span class="exp-arrow">▾</span>
-      </div>
-      <div class="exp-body">
-        <p>Art, music, people, varied events, different kinds of thinking and conversation. The technical expertise is real — but so is everything else. People who only engage with the work side are missing a lot of who Alex actually is.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── 09 VALUES ── -->
-  <section class="section" id="values">
-    <div class="section-header">
-      <span class="section-num">09</span>
-      <h2>Values & Non-Negotiables</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="cards" style="margin-bottom:24px;">
-      <div class="card amber">
-        <div class="card-label amber">Respect, defined concretely</div>
-        <p><strong>Respect = being human.</strong> Caring about how others feel and how they look — not as a performance, but as the default mode of engaging with people. This is the floor, not a ceiling.</p>
-      </div>
-    </div>
-
-    <div class="signal-row">
-      <div class="dot red"></div>
-      <div>
-        <div class="signal-title">Respect is non-negotiable</div>
-        <div class="signal-desc">Unpredictable behavior, inconsistency, not being treated as a person — these are hard lines. When they're crossed, trust doesn't easily return.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot amber"></div>
-      <div>
-        <div class="signal-title">Won't start too early</div>
-        <div class="signal-desc">Working hours have a real lower bound. This isn't negotiable given sufficient reason — design around it.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot amber"></div>
-      <div>
-        <div class="signal-title">Fairness and acknowledgment</div>
-        <div class="signal-desc">Alex does care about being recognized for his work. Not for ego — for fairness. Credit matters and he notices when it's missing.</div>
-      </div>
-    </div>
-    <div class="signal-row">
-      <div class="dot red"></div>
-      <div>
-        <div class="signal-title">Values misalignment = eventual exit</div>
-        <div class="signal-desc">Not a drama, not a confrontation — a slow erosion of interest. When Alex stops believing in the direction, investment follows. The decision is quiet but decisive.</div>
-      </div>
-    </div>
-
-    <div class="pull-quote" style="margin-top:32px;">
-      <p>"Integrity is doing what you say you do and caring about others. That's it."</p>
-    </div>
-  </section>
-
-  <!-- ── 10 WHAT DRIVES ALEX ── -->
-  <section class="section" id="drive">
-    <div class="section-header">
-      <span class="section-num">10</span>
-      <h2>What Drives Alex</h2>
-    </div>
-    <div class="section-divider"></div>
-
-    <div class="pull-quote">
-      <p>"A world where people have more power — individually and collectively. That works with openness and generosity, not fear."</p>
-    </div>
-
-    <p class="body-text">The work in AI security, in Africa-EU partnerships, in pentesting — these aren't just job titles. They're means toward a specific vision of the world. The "what" changes. The "why" doesn't.</p>
-
-    <div class="cards col-3">
-      <div class="card amber">
-        <div class="card-label amber">Activating</div>
-        <p>Building something meaningful. A mission bigger than the task itself. People who are proactive, interesting, who go places and do things.</p>
-      </div>
-      <div class="card sage">
-        <div class="card-label sage">Sustaining</div>
-        <p>Variety. Recharging through people, art, music, nature. Being seen as a whole person — not just a function or a role.</p>
-      </div>
-      <div class="card red">
-        <div class="card-label red">Deflating</div>
-        <p>Pure money motivation. Work without meaning. Static people in static environments built on fear or excessive control.</p>
-      </div>
-    </div>
-
-    <div class="card sage" style="margin-top:14px;">
-      <div class="card-label sage">How Alex shows appreciation</div>
-      <p>He says it directly. Takes people to restaurants. Gives small gifts. If Alex is investing in you this way — you're doing well. He doesn't do it performatively.</p>
-    </div>
-
-    <div class="for-self" style="margin-top:24px;">
-      <div class="card amber">
-        <div class="card-label amber">Note to self</div>
-        <p>You don't mind much what people think about you anymore. That's real and it's worth keeping. You are yourself, you do what you do, you stay kind with others. The world you're building toward is real. Keep moving — and rest when you need to.</p>
-      </div>
-    </div>
-
-    <div class="tags" style="margin-top:32px;">
-      <span class="tag amber">Mission-driven</span>
-      <span class="tag sage">Whole person, not just technical</span>
-      <span class="tag green">Proactive and curious</span>
-      <span class="tag amber">Brussels-based</span>
-      <span class="tag sage">Art · Music · People · Cyber</span>
-    </div>
-  </section>
-
-</main>
-
-<script>
-  function setPerspective(mode) {
-    const isSelf = mode === 'self';
-    document.body.classList.toggle('self-mode', isSelf);
-    document.getElementById('btn-self').classList.toggle('active', isSelf);
-    document.getElementById('btn-others').classList.toggle('active', !isSelf);
-
-    document.querySelectorAll('.for-self').forEach(el => {
-      el.style.display = isSelf ? 'block' : 'none';
-    });
-    document.querySelectorAll('.for-others').forEach(el => {
-      el.style.display = isSelf ? 'none' : 'block';
-    });
-    // Also handle inline notes inside expandables that are always shown in self mode
-    document.querySelectorAll('.exp-body .for-self').forEach(el => {
-      el.style.display = isSelf ? 'block' : 'none';
-    });
-  }
-
-  function toggleExpand(el) {
-    el.classList.toggle('open');
-  }
-
-  // Highlight active section in sidebar nav on scroll
-  const sections = document.querySelectorAll('.section');
-  const navItems = document.querySelectorAll('.nav-item');
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        navItems.forEach(item => {
-          item.classList.toggle('active', item.getAttribute('href') === '#' + id);
-        });
-      }
-    });
-  }, { threshold: 0.25, rootMargin: '-60px 0px -60% 0px' });
-
-  sections.forEach(s => observer.observe(s));
-</script>
-<script defer src="/static/assetnav.js"></script></body>
-</html>
+<html lang="en" dir="ltr"><head><title>manual of Alex</title><meta charset="utf-8"/><link rel="preload" href="./index-79a3d24b.css" as="style"/><link rel="preload" href="./prescript-2bfc6315.js" as="script"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant Garamond:wght@400;700&amp;family=Cormorant Garamond:ital,wght@0,400;0,600;1,400;1,600&amp;family=IBM Plex Mono:wght@400;600&amp;display=swap"/><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin="anonymous"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="og:site_name" content="Loci"/><meta property="og:title" content="manual of Alex"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="manual of Alex"/><meta name="twitter:description" content="This is Alex. A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst."/><meta property="og:description" content="This is Alex. A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst."/><meta property="og:image:alt" content="This is Alex. A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst."/><meta property="twitter:domain" content="hurleveur.github.io"/><meta property="og:url" content="https://hurleveur.github.io/manual-of-alex"/><meta property="twitter:url" content="https://hurleveur.github.io/manual-of-alex"/><link rel="icon" href="./static/icon.png"/><meta name="description" content="This is Alex. A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst."/><meta name="generator" content="Quartz"/><script src="/static/vaultbrain.js" defer></script><link href="./index-79a3d24b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-735924e0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-589c1cea.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-bbc3f7c0.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-2911f5d1.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-e427079e.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-53b25b2b.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-c93c6a44.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-8a06014f.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-77d6a441.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-6ee21cee.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-4e306754.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-34bdfded.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-788c9ca3.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-caf7c009.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-642859cd.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-4abc06bd.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-274a3dfe.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-94cb6c84.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-9f9b2774.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./component-7262b5a7.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./static/resource-style-a5c806d2.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./static/resource-style-6bd36952.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./static/resource-style-9857b007.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="./static/resource-style-d3a1a224.css" rel="stylesheet" type="text/css" data-persist="true"/><link href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" rel="stylesheet" type="text/css" data-persist="true"/><script src="./prescript-2bfc6315.js" type="application/javascript" data-persist="true"></script><script type="application/javascript" data-persist="true">const fetchData = fetch("./static/contentIndex.json").then(data => data.json())</script><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted%20Grotesk%3Awght%40400%3B700&amp;family=Source%20Sans%20Pro%3Aital%2Cwght%400%2C400%3B0%2C600%3B1%2C400%3B1%2C600&amp;family=IBM%20Plex%20Mono%3Awght%40400%3B600&amp;display=swap"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image" content="https://hurleveur.github.io/manual-of-alex-og-image.webp"/><meta property="og:image:url" content="https://hurleveur.github.io/manual-of-alex-og-image.webp"/><meta name="twitter:image" content="https://hurleveur.github.io/manual-of-alex-og-image.webp"/><meta property="og:image:type" content="image/webp"/></head><body data-slug="manual-of-alex" data-basepath><div id="quartz-root" class="page" data-frame="default"><div id="quartz-body"><div class="left sidebar"><h2 class="page-title"><a href=".">Loci</a></h2><div class="mobile-only"><div class="spacer"></div></div><div class="flex-component" style="flex-direction: row; flex-wrap: nowrap; gap: 0.5rem;"><div style="flex-grow: 1; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><div class="search"><button class="search-button" aria-label="Search" aria-expanded="false"><svg role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.9 19.7"><title>Search</title><g class="search-path" fill="none"><path stroke-linecap="square" d="M18.5 18.3l-5.4-5.4"></path><circle cx="8" cy="8" r="7"></circle></g></svg><p>Search</p></button><div class="search-container"><div class="search-space"><input autocomplete="off" class="search-bar" name="search" type="text" aria-label="Search for something..." placeholder="Search for something..."/><div class="search-layout" data-preview="true" data-field-priority="[&quot;title&quot;,&quot;content&quot;,&quot;tags&quot;]"></div></div></div></div></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><button class="darkmode" aria-label="Dark mode"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="dayIcon" x="0px" y="0px" viewBox="0 0 35 35" style="enable-background:new 0 0 35 35" xml:space="preserve" aria-label="Dark mode"><title>Dark mode</title><path d="M6,17.5C6,16.672,5.328,16,4.5,16h-3C0.672,16,0,16.672,0,17.5    S0.672,19,1.5,19h3C5.328,19,6,18.328,6,17.5z M7.5,26c-0.414,0-0.789,0.168-1.061,0.439l-2,2C4.168,28.711,4,29.086,4,29.5    C4,30.328,4.671,31,5.5,31c0.414,0,0.789-0.168,1.06-0.44l2-2C8.832,28.289,9,27.914,9,27.5C9,26.672,8.329,26,7.5,26z M17.5,6    C18.329,6,19,5.328,19,4.5v-3C19,0.672,18.329,0,17.5,0S16,0.672,16,1.5v3C16,5.328,16.671,6,17.5,6z M27.5,9    c0.414,0,0.789-0.168,1.06-0.439l2-2C30.832,6.289,31,5.914,31,5.5C31,4.672,30.329,4,29.5,4c-0.414,0-0.789,0.168-1.061,0.44    l-2,2C26.168,6.711,26,7.086,26,7.5C26,8.328,26.671,9,27.5,9z M6.439,8.561C6.711,8.832,7.086,9,7.5,9C8.328,9,9,8.328,9,7.5    c0-0.414-0.168-0.789-0.439-1.061l-2-2C6.289,4.168,5.914,4,5.5,4C4.672,4,4,4.672,4,5.5c0,0.414,0.168,0.789,0.439,1.06    L6.439,8.561z M33.5,16h-3c-0.828,0-1.5,0.672-1.5,1.5s0.672,1.5,1.5,1.5h3c0.828,0,1.5-0.672,1.5-1.5S34.328,16,33.5,16z     M28.561,26.439C28.289,26.168,27.914,26,27.5,26c-0.828,0-1.5,0.672-1.5,1.5c0,0.414,0.168,0.789,0.439,1.06l2,2    C28.711,30.832,29.086,31,29.5,31c0.828,0,1.5-0.672,1.5-1.5c0-0.414-0.168-0.789-0.439-1.061L28.561,26.439z M17.5,29    c-0.829,0-1.5,0.672-1.5,1.5v3c0,0.828,0.671,1.5,1.5,1.5s1.5-0.672,1.5-1.5v-3C19,29.672,18.329,29,17.5,29z M17.5,7    C11.71,7,7,11.71,7,17.5S11.71,28,17.5,28S28,23.29,28,17.5S23.29,7,17.5,7z M17.5,25c-4.136,0-7.5-3.364-7.5-7.5    c0-4.136,3.364-7.5,7.5-7.5c4.136,0,7.5,3.364,7.5,7.5C25,21.636,21.636,25,17.5,25z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="nightIcon" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100" xml:space="preserve" aria-label="Light mode"><title>Light mode</title><path d="M96.76,66.458c-0.853-0.852-2.15-1.064-3.23-0.534c-6.063,2.991-12.858,4.571-19.655,4.571  C62.022,70.495,50.88,65.88,42.5,57.5C29.043,44.043,25.658,23.536,34.076,6.47c0.532-1.08,0.318-2.379-0.534-3.23  c-0.851-0.852-2.15-1.064-3.23-0.534c-4.918,2.427-9.375,5.619-13.246,9.491c-9.447,9.447-14.65,22.008-14.65,35.369  c0,13.36,5.203,25.921,14.65,35.368s22.008,14.65,35.368,14.65c13.361,0,25.921-5.203,35.369-14.65  c3.872-3.871,7.064-8.328,9.491-13.246C97.826,68.608,97.611,67.309,96.76,66.458z"></path></svg></button></div><div style="flex-grow: 0; flex-shrink: 1; flex-basis: auto; order: 0; align-self: center; justify-self: center;"><button class="readermode" aria-label="Reader mode"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="readerIcon" fill="currentColor" stroke="currentColor" stroke-width="0.2" stroke-linecap="round" stroke-linejoin="round" width="64px" height="64px" viewBox="0 0 24 24" aria-label="Reader mode"><title>Reader mode</title><g transform="translate(-1.8, -1.8) scale(1.15, 1.2)"><path d="M8.9891247,2.5 C10.1384702,2.5 11.2209868,2.96705384 12.0049645,3.76669482 C12.7883914,2.96705384 13.8709081,2.5 15.0202536,2.5 L18.7549359,2.5 C19.1691495,2.5 19.5049359,2.83578644 19.5049359,3.25 L19.5046891,4.004 L21.2546891,4.00457396 C21.6343849,4.00457396 21.9481801,4.28672784 21.9978425,4.6528034 L22.0046891,4.75457396 L22.0046891,20.25 C22.0046891,20.6296958 21.7225353,20.943491 21.3564597,20.9931534 L21.2546891,21 L2.75468914,21 C2.37499337,21 2.06119817,20.7178461 2.01153575,20.3517706 L2.00468914,20.25 L2.00468914,4.75457396 C2.00468914,4.37487819 2.28684302,4.061083 2.65291858,4.01142057 L2.75468914,4.00457396 L4.50368914,4.004 L4.50444233,3.25 C4.50444233,2.87030423 4.78659621,2.55650904 5.15267177,2.50684662 L5.25444233,2.5 L8.9891247,2.5 Z M4.50368914,5.504 L3.50468914,5.504 L3.50468914,19.5 L10.9478955,19.4998273 C10.4513189,18.9207296 9.73864328,18.5588115 8.96709342,18.5065584 L8.77307039,18.5 L5.25444233,18.5 C4.87474657,18.5 4.56095137,18.2178461 4.51128895,17.8517706 L4.50444233,17.75 L4.50368914,5.504 Z M19.5049359,17.75 C19.5049359,18.1642136 19.1691495,18.5 18.7549359,18.5 L15.2363079,18.5 C14.3910149,18.5 13.5994408,18.8724714 13.0614828,19.4998273 L20.5046891,19.5 L20.5046891,5.504 L19.5046891,5.504 L19.5049359,17.75 Z M18.0059359,3.999 L15.0202536,4 L14.8259077,4.00692283 C13.9889509,4.06666544 13.2254227,4.50975805 12.7549359,5.212 L12.7549359,17.777 L12.7782651,17.7601316 C13.4923805,17.2719483 14.3447024,17 15.2363079,17 L18.0059359,16.999 L18.0056891,4.798 L18.0033792,4.75457396 L18.0056891,4.71 L18.0059359,3.999 Z M8.9891247,4 L6.00368914,3.999 L6.00599909,4.75457396 L6.00599909,4.75457396 L6.00368914,4.783 L6.00368914,16.999 L8.77307039,17 C9.57551536,17 10.3461406,17.2202781 11.0128313,17.6202194 L11.2536891,17.776 L11.2536891,5.211 C10.8200889,4.56369974 10.1361548,4.13636104 9.37521067,4.02745763 L9.18347055,4.00692283 L8.9891247,4 Z"></path></g></svg></button></div></div><div class="explorer nav-files-container" data-behavior="link" data-collapsed="collapsed" data-savestate="true" data-data-fns="{&quot;order&quot;:[&quot;filter&quot;,&quot;map&quot;,&quot;sort&quot;],&quot;sortFn&quot;:&quot;(a2, b2) => {\n    if (!a2.isFolder &amp;&amp; !b2.isFolder || a2.isFolder &amp;&amp; b2.isFolder) {\n      return (a2.displayName || \&quot;\&quot;).localeCompare(b2.displayName || \&quot;\&quot;, void 0, {\n        numeric: true,\n        sensitivity: \&quot;base\&quot;\n      });\n    }\n    if (!a2.isFolder &amp;&amp; b2.isFolder) {\n      return 1;\n    }\n    return -1;\n  }&quot;,&quot;filterFn&quot;:&quot;(node) => node.slugSegment !== \&quot;tags\&quot;&quot;,&quot;mapFn&quot;:&quot;(node) => {\n    return node;\n  }&quot;}"><button type="button" class="explorer-toggle mobile-explorer hide-until-loaded" data-mobile="true" aria-controls="explorer-290" aria-label="Explorer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-menu"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg></button><button type="button" class="title-button explorer-toggle desktop-explorer" data-mobile="false" aria-expanded="true"><h2>Explorer</h2><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="5 8 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><div id="explorer-290" class="explorer-content" aria-expanded="false" role="group"><ul class="explorer-ul overflow" id="list-0"><li class="overflow-end"></li></ul></div><template id="template-file"><li><a href="#" class="nav-file-title tree-item-self"></a></li></template><template id="template-folder"><li><div class="folder-container nav-folder-title tree-item-self"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="5 8 14 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="folder-icon nav-folder-collapse-indicator collapse-icon"><polyline points="6 9 12 15 18 9"></polyline></svg><div><button class="folder-button"><span class="folder-title"></span></button></div></div><div class="folder-outer"><ul class="content tree-item-children"></ul></div></li></template></div></div><div class="center"><div class="page-header"><div class="popover-hint"><nav class="breadcrumb-container" aria-label="breadcrumbs"><div class="breadcrumb-element"><a href="./">Home</a><p> ❯ </p></div><div class="breadcrumb-element"><a href>manual of Alex</a></div></nav><h1 class="article-title">manual of Alex</h1><p show-comma="true" class="content-meta"><time datetime="2026-08-03T12:34:17.839Z">Aug 03, 2026</time><span>12 min read</span></p></div></div><article class="popover-hint"><div class="markdown-preview-view markdown-rendered"><p>This is Alex. A working guide to how Alex thinks, operates, communicates, and what it means to work with or be Alex — at best and at worst. Read it as a reference, not a rulebook.<br/>
+The first sections are the most relevant, if you’re confused at some behavior look at section 6.</p>
+<p>Alex will default to the golden rule for treating others; applying the same principles laid out here.<br/>
+You can tell anything in person, but here is another channel: <a href="https://www.admonymous.co/alexandre-de-groodt" class="external external-link">https://www.admonymous.co/alexandre-de-groodt<svg aria-hidden="true" class="external-icon" style="max-width:0.8em;max-height:0.8em;" viewBox="0 0 512 512"><path d="M320 0H288V64h32 82.7L201.4 265.4 178.7 288 224 333.3l22.6-22.6L448 109.3V192v32h64V192 32 0H480 320zM32 32H0V64 480v32H32 456h32V480 352 320H424v32 96H64V96h96 32V32H160 32z"></path></svg></a></p>
+<p><strong>Based in:</strong> Brussels<br/>
+<strong>Domain:</strong> AI Security · Partnerships<br/>
+<strong>Mode:</strong> Flow-state operator<br/>
+<strong>Driven by:</strong> Empowering - Impact</p>
+<h2 id="01--operating-conditions">01 · Operating Conditions<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#01--operating-conditions" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p><strong>Deep Work Mode</strong> — Home, undisturbed. Best for personal projects, complex thinking, real progress — but only when the next step is clear. If not I’ll ask for direction.</p>
+<p><strong>Social Work Mode</strong> — Office, collaborative. Less deep focus, more coordination, helping others, keeping things on track. Feeds a different kind of energy and is genuinely enjoyed. Some music is always appreciated.</p>
+<blockquote>
+<p>“Compass yes, map no. Set the destination together — let Alex figure out the route.”</p>
+</blockquote>
+<p><strong>Flow &amp; Rhythm.</strong> Alex operates in flow. Gets everything ready to start before - skills, workflows, discussions - once building starts, output is intense, high quality, and self-sustaining. Once the rhythm breaks, re-entry takes time.</p>
+<ul>
+<li><em>Activates flow:</em> Genuine belief in the project. Meaning in the task. Clear direction. Freedom in how to execute. Good conversation with a peer or collaborator.</li>
+<li><em>Breaks flow:</em> Over-restriction. Rigid deadlines without flexibility. Tasks with no mentor + no familiarity. Emotional misalignment with the project or role.</li>
+<li><em>Re-entry:</em> Time with friends. A meaningful project. Going to nature. Eating well. Variety — not only one type of work for too long, or it won’t work.</li>
+</ul>
+<p><em>If you see Alex depleted:</em> Don’t wait for him to clock it — he often won’t. Do something: name it directly (“you seem off”). Silence from both sides is the only wrong move. Signs: irritability, trapped in a loop, tired eyes, fast responses that aren’t properly thought through.</p>
+<h2 id="02--communication">02 · Communication<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#02--communication" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<ul>
+<li><strong>Default to async.</strong> Sync is good for direction-setting, learning, and structured check-ins — but can’t be too rigid or too frequent. A loose schedule with room to breathe is the sweet spot.</li>
+<li><strong>Minimum viable brief is enough.</strong> Alex catches up fast. A short, clear brief is sufficient — no need to over-explain. In an active conversation, even less is needed. Trust that he’ll ask if something’s missing, then do his research.</li>
+<li><strong>Direct and honest, always.</strong> Honesty is non-negotiable. Alex will tell you when something is wrong — not to be harsh, but because he cares and expects the same in return. The same standard applies professionally and personally. Being misaligned always costs in the long run.</li>
+<li><strong>Positive feedback matters too.</strong> Alex appreciates knowing when he’s doing well — not just when something needs fixing, although don’t hesitate with that either. The different signals confirms the collaboration is working.</li>
+<li><strong>Responsiveness.</strong> Alex responds fast, but if he doesn’t, he very rarely forgets something. There are systems in place to avoid that happening.</li>
+</ul>
+<h2 id="03--collaboration">03 · Collaboration<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#03--collaboration" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>Alex works well independently but thrives with the right collaborator. The ideal fit is one of two profiles:</p>
+<ul>
+<li><strong>Profile A — Independent thinker.</strong> Can operate autonomously, bring their own ideas, hold their own in a technical or strategic conversation. Thinks at a similar level and doesn’t need hand-holding.</li>
+<li><strong>Profile B — Strong executor.</strong> Good at pushing tasks forward, keeping Alex accountable, making sure plans don’t stay plans. Gets him to do things — not just think.</li>
+</ul>
+<p><strong>The deep thinker pattern — what to watch for.</strong> Alex is self-aware about this: when stuck on a complex problem, there’s a pull toward technical analysis as a way of avoiding a harder, less familiar challenge — sales, business development, or a task with no clear next step. If you notice him deep in a technical rabbit hole when something else needs moving, redirect. Don’t criticize — a nudge is enough. <em>(Alex is actively working on this and it’s improving. Don’t make it a moment.)</em></p>
+<p><strong>Sales &amp; business development — needs more than autonomy here.</strong> Alex’s native domain is technical and interpersonal — not sales. In that space, he needs mentorship and direction more than freedom. Too much “figure it out yourself” leads to stalling. A clear process + someone to learn from = unlocked. Don’t leave him alone with a blank sales mandate and no map.</p>
+<p><strong>Independent ≠ resistant to direction.</strong> Alex is self-directed but genuinely comfortable taking orders — especially from people who know more than him. Independence means operating without hand-holding, not refusing guidance. He’ll follow a strong lead without ego about it.</p>
+<h2 id="04--decision-making">04 · Decision-Making<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#04--decision-making" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p><strong>The process.</strong> Take enough time. Write it down or talk it through with trusted people — or out loud with AI. Then gut check. The final call is always a feeling, not just a framework.</p>
+<p><strong>Pressure.</strong> Handles pressure well — it can drive him. The real risk isn’t intensity; it’s meaningless pressure. Urgency without belief in the project is demotivating, not energizing.</p>
+<ul>
+<li><strong>If Alex already knows what to do — get out of the way.</strong> He’ll execute. Don’t add overhead, check-ins, or process to something that’s already in motion.</li>
+<li><strong>If Alex is thinking out loud — let it happen.</strong> He’s working it through. Participate if you have relevant input. Don’t rush it; the decision that comes out is usually better for the process.</li>
+<li><strong>What causes a freeze.</strong> No vision. Doesn’t believe in the project. Doesn’t want to do the thing. This isn’t procrastination — it’s a values signal worth paying attention to. Work happens - or doesn’t - for a reason.</li>
+</ul>
+<h2 id="05--trust--conflict">05 · Trust &amp; Conflict<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#05--trust--conflict" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p><strong>How trust is built.</strong></p>
+<ul>
+<li>Do what you say you’ll do — consistency between words and actions. No special gestures needed, just follow-through.</li>
+<li>Care about others — actually, not performatively. Alex picks up quickly on whether someone genuinely cares how people feel. That’s the baseline definition of respect for him.</li>
+<li>Communicate, especially when it’s hard. Honesty under pressure is one of the strongest trust signals. Avoiding hard conversations does the opposite.</li>
+</ul>
+<p><strong>How trust is broken.</strong></p>
+<ul>
+<li><em>Hard breaks:</em> Unpredictable behavior. Inconsistency between how someone presents and how they act. Conversations that feel like they aren’t being trusted with the real thing. Rare — but when this happens, it’s very hard to recover from.</li>
+<li><em>Recoverable:</em> Not following through, going quiet, not being accountable. These erode trust but aren’t permanent. The repair is simple: show up. Not with explanations — with action.</li>
+</ul>
+<p><strong>Conflict style.</strong> Alex goes direct in conflict — not aggressive, just clear. He doesn’t find himself in conflict often. When something goes wrong, the expectations are straightforward:</p>
+<ul>
+<li><em>If it’s fixable:</em> Fix it. Alex doesn’t need a debrief — he needs the problem resolved.</li>
+<li><em>If Alex is in the wrong:</em> Tell him directly. Give space. He’ll figure it out and come back. No need to soften it excessively — that delays the process.</li>
+</ul>
+<h2 id="06--edge-cases">06 · Edge Cases<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#06--edge-cases" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>Known rough edges and operating patterns that help predict when things might get bumpy — and what to do about them.</p>
+<p><strong>⚠ Emotionally exhausted — but hasn’t clocked it yet.</strong><br/>
+What it looks like from the outside: irritability, trapped in a loop, over-focusing on one thing, tired eyes, responding fast but not with properly formed thoughts.<br/>
+What to do: don’t wait for Alex to bring it up. Do something — name it directly, offer to take something off his plate, or give space. The specific intervention matters less than the fact that something happens. Silence on both sides makes it worse.<br/>
+<em>(Self: this is psychological, not structural. You know the fix — friends, nature, variety, meaning. Stopping for a day costs a day. Ignoring it costs weeks.)</em></p>
+<p><strong>⚠ The priority drift — pulled toward the wrong project.</strong> When the next step on a high-priority project is something Alex doesn’t like or is tired of, there’s a pattern of drifting toward lower-priority work that feels more alive in the moment. This isn’t conscious avoidance — but it is avoidance. A redirect or accountability nudge resolves it quickly. Alex knows about this and responds well when it’s named.</p>
+<p><strong>◈ Deep thinking that delays execution.</strong> Alex is a deep thinker and self-aware of it. He’s been actively working on closing the think → do gap. In team contexts, the risk is staying in analysis/planning mode longer than needed — especially when the next step is unfamiliar territory. An executor-type collaborator or a direct nudge counters this well.</p>
+<p><strong>◈ Not resting enough — psychological, not structural.</strong> Alex doesn’t find it easy to stop even when he could. Over time this feeds the depletion cycle in section 01. Worth naming if you see it from the outside — not as criticism, just as observation. <em>(Self: stopping is not failure. Re-entry takes weeks. A day off costs a day, not your rhythm.)</em></p>
+<p>Tags: Flow-state operator · Self-aware of patterns · Actively improving · Slow to spot own depletion · Responds well to direct redirects</p>
+<h2 id="07--feedback">07 · Feedback<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#07--feedback" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<blockquote>
+<p>“If I’m doing something wrong, tell me. I want to be able to talk about hard things — not have them avoided.”</p>
+</blockquote>
+<ul>
+<li>
+<p><em>What works:</em> Direct, properly thought-through feedback — or spontaneous and on the spot. Either format is fine. Doesn’t matter who delivers it; Alex takes feedback on merit, not hierarchy or relationship.</p>
+</li>
+<li>
+<p><em>What doesn’t:</em> Padded delivery that obscures the actual point. Feedback that hasn’t been thought through properly. Consistently avoiding hard feedback entirely — that erodes the relationship.</p>
+</li>
+<li>
+<p><strong>Challenge activates — doesn’t shut down.</strong> Excitement about building something meaningful is the most reliable activator. Challenge that implies the work has no future, or that values aren’t aligned, is when Alex retreats — not when things are hard.</p>
+</li>
+<li>
+<p><strong>Same standard for professional and personal feedback.</strong> Alex doesn’t switch modes based on context. Direct and honest is the format in both domains.</p>
+</li>
+<li>
+<p><strong>Positive feedback matters — give it when it’s true.</strong> Alex gives positive feedback generously. He appreciates receiving it with the same sincerity, not as decoration around criticism.</p>
+</li>
+</ul>
+<h2 id="08--misreadings">08 · Misreadings<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#08--misreadings" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p>Common ways people misread Alex — especially early. These are things that look like flags but aren’t.</p>
+<ul>
+<li><strong>“Permanently online” ≠ unlimited availability.</strong> Alex responds fast and can work intensely — but he has a full life. Not everything is cybersecurity. He goes to art events, music, varied social contexts. Don’t assume his responsiveness means infinite bandwidth.</li>
+<li><strong>Directness ≠ coldness or aggression.</strong> Alex will tell you when something is wrong — directly. This isn’t adversarial; it’s care. He says it because he’d want the same in return. Read directness as a sign of respect, not distance.</li>
+<li><strong>Taking time to think ≠ indecision.</strong> Alex deliberates. He writes things down, talks them through, sits with them. This is quality control, not hesitation. The decisions that come out are usually more considered for it.</li>
+<li><strong>Pressure can energize — it’s not always a problem.</strong> Alex handles pressure well. It can drive him. Don’t over-soften; the real risk isn’t intensity — it’s pressure without meaning behind it. Urgency tied to something he believes in works. Urgency for its own sake doesn’t.</li>
+<li><strong>Independent ≠ resistant to direction.</strong> Alex is self-directed but genuinely comfortable taking orders — especially from people who know more. Independence is about operating without hand-holding, not about resisting guidance.</li>
+<li><strong>Alex is not only cybersecurity.</strong> Art, music, people, varied events, different kinds of thinking and conversation. The technical expertise is real — but so is everything else. People who only engage with the work side are missing a lot of who Alex actually is.</li>
+</ul>
+<h2 id="09--values--non-negotiables">09 · Values &amp; Non-Negotiables<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#09--values--non-negotiables" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<p><strong>Respect, defined concretely.</strong> Respect = being human. Caring about how others feel and how they look — not as a performance, but as the default mode of engaging with people. This is the floor, not a ceiling.</p>
+<ul>
+<li><strong>Respect is non-negotiable.</strong> Unpredictable behavior, inconsistency, not being treated as a person — these are hard lines. When they’re crossed, trust doesn’t easily return.</li>
+<li><strong>Won’t start too early.</strong> Working hours have a real lower bound. This isn’t negotiable given sufficient reason — design around it.</li>
+<li><strong>Fairness and acknowledgment.</strong> Alex does care about being recognized for his work. Not for ego — for fairness. Credit matters and he notices when it’s missing.</li>
+<li><strong>Values misalignment = eventual exit.</strong> Not a drama, not a confrontation — a slow erosion of interest. When Alex stops believing in the direction, investment follows. The decision is quiet but decisive.</li>
+</ul>
+<blockquote>
+<p>“Integrity is doing what you say you do and caring about others. That’s it.”</p>
+</blockquote>
+<h2 id="10--what-drives-alex">10 · What Drives Alex<a role="anchor" aria-hidden="true" tabindex="-1" data-no-popover="true" href="#10--what-drives-alex" class="internal internal-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></a></h2>
+<blockquote>
+<p>“A world where people have more power — individually and collectively. That works with openness and generosity, not fear.”</p>
+</blockquote>
+<p>The work in AI security, in Africa-EU partnerships, in pentesting — these aren’t just job titles. They’re means toward a specific vision of the world. The “what” changes. The “why” doesn’t.</p>
+<ul>
+<li><strong>Activating:</strong> Building something meaningful. A mission bigger than the task itself. People who are proactive, interesting, who go places and do things.</li>
+<li><strong>Sustaining:</strong> Variety. Recharging through people, art, music, nature. Being seen as a whole person — not just a function or a role.</li>
+<li><strong>Deflating:</strong> Pure money motivation. Work without meaning. Static people in static environments built on fear or excessive control.</li>
+</ul>
+<p><strong>How Alex shows appreciation.</strong> He says it directly. Takes people to restaurants. Gives small gifts. But he probably forgets to sometimes.</p>
+<p>Tags: Mission-driven · Whole person, not just technical · Proactive and curious · Brussels-based · Art · Music · People · Cyber</p></div></article><hr/><div class="page-footer"></div></div><div class="right sidebar"><div class="graph"><h3>Graph View</h3><div class="graph-outer"><div class="graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:1,&quot;scale&quot;:1.1,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.3,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1,&quot;showTags&quot;:true,&quot;removeTags&quot;:[],&quot;focusOnHover&quot;:false,&quot;enableRadial&quot;:false}"></div><button class="global-graph-icon" aria-label="Global Graph"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 55 55" fill="currentColor" xml:space="preserve"><path d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+                s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+                c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+                C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+                c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+                v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+                s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+                C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+                S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+                s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+                s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"></path></svg></button></div><div class="global-graph-outer"><div class="global-graph-container" data-cfg="{&quot;drag&quot;:true,&quot;zoom&quot;:true,&quot;depth&quot;:-1,&quot;scale&quot;:0.9,&quot;repelForce&quot;:0.5,&quot;centerForce&quot;:0.2,&quot;linkDistance&quot;:30,&quot;fontSize&quot;:0.6,&quot;opacityScale&quot;:1,&quot;showTags&quot;:true,&quot;removeTags&quot;:[],&quot;focusOnHover&quot;:true,&quot;enableRadial&quot;:true}"></div></div></div><div class="toc"><button type="button" class="toc-header" aria-controls="toc-22" aria-expanded="true"><h3>Table of Contents</h3><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fold"><polyline points="6 9 12 15 18 9"></polyline></svg></button><ul id="list-0" class="toc-content overflow"><li class="depth-0"><a href="#01--operating-conditions" data-for="01--operating-conditions">01 · Operating Conditions</a></li><li class="depth-0"><a href="#02--communication" data-for="02--communication">02 · Communication</a></li><li class="depth-0"><a href="#03--collaboration" data-for="03--collaboration">03 · Collaboration</a></li><li class="depth-0"><a href="#04--decision-making" data-for="04--decision-making">04 · Decision-Making</a></li><li class="depth-0"><a href="#05--trust--conflict" data-for="05--trust--conflict">05 · Trust &amp; Conflict</a></li><li class="depth-0"><a href="#06--edge-cases" data-for="06--edge-cases">06 · Edge Cases</a></li><li class="depth-0"><a href="#07--feedback" data-for="07--feedback">07 · Feedback</a></li><li class="depth-0"><a href="#08--misreadings" data-for="08--misreadings">08 · Misreadings</a></li><li class="depth-0"><a href="#09--values--non-negotiables" data-for="09--values--non-negotiables">09 · Values &amp; Non-Negotiables</a></li><li class="depth-0"><a href="#10--what-drives-alex" data-for="10--what-drives-alex">10 · What Drives Alex</a></li><li class="overflow-end"></li></ul></div><div class="recent-notes"><h3>Recent Notes</h3><ul class="recent-ul"><li class="recent-li"><div class="section"><div class="desc"><h3><a href="./library/comment-vivre-lorsqu'on-ne-croit-a-rien" class="internal">Comment vivre lorsqu'on ne croit a rien</a></h3></div><p class="meta"><time datetime="2026-08-03T18:21:03.467Z">Aug 03, 2026</time></p><ul class="tags"><li><a class="internal tag-link" href="./tags/reading">reading</a></li></ul></div></li><li class="recent-li"><div class="section"><div class="desc"><h3><a href="./library/circe" class="internal">Circe</a></h3></div><p class="meta"><time datetime="2026-08-03T18:21:03.466Z">Aug 03, 2026</time></p><ul class="tags"><li><a class="internal tag-link" href="./tags/read">read</a></li></ul></div></li><li class="recent-li"><div class="section"><div class="desc"><h3><a href="./library/caesar" class="internal">Caesar</a></h3></div><p class="meta"><time datetime="2026-08-03T18:21:03.464Z">Aug 03, 2026</time></p><ul class="tags"><li><a class="internal tag-link" href="./tags/read">read</a></li></ul></div></li><li class="recent-li"><div class="section"><div class="desc"><h3><a href="./shared/impactmatch" class="internal">impactmatch</a></h3></div><p class="meta"><time datetime="2026-08-03T13:27:08.996Z">Aug 03, 2026</time></p><ul class="tags"><li><a class="internal tag-link" href="./tags/unfinished">unfinished</a></li></ul></div></li><li class="recent-li"><div class="section"><div class="desc"><h3><a href="./shared/clippings/" class="internal">Clippings</a></h3></div><p class="meta"><time datetime="2026-08-03T13:26:04.376Z">Aug 03, 2026</time></p><ul class="tags"><li><a class="internal tag-link" href="./tags/llm-written/85">llm-written/85</a></li></ul></div></li></ul></div><div class="backlinks"><h3>Backlinks</h3><ul id="list-0" class="overflow"><li><a href="./shared/clippings/documentation" class="internal">Documentation</a></li><li class="overflow-end"></li></ul></div></div><footer class><p>Created with <a href="https://quartz.jzhao.xyz/">Quartz v5.0.0</a> © 2026</p><ul><li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li><li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li></ul></footer></div></div></body><script src="./static/resource-after-e13fffa1.js" type="application/javascript" data-persist="true"></script><script src="./static/resource-after-8b336f9a.js" type="application/javascript" data-persist="true"></script><script src="./static/resource-after-baba652b.js" type="application/javascript" data-persist="true"></script><script src="./static/resource-after-5eb75950.js" type="module" data-persist="true"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/copy-tex.min.js" type="application/javascript" data-persist="true"></script><script src="./postscript-7bed4efb.js" type="module" data-persist="true"></script></html>
