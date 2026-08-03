@@ -505,6 +505,67 @@ body[data-slug="index"] {
   #vb-stars {
     display: none; /* the dome is the backdrop, no starfield here */
   }
+
+  /* the hovered room's description, written across the brain itself — words
+     phase in one after another (vaultbrain.js stamps the per-word delay) */
+  #vb-desc {
+    position: absolute;
+    left: -16%;
+    right: -16%;
+    top: 50%;
+    /* shrink-to-fit inside that inset range: the slab hugs the sentence
+       instead of spanning the whole band */
+    width: fit-content;
+    margin-inline: auto;
+    transform: translateY(-50%);
+    z-index: 2;
+    pointer-events: none; /* the brain underneath stays the door to /brain */
+    padding: 0.5rem 0.85rem;
+    border-radius: 5px;
+    /* the brain glows white underneath — the text needs its own night */
+    background: rgba(7, 10, 24, 0.86);
+    border: 1px solid color-mix(in srgb, var(--tint) 35%, transparent);
+    box-shadow: 0 2px 14px rgba(6, 9, 22, 0.55);
+    backdrop-filter: blur(3px);
+    text-align: center;
+    text-wrap: balance;
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--tint) 40%, #f1f4ff);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.on {
+      opacity: 1;
+    }
+
+    span {
+      display: inline-block;
+      opacity: 0;
+      animation: vb-desc-in 0.5s ease forwards;
+    }
+  }
+}
+
+@keyframes vb-desc-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #vb-desc span {
+    animation-duration: 0.01s;
+    animation-delay: 0s !important; /* beats the per-word inline delay */
+  }
 }
 
 .rotunda-band + .palace-hero {

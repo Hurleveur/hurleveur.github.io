@@ -134,7 +134,7 @@ plugins:
       display: all
   - source: github:quartz-community/alias-redirects
     enabled: true
-  - source: github:quartz-community/content-index
+  - source: ./local-plugins/content-index # patched: keep description in contentIndex.json (upstream strips it) — the home-page brain reads it
     enabled: true
     options:
       enableSiteMap: true

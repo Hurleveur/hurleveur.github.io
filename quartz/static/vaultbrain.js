@@ -739,6 +739,26 @@
       const EDGE_ROT_BOOST = 0.15 // extra rotation fraction for the outermost word
       // attach before measuring: getComputedTextLength needs a laid-out tree
       frieze.appendChild(svg)
+      // the hovered room's folder-note description surfaces in the middle of
+      // the brain, word by word (contentIndex[folder/index].description)
+      const descBox = document.createElement("div")
+      descBox.id = "vb-desc"
+      descBox.setAttribute("aria-hidden", "true")
+      document.getElementById("vault-brain")?.appendChild(descBox)
+      const showDesc = (folder) => {
+        const desc = folder && data[folder + "/index"]?.description
+        descBox.classList.toggle("on", !!desc)
+        if (!desc) return
+        descBox.style.setProperty("--tint", folderColor(folder))
+        descBox.replaceChildren(
+          ...desc.split(" ").flatMap((word, i) => {
+            const s = document.createElement("span")
+            s.textContent = word
+            s.style.animationDelay = i * 45 + "ms"
+            return [s, " "]
+          }),
+        )
+      }
       // per-side x ranges, stopping short of the brain canvas box (x 426-851)
       // where it would swallow the clicks
       ;[[folders.slice(0, half), 85, 420], [folders.slice(half), 856, 1140]].forEach(
@@ -788,11 +808,13 @@
           })
         },
       )
-      // the brain echoes back: hovering a section star lights its word
+      // the brain echoes back: hovering a section star lights its word — and
+      // rides the same bus, so a star and its room name both raise the panel
       const onHl = (e) => {
         svg
           .querySelectorAll(".frieze-word")
           .forEach((w) => w.classList.toggle("hl", w.dataset.folder === e.detail))
+        showDesc(e.detail)
       }
       window.addEventListener("vb-folder-hl", onHl)
       if (window.addCleanup) window.addCleanup(() => window.removeEventListener("vb-folder-hl", onHl))
