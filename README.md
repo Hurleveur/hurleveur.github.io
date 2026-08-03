@@ -8,6 +8,14 @@ Quartz is a set of tools that helps you publish your [digital garden](https://jz
 
 [Join the Discord Community](https://discord.gg/cRFFHYye7t)
 
+## Local dev server
+
+```
+npx quartz build --serve
+```
+
+Serves at http://localhost:8080. Rebuilds content on change.
+
 ## Sponsors
 
 <p align="center">
