@@ -20,7 +20,11 @@ const sampleCanvas: CanvasData = {
 };
 
 vi.mock("fs", () => ({
-  readFileSync: vi.fn(() => JSON.stringify(sampleCanvas)),
+  readFileSync: vi.fn((path: string) =>
+    path.endsWith("publish-exceptions.txt")
+      ? "notes/project.canvas\nmaps/Team Board.canvas\nStudy Notes/Concept Civic Board.canvas\n"
+      : JSON.stringify(sampleCanvas),
+  ),
 }));
 
 describe("CanvasPage", () => {
