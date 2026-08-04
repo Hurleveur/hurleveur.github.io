@@ -604,35 +604,9 @@
     if (window.addCleanup) window.addCleanup(cleanup)
   }
 
-  // legend: one entry per real top-level folder in the published set, colored
-  // the same way the graph colors its nodes — no fixed category list. Built into
-  // the overlay chrome each time the observatory opens.
-  async function buildLegend(legend) {
-    let data
-    try {
-      data = await loadIndex()
-    } catch (e) {
-      return
-    }
-    const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
-    const counts = {}
-    for (const slug of slugs) {
-      const folder = slug.includes("/") ? slug.split("/")[0] : "~"
-      counts[folder] = (counts[folder] || 0) + 1
-    }
-    Object.keys(counts)
-      .sort((a, b) => counts[b] - counts[a])
-      .forEach((folder) => {
-        const span = document.createElement("span")
-        span.style.setProperty("--dot", folderColor(folder))
-        span.textContent = folder === "~" ? "root" : folder
-        legend.appendChild(span)
-      })
-  }
-
   // expand the home rotunda brain into a full-screen observatory overlay — the
   // same init() re-runs in full (non-mini) mode over the whole viewport. No new
-  // page: caption, legend and the ✕ are injected into the wrapper, torn down on
+  // page: caption and the ✕ are injected into the wrapper, torn down on
   // close. Esc and the ✕ both close; a node click SPA-navigates (nav clears it).
   function toggleExpand(wrap, btn) {
     const opening = !wrap.classList.contains("vb-expanded")
@@ -646,7 +620,7 @@
       wrap.classList.remove("vb-expanded")
       document.body.classList.remove("vb-open")
       wrap.dataset.mini = "1"
-      wrap.querySelectorAll(".brain-caption, .brain-legend, #vb-collapse").forEach((el) => el.remove())
+      wrap.querySelectorAll(".brain-caption, #vb-collapse").forEach((el) => el.remove())
     }
     if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
     init() // rebuild in the new mode
@@ -659,17 +633,13 @@
     cap.className = "brain-caption"
     cap.innerHTML =
       "<h1>The Observatory</h1><p>Every note is a star; every link a thread. This view rebuilds itself from the vault on each publish — nothing here is arranged by hand.</p>"
-    const legend = document.createElement("div")
-    legend.className = "brain-legend"
-    legend.id = "vb-legend"
     const close = document.createElement("button")
     close.type = "button"
     close.id = "vb-collapse"
     close.setAttribute("aria-label", "Close the observatory")
     close.textContent = "✕"
     close.addEventListener("click", () => toggleExpand(wrap, btn))
-    wrap.append(cap, legend, close)
-    buildLegend(legend)
+    wrap.append(cap, close)
   }
 
   function initExpand() {

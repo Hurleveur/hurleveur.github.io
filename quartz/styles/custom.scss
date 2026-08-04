@@ -657,7 +657,7 @@ body[data-slug="index"] {
   z-index: 50;
   height: auto;
   background: #0b0e1f; /* night default — matches skyColors() */
-  /* space palette for the chrome children (caption/legend/tip/✕) */
+  /* space palette for the chrome children (caption/tip/✕) */
   --light: #0b0e1f;
   --lightgray: #1a1f3d;
   --gray: #8b93b8;
@@ -857,33 +857,6 @@ body.vb-open {
       line-height: 1.6;
       color: var(--gray);
       margin-top: 0.6rem;
-    }
-  }
-
-  .brain-legend {
-    position: absolute;
-    bottom: 1.2rem;
-    left: 1.2rem;
-    z-index: 2;
-    font-family: var(--sans);
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.2rem;
-    max-width: 30rem;
-    color: var(--gray);
-    pointer-events: none;
-
-    span::before {
-      content: "";
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 0.45em;
-      background: var(--dot);
-      box-shadow: 0 0 8px var(--dot);
     }
   }
 
