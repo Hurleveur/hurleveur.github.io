@@ -153,7 +153,7 @@ plugins:
     enabled: true
   - source: github:quartz-community/tag-page
     enabled: true
-  - source: github:quartz-community/explorer
+  - source: ./local-plugins/explorer # patched: merge static/categoryIndex.json into the trie so a note nests under any folder its `categories` name
     enabled: true
     layout:
       position: left
