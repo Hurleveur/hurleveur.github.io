@@ -1184,25 +1184,35 @@
     setAudioLabel(btn)
   }
 
-  // folder pages are built from markdown only; append the published html/pdf
-  // assets so e.g. /guides doesn't say "0 items" while the explorer lists its pdf
+  // folder pages are built from the markdown that physically sits under the
+  // folder. Two things belong there and aren't: the published html/pdf assets
+  // (so /guides doesn't say "0 items" while the explorer lists its pdf), and
+  // notes that name the folder in their `categories` frontmatter but live
+  // elsewhere (Categories emitter -> static/categoryIndex.json).
   async function initFolderAssets() {
     const listing = document.querySelector(".page-listing")
     const slug = document.body.dataset.slug || ""
     if (!listing || !slug.endsWith("/index") || listing.dataset.vbAssets) return
     listing.dataset.vbAssets = "1"
-    let assets
-    try {
-      assets = await fetch("/static/assetIndex.json").then((r) => r.json())
-    } catch (e) {
-      return
-    }
-    const folder = slug.slice(0, -"index".length)
-    const mine = assets.filter(
-      (a) => a.slug.startsWith(folder) && !a.slug.slice(folder.length).includes("/"),
-    )
     const ul = listing.querySelector("ul.section-ul")
-    if (!mine.length || !ul) return
+    if (!ul) return
+    const folder = slug.slice(0, -"index".length) // "work/guides/"
+    const json = (url) =>
+      fetch(url)
+        .then((r) => r.json())
+        .catch(() => null)
+    const [assets, categories] = await Promise.all([
+      json("/static/assetIndex.json"),
+      json("/static/categoryIndex.json"),
+    ])
+    // assets: direct children of this folder only, no descending
+    const mine = (assets || [])
+      .filter((a) => a.slug.startsWith(folder) && !a.slug.slice(folder.length).includes("/"))
+      // raw html/pdf aren't quartz pages — full page load, not SPA swap
+      .map((a) => ({ ...a, routerIgnore: true }))
+      // category members are real notes: keep the SPA swap and the hover popover
+      .concat((categories || {})[folder.slice(0, -1)] || [])
+    if (!mine.length) return
     for (const a of mine) {
       const li = document.createElement("li")
       li.className = "section-li"
@@ -1211,12 +1221,17 @@
       link.className = "internal"
       link.href = "/" + a.slug
       link.textContent = a.title
-      // raw html/pdf aren't quartz pages — full page load, not SPA swap
-      link.dataset.routerIgnore = ""
+      if (a.routerIgnore) link.dataset.routerIgnore = ""
       li.querySelector("h3").appendChild(link)
+      // a category member is a guest here — the meta slot (where real entries
+      // carry their date) says which folder it actually lives in
+      if (a.origin) {
+        li.classList.add("vb-guest")
+        li.querySelector(".meta").textContent = "↗ " + a.origin
+      }
       ul.appendChild(li)
     }
-    // "N items under this folder" — bump the count to include the assets
+    // "N items under this folder" — bump the count to include what we appended
     const p = listing.querySelector("p")
     if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)
   }

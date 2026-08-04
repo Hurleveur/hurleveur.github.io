@@ -480,6 +480,7 @@ export async function loadQuartzConfig(
     builtinPlugins.Static(),
     builtinPlugins.Quotes(),
     builtinPlugins.Library(),
+    builtinPlugins.Categories(),
     builtinPlugins.VaultPages(),
   ]
   const builtinPageTypes = [builtinPlugins.PageTypes.NotFoundPageType()]

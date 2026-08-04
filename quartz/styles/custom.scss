@@ -1209,6 +1209,21 @@ body[data-slug^="books"] {
   }
 }
 
+/* category guests: a note listed in a folder it doesn't live in, because its
+   `categories` frontmatter names that folder (Categories emitter). Marked so
+   the shelf reads honestly — this one is visiting, its home is elsewhere. */
+.explorer a.category-guest::after {
+  content: "↗";
+  margin-left: 0.3em;
+  font-size: 0.75em;
+  opacity: 0.45;
+}
+
+.section-li.vb-guest .meta {
+  font-style: italic;
+  opacity: 0.6;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .door,
   .spine,
