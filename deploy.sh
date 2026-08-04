@@ -5,7 +5,9 @@
 set -euo pipefail
 
 VAULT="/home/alexandertg/Documents/private"
-SITE="$HOME/Sites/loci"
+# The clone this script lives in — never a hardcoded path. A second checkout once
+# went stale and silently deployed month-old source for a week.
+SITE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WT="$HOME/.cache/loci-gh-pages"   # throwaway worktree, outside the repo
 BUILD="$HOME/.cache/loci-build"   # deploy build output, isolated from the live `--serve` public/
 cd "$SITE"
@@ -35,7 +37,12 @@ npx quartz build -o "$BUILD"
 # 3. Publish public/ -> gh-pages branch via an isolated worktree.
 rm -rf "$WT"          # clear any leftover from a previous aborted run
 git worktree prune
-if git show-ref --verify --quiet refs/heads/gh-pages; then
+if git fetch origin gh-pages 2>/dev/null; then
+  # Track origin, not whatever this clone last saw — another checkout may have
+  # deployed since, and committing on a stale base makes the push non-fast-forward.
+  git branch -f gh-pages FETCH_HEAD
+  git worktree add -f "$WT" gh-pages
+elif git show-ref --verify --quiet refs/heads/gh-pages; then
   git worktree add -f "$WT" gh-pages
 else
   # First run: orphan branch so gh-pages carries zero source history.
