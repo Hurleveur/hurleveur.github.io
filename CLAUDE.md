@@ -9,6 +9,18 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 - `content/` is gitignored except `content/index.md`, so vault content never enters git.
 - Drift accumulates. A resync can move hundreds of files. Dry-run it (`rsync -avn --delete …`, same flags as deploy.sh) and read the deletion list before running it for real — renames and reorganisation show up as deletes.
 
+## How the site actually publishes
+
+`deploy.sh` is the only publish path: rsync vault → `content/`, build to `~/.cache/loci-build`, mirror into a throwaway `gh-pages` worktree, push. GitHub Pages serves the `gh-pages` branch (legacy build) — pushing `v5` publishes nothing.
+
+- It runs daily via the `loci-deploy.timer` user unit → `loci-deploy.service`. Not a vault watcher; a clock — a vault edit waits until midnight.
+- `SITE` resolves to the clone the script lives in. It used to hardcode `~/Sites/loci`, a second checkout that went stale and silently deployed Jul-29 source for a week while `v5` kept advancing. One clone only — if a second ever appears, that bug is back.
+- **"Deployed N minutes ago but the feature is missing" is not a Pages problem.** A green deploy only proves _something_ built. Check what it built from: `git log origin/gh-pages -1` for the deploy time, then confirm the feature's own artifact is live (`curl -sI https://hurleveur.github.io/static/categoryIndex.json`). Chasing the site before checking the source cost a session.
+- The timer's `Persistent=true` makes it fire at boot catch-up, before DNS. It burned 3 min of build then died on `Could not resolve host` every morning, leaving a local `gh-pages` commit that was never pushed. `loci-deploy.service` now has an `ExecStartPre` poll for `github.com` — a user unit cannot order against `network-online.target`, which is a system target.
+- `deploy.sh` force-resets `gh-pages` to `origin/gh-pages` before building, so a local ref left behind by an aborted run can't make the push non-fast-forward.
+- `npm ci` needs `--allow-git=root`: npm 12 blocks git deps by default and `@quartz-community/{types,utils}` are `github:` specs. `root` allows only the two direct ones. The blocked `esbuild`/`@parcel/watcher` install scripts are fine to leave blocked — both resolve prebuilt binaries through optional deps.
+- Every run rewrites ~275 files even with zero content change (build nondeterminism), so a fat `deploy` commit means nothing on its own.
+
 ## Plugin forks live in local-plugins/
 
 `.quartz/plugins/` holds clones of the community plugins. It is **gitignored and regenerated** by `prebuild` (`npm run install-plugins`), so edits there get wiped. To change a community plugin: copy it to `local-plugins/<name>/`, point `source:` at that path in `quartz.config.yaml` with a `# patched:` comment saying why, and mark every changed hunk with a `LOCI PATCH` comment so the diff against upstream stays findable.
