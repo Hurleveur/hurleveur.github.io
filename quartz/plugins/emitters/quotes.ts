@@ -10,20 +10,18 @@ import fs from "fs"
 // (individual quotes), not for dash-only lines from dedicated quote files.
 // (quartz/static/vaultbrain.js). A line is a quote when it carries an inline
 // #quote / #quotes tag (anywhere in the vault), or it starts with "- " inside a
-// "quote file" — filename like Quotes.md, frontmatter tags: quote/quotes, or
-// categories: Quotes — so such a file can mix prose with dashed quote lines.
+// "quote file" — filename like Quotes.md, or categories: Quotes — so such a
+// file can mix prose with dashed quote lines. Deliberately NOT frontmatter
+// tags: obsidian-flavored-markdown merges every inline #tag into
+// frontmatter.tags, so a single #quote-tagged line would flip the whole file
+// into quote-file mode and leak its unrelated dash lines too.
 // Source is the note's folder, e.g. content/Website/quotes.md -> "from website".
 // Only published content is scanned, so private vault quotes never leak.
 
-function isQuoteFile(filePath: string, data: any): boolean {
-  const tags: string[] = data.frontmatter?.tags ?? data.tags ?? []
+export function isQuoteFile(filePath: string, data: any): boolean {
   const cats = data.frontmatter?.categories ?? []
   const catStr = Array.isArray(cats) ? cats.join(" ") : String(cats)
-  return (
-    /quotes?/i.test(path.basename(filePath, ".md")) ||
-    tags.some((t) => /^quotes?$/i.test(t)) ||
-    /quotes/i.test(catStr)
-  )
+  return /quotes?/i.test(path.basename(filePath, ".md")) || /quotes/i.test(catStr)
 }
 
 // strip leading list/blockquote markers, the #quote tag, and trailing #tags
@@ -37,7 +35,11 @@ function clean(line: string): string {
 
 // tagged = line carried an inline #quote tag (an individual quote, links back
 // to its note); dash-only lines from quote files stay unlinked
-function extract(raw: string, quoteFile: boolean, source: string): [string, string, boolean][] {
+export function extract(
+  raw: string,
+  quoteFile: boolean,
+  source: string,
+): [string, string, boolean][] {
   const body = raw.replace(/^---\n[\s\S]*?\n---\n?/, "")
   const out: [string, string, boolean][] = []
   let inCode = false
