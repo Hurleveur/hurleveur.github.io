@@ -74,9 +74,9 @@
   "devDependencies": {
     "@types/lz-string": "^1.3.34",
     "@types/node": "^24.10.0",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "eslint": "^10.7.0",
     "eslint-config-prettier": "^9.1.0",
     "hast-util-to-html": "^9.0.5",
     "preact": "^10.28.2",
@@ -86,7 +86,7 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vfile": "^6.0.3",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.6"
   },
   "quartz": {
     "name": "obsidian-plugin-excalidraw",
@@ -131,5 +131,9 @@
   "engines": {
     "node": ">=22",
     "npm": ">=10.9.2"
+  },
+  "allowScripts": {
+    "esbuild@0.27.2": true,
+    "@parcel/watcher": true
   }
 }

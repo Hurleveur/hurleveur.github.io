@@ -2,18 +2,6 @@ import { createRequire } from 'module';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-// publish-exceptions.txt gate — parser never reads a publish flag from frontmatter
-function loadPublishAllowlist() {
-  try {
-    return readFileSync("publish-exceptions.txt", "utf-8")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#"));
-  } catch {
-    return [];
-  }
-}
-
 createRequire(import.meta.url);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -47,7 +35,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 
 // node_modules/lz-string/libs/lz-string.js
 var require_lz_string = __commonJS({
-  "node_modules/lz-string/libs/lz-string.js"(exports$1, module) {
+  "node_modules/lz-string/libs/lz-string.js"(exports, module) {
     var LZString2 = (function() {
       var f5 = String.fromCharCode;
       var keyStrBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -599,6 +587,14 @@ function _rebaseHastElement(el, attr, curBase, newBase) {
 }
 function _sluggify(s4) {
   return slugifyPath(s4);
+}
+var EXCEPTIONS_FILE = "publish-exceptions.txt";
+function loadPublishAllowlist() {
+  try {
+    return readFileSync(EXCEPTIONS_FILE, "utf-8").split("\n").map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith("#"));
+  } catch {
+    return [];
+  }
 }
 
 // src/parser.ts

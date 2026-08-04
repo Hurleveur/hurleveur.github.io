@@ -1,18 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-// publish-exceptions.txt gate — .canvas is JSON, can't carry publish:true frontmatter
-function loadPublishAllowlist() {
-  try {
-    return readFileSync("publish-exceptions.txt", "utf-8")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#"));
-  } catch {
-    return [];
-  }
-}
-
 var __defProp = Object.defineProperty;
 var __export = (target, all2) => {
   for (var name in all2)
@@ -117,6 +105,14 @@ function _rebaseHastElement(el, attr, curBase, newBase) {
 }
 function _sluggify(s2) {
   return slugifyPath(s2);
+}
+var EXCEPTIONS_FILE = "publish-exceptions.txt";
+function loadPublishAllowlist() {
+  try {
+    return readFileSync(EXCEPTIONS_FILE, "utf-8").split("\n").map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith("#"));
+  } catch {
+    return [];
+  }
 }
 
 // node_modules/character-entities/index.js
@@ -11743,7 +11739,9 @@ var CanvasPage = (opts) => ({
   match: canvasMatcher,
   generate({ ctx }) {
     const allowlist = loadPublishAllowlist();
-    const canvasFiles = ctx.allFiles.filter((fp) => fp.endsWith(".canvas") && allowlist.includes(fp));
+    const canvasFiles = ctx.allFiles.filter(
+      (fp) => fp.endsWith(".canvas") && allowlist.includes(fp)
+    );
     const virtualPages = [];
     for (const filePath of canvasFiles) {
       const fullPath = join(ctx.argv.directory, filePath);
