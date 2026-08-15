@@ -369,6 +369,14 @@
     let hovered = null
     // section under highlight (from a hovered star here or a frieze word)
     let hlFolder = null
+    // which edges the highlight owns: the observatory counts every edge that
+    // touches the section — those threads outward are what a section connects
+    // to — while the tight rotunda keeps only the ones inside it, so the small
+    // brain doesn't fill with lines on a frieze hover.
+    const linkLit = (a, b) =>
+      mini
+        ? a.folder === hlFolder && b.folder === hlFolder
+        : a.folder === hlFolder || b.folder === hlFolder
     const onHl = (e) => {
       hlFolder = e.detail
       if (reduceMotion) draw()
@@ -387,6 +395,7 @@
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
+      const prevHover = hovered
       hovered = nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub
@@ -400,6 +409,8 @@
         }
       }
       if (hf !== hlFolder) hlEmit(hf)
+      // no animation loop to pick the ring up in reduced motion
+      if (reduceMotion && hovered !== prevHover) draw()
       if (hovered) {
         tip.textContent = hovered.label
         tip.style.left = hovered.x * view.s + view.x + "px"
@@ -498,7 +509,9 @@
       ctx.translate(view.x, view.y)
       ctx.scale(view.s, view.s)
       links.forEach(([a, b]) => {
-        ctx.globalAlpha = !hlFolder || (a.folder === hlFolder && b.folder === hlFolder) ? 1 : 0.15
+        const lit = hlFolder && linkLit(a, b)
+        if (lit && !mini) return // redrawn over the stars below
+        ctx.globalAlpha = !hlFolder || lit ? 1 : 0.15
         ctx.strokeStyle = sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -528,6 +541,16 @@
         ctx.arc(n.x, n.y, n.r * pulse * (lit && n.hub ? 1.15 : 1), 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
+        // the one star actually under the pointer: a ring in the sky's ink, so
+        // the pick is readable before the tip is (widths are divided by the
+        // zoom so the ring stays the same thickness at every scale)
+        if (n === hovered) {
+          ctx.strokeStyle = sky.label
+          ctx.lineWidth = 1.5 / view.s
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.r * pulse + 5 / view.s, 0, 7)
+          ctx.stroke()
+        }
         // only section stars get names; note titles live in the hover tip
         if (n.hub && !mini) {
           ctx.textAlign = "center"
@@ -539,6 +562,22 @@
           ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
         }
       })
+      // the highlighted section's own threads, laid over the stars in its hue:
+      // buried under the dust in the first pass, they're the answer to "what
+      // does this room connect to"
+      if (hlFolder && !mini) {
+        ctx.strokeStyle = hlFolder === "~" ? sky.root : folderColor(hlFolder)
+        ctx.lineWidth = 1.4 / view.s
+        ctx.globalAlpha = 0.8
+        ctx.beginPath()
+        links.forEach(([a, b]) => {
+          if (!linkLit(a, b)) return
+          ctx.moveTo(a.x, a.y)
+          ctx.lineTo(b.x, b.y)
+        })
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      }
       ctx.restore()
       if (!reduceMotion) {
         step()
