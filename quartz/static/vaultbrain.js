@@ -369,14 +369,30 @@
     let hovered = null
     // section under highlight (from a hovered star here or a frieze word)
     let hlFolder = null
-    // which edges the highlight owns: the observatory counts every edge that
-    // touches the section — those threads outward are what a section connects
-    // to — while the tight rotunda keeps only the ones inside it, so the small
-    // brain doesn't fill with lines on a frieze hover.
+    // the highlight is a per-section strength, not a switch: each folder chases
+    // 1 while it's the hovered one and 0 once it isn't, so crossing from one
+    // room to the next fades the old one out under the new one instead of
+    // cutting. hlMax is how lit the sky is at all — 0 means nothing is hovered
+    // and nothing should be dimmed.
+    const hlW = {}
+    folders.forEach((f) => (hlW[f] = 0))
+    let hlMax = 0
+    function easeHl() {
+      // reduced motion asked for no animation: land on the target in one frame
+      const k = reduceMotion ? 1 : 0.12
+      hlMax = 0
+      for (const f of folders) {
+        hlW[f] += ((f === hlFolder ? 1 : 0) - hlW[f]) * k
+        if (hlW[f] > hlMax) hlMax = hlW[f]
+      }
+    }
+    const hlOf = (f) => hlW[f] || 0
+    // how much of the highlight an edge carries: the observatory counts every
+    // edge that touches the section — those threads outward are what a section
+    // connects to — while the tight rotunda keeps only the ones inside it, so
+    // the small brain doesn't fill with lines on a frieze hover.
     const linkLit = (a, b) =>
-      mini
-        ? a.folder === hlFolder && b.folder === hlFolder
-        : a.folder === hlFolder || b.folder === hlFolder
+      mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
     const onHl = (e) => {
       hlFolder = e.detail
       if (reduceMotion) draw()
@@ -505,13 +521,15 @@
     function draw() {
       ctx.clearRect(0, 0, W, H)
       t += 0.008
+      easeHl()
       ctx.save()
       ctx.translate(view.x, view.y)
       ctx.scale(view.s, view.s)
+      // everything below reads the eased strengths, never hlFolder itself: at
+      // full strength the numbers are the old on/off values, and in between
+      // they are what makes the swap between two rooms a fade
       links.forEach(([a, b]) => {
-        const lit = hlFolder && linkLit(a, b)
-        if (lit && !mini) return // redrawn over the stars below
-        ctx.globalAlpha = !hlFolder || lit ? 1 : 0.15
+        ctx.globalAlpha = 1 - 0.85 * (hlMax - linkLit(a, b))
         ctx.strokeStyle = sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -522,15 +540,15 @@
       ctx.globalAlpha = 1
       nodes.forEach((n, i) => {
         // highlighted section burns brighter, the rest of the sky recedes
-        const lit = hlFolder && n.folder === hlFolder
-        const dim = !hlFolder || lit ? 1 : 0.15
+        const lit = hlOf(n.folder)
+        const dim = 1 - 0.85 * (hlMax - lit)
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (lit ? 1.5 : 1)
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * lit)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (lit ? 1.8 : 1))
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * lit))
         ctx.fillStyle = g
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
@@ -538,7 +556,7 @@
         ctx.globalAlpha = dim
         ctx.fillStyle = n.color
         ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r * pulse * (lit && n.hub ? 1.15 : 1), 0, 7)
+        ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
@@ -564,18 +582,22 @@
       })
       // the highlighted section's own threads, laid over the stars in its hue:
       // buried under the dust in the first pass, they're the answer to "what
-      // does this room connect to"
-      if (hlFolder && !mini) {
-        ctx.strokeStyle = hlFolder === "~" ? sky.root : folderColor(hlFolder)
+      // does this room connect to". Each thread carries its own strength and
+      // the hue of whichever end is more lit, so the room being left keeps its
+      // color on the way out while the room being entered comes up in its own.
+      if (hlMax > 0.01 && !mini) {
         ctx.lineWidth = 1.4 / view.s
-        ctx.globalAlpha = 0.8
-        ctx.beginPath()
         links.forEach(([a, b]) => {
-          if (!linkLit(a, b)) return
+          const w = linkLit(a, b)
+          if (w < 0.01) return
+          const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
+          ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
+          ctx.globalAlpha = 0.8 * w
+          ctx.beginPath()
           ctx.moveTo(a.x, a.y)
           ctx.lineTo(b.x, b.y)
+          ctx.stroke()
         })
-        ctx.stroke()
         ctx.globalAlpha = 1
       }
       ctx.restore()
