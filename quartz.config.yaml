@@ -181,7 +181,7 @@ plugins:
     layout:
       position: beforeBody
       priority: 10
-  - source: github:quartz-community/content-meta
+  - source: ./local-plugins/content-meta # patched: render a note's `url:` frontmatter as a source link (clippings must show where they came from)
     enabled: true
     layout:
       position: beforeBody
