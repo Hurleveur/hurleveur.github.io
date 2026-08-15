@@ -41,6 +41,8 @@ Four forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`,
 
 Markdown publishes on `publish: true` frontmatter. Everything else — pdf, html, canvas, excalidraw, images — needs a glob in `publish-exceptions.txt`, whose header explains the rest. Default is deny, in both paths.
 
+`build.ts` sets `ctx.allFiles` to the full, unfiltered file list before the `ExplicitPublish` filter ever runs — it stays unfiltered for the whole build, gate or no gate. Every emitter and pageType gets a separately filtered `content`/`allFiles` argument passed into `emit()`, and that filtered argument is the only file list that respects `publish: true`. Read `ctx.allFiles` anywhere in an emitter and private vault files leak into the public build. Hit twice already (community plugins doing exactly this) — when patching a fork in `local-plugins/` or writing a new emitter, always use the passed-in `content`/`allFiles`, never `ctx.allFiles`.
+
 ## Categories → folder membership
 
 A note's `categories:` frontmatter lists it inside any published folder of that name, wherever it physically lives — a book under `Alignment/` carrying `[[Library]]` appears in `/library` too, marked as a guest with its real origin. `quartz/plugins/emitters/categories.ts` emits `static/categoryIndex.json`; `vaultbrain.js` merges it into folder listing pages, the `explorer` fork into the sidebar trie. No category name is hardcoded: a category starts working the moment a published folder of that name exists.
