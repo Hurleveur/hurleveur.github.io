@@ -60,7 +60,16 @@ if git -C "$WT" diff --cached --quiet; then
   echo "No changes to deploy."
 else
   git -C "$WT" commit -m "deploy $(date -u +%FT%TZ)"
-  git -C "$WT" push origin gh-pages
+  # Retry the push. ExecStartPre only proves DNS resolved *before* the build; three
+  # minutes later, on a still-settling boot, resolution can fail once and throw the
+  # whole build away ("Could not resolve host: github.com", 2026-08-19).
+  pushed=
+  for i in 1 2 3 4 5; do
+    if git -C "$WT" push origin gh-pages; then pushed=1; break; fi
+    echo "push failed (attempt $i/5), retrying in 30s" >&2
+    sleep 30
+  done
+  [ -n "$pushed" ] || { echo "push failed after 5 attempts" >&2; exit 1; }
 fi
 
 git worktree remove -f "$WT"
