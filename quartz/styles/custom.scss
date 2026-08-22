@@ -490,13 +490,16 @@ body[data-slug="index"] {
     }
   }
 
-  /* the mini brain sits over the image's glowing-brain region */
+  /* the mini brain sits over the image's glowing-brain region. Box fitted so
+     the constellation's own ink lands on the painted brain: the glow in
+     rotunda.png measures x 425-855, y 140-352 (image px), and the cloud fills
+     ~86% of this box. Load /?tune to re-drag it. */
   #vault-brain {
     position: absolute;
-    left: 34%;
-    right: 32%;
-    top: 31%;
-    bottom: 9%;
+    left: 32.75%;
+    right: 30.5%;
+    top: 29.4%;
+    bottom: 14.5%;
     height: auto;
     min-height: 0;
     z-index: 1;
