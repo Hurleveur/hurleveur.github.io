@@ -845,7 +845,8 @@
     const redraw = () => {
       layout()
       out.textContent =
-        `const BAND = { cx: ${band.cx}, cy: ${band.cy}, rx: ${band.rx}, ry: ${band.ry} }\n` +
+        `const BAND = { cx: ${band.cx}, cy: ${band.cy}, rx: ${band.rx}, ry: ${band.ry}, ` +
+        `tilt: ${band.tilt} }\n` +
         `const SIDES = [{ x0: ${sides[0].x0}, x1: ${sides[0].x1} }, ` +
         `{ x0: ${sides[1].x0}, x1: ${sides[1].x1} }]`
     }
@@ -853,6 +854,8 @@
     tuneRow(panel, "band cy", band, "cy", -400, 200, 0.5, redraw)
     tuneRow(panel, "band rx", band, "rx", 300, 1400, 1, redraw)
     tuneRow(panel, "band ry", band, "ry", 120, 900, 1, redraw)
+    // word tilt, 1 = the curve's true tangent
+    tuneRow(panel, "word tilt", band, "tilt", 0.3, 1.7, 0.01, redraw)
     tuneRow(panel, "left from", sides[0], "x0", 40, 500, 1, redraw)
     tuneRow(panel, "left to", sides[0], "x1", 40, 500, 1, redraw)
     tuneRow(panel, "right from", sides[1], "x0", 780, 1220, 1, redraw)
@@ -894,12 +897,17 @@
       // out of rotunda.png (median residual 1.6px), raised 16px onto the
       // frieze band above it where the latin was carved. It is the real
       // curve, so no per-word lift or rotation fudge is needed anywhere.
-      // ?tune drags these live — see tuneFrieze below.
-      const BAND = { cx: 628.8, cy: -16.5, rx: 603.2, ry: 333.9 }
+      // tilt scales the tangent every word rotates by: 1 is the true tangent
+      // of the curve above. It exists because the carve line and the cornice
+      // the fit was read off are different circles in 3D, so their projected
+      // tangents differ by a hair — a value far from 1 means the fit is wrong.
+      // ?tune drags all of these live — see tuneFrieze below.
+      const BAND = { cx: 628.8, cy: -16.5, rx: 603.2, ry: 333.9, tilt: 1 }
       const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
       const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
       const bandDeg = (x) =>
-        (Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI
+        ((Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI) *
+        BAND.tilt
       // per-side x ranges: start where the band clears the front column, stop
       // short of the brain canvas box, which would swallow the clicks
       const SIDES = [{ x0: 100, x1: 395 }, { x0: 885, x1: 1075 }]
