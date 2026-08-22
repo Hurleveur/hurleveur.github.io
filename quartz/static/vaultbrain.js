@@ -892,25 +892,27 @@
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // words sit on the entablature band ellipse and rotate with its tangent.
-      // The ellipse is a least-squares fit of the cornice line read straight
-      // out of rotunda.png (median residual 1.6px), raised 16px onto the
-      // frieze band above it where the latin was carved. It is the real
-      // curve, so no per-word lift or rotation fudge is needed anywhere.
-      // tilt scales the tangent every word rotates by: 1 is the true tangent
-      // of the curve above. It exists because the carve line and the cornice
-      // the fit was read off are different circles in 3D, so their projected
-      // tangents differ by a hair — a value far from 1 means the fit is wrong.
-      // ?tune drags all of these live — see tuneFrieze below.
-      const BAND = { cx: 628.8, cy: -16.5, rx: 603.2, ry: 333.9, tilt: 1 }
+      // words sit on the entablature band ellipse and rotate with its tangent,
+      // so no per-word lift or rotation fudge is needed anywhere. The starting
+      // ellipse was a least-squares fit of the cornice line read out of
+      // rotunda.png (cx 628.8, cy -16.5, rx 603.2, ry 333.9); these are that
+      // fit walked onto the carve line by eye in /?tune, which is the only
+      // reliable way to set them — see tuneFrieze below.
+      // tilt scales the tangent every word rotates by; 1 is the curve's own
+      // tangent. It is off 1 because the carve line and the cornice the fit
+      // was read off are different circles in 3D, so their projected tangents
+      // differ — but a value far from 1 means the ellipse itself is wrong.
+      const BAND = { cx: 624, cy: -15, rx: 580, ry: 333.9, tilt: 1.09 }
       const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
       const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
       const bandDeg = (x) =>
         ((Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI) *
         BAND.tilt
-      // per-side x ranges: start where the band clears the front column, stop
-      // short of the brain canvas box, which would swallow the clicks
-      const SIDES = [{ x0: 100, x1: 395 }, { x0: 885, x1: 1075 }]
+      // per-side x ranges: start where the band clears the front column, end
+      // where the carve line leaves the entablature. They may reach over the
+      // brain canvas box — .frieze stacks above it and hands the pointer back
+      // on its glyphs alone, so those words still open their own room.
+      const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
       const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px

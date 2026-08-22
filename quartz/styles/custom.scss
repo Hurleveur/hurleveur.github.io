@@ -452,6 +452,13 @@ body[data-slug="index"] {
   .frieze {
     position: absolute;
     inset: 0;
+    /* over the brain canvas, which is z-index 1 and would otherwise eat the
+       clicks on any word that reaches into its box — but transparent to the
+       pointer everywhere except the glyphs, so the brain stays the door to
+       /brain. Same trick as #vb-desc below. Without this the room names have
+       to be kept clear of the canvas, which constrains where they can sit. */
+    z-index: 2;
+    pointer-events: none;
 
     svg {
       display: block;
@@ -468,6 +475,8 @@ body[data-slug="index"] {
     }
 
     .frieze-word {
+      /* the one thing in the frieze that takes the pointer back */
+      pointer-events: auto;
       /* carved: stone-shadow fill with the room's tint breathing through;
          light falls from the oculus — bright groove edge below, shade above */
       fill: color-mix(in srgb, var(--tint) 45%, #5c6470);
@@ -490,16 +499,16 @@ body[data-slug="index"] {
     }
   }
 
-  /* the mini brain sits over the image's glowing-brain region. Box fitted so
-     the constellation's own ink lands on the painted brain: the glow in
-     rotunda.png measures x 425-855, y 140-352 (image px), and the cloud fills
-     ~86% of this box. Load /?tune to re-drag it. */
+  /* the mini brain sits over the image's glowing-brain region. Set by eye in
+     /?tune, starting from where the painted glow measures in rotunda.png
+     (x 425-855, y 140-352 image px) — the cloud fills ~86% of this box, so
+     the box runs wider than the glow it has to land on. */
   #vault-brain {
     position: absolute;
-    left: 32.75%;
-    right: 30.5%;
-    top: 29.4%;
-    bottom: 14.5%;
+    left: 31.02%;
+    right: 32.23%;
+    top: 32.5%;
+    bottom: 11.39%;
     height: auto;
     min-height: 0;
     z-index: 1;
