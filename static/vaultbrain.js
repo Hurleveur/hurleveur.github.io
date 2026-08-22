@@ -716,6 +716,154 @@
     if (window.addCleanup) window.addCleanup(() => document.removeEventListener("keydown", onKey))
   }
 
+  // ============================================================
+  // ?tune — the two things on the rotunda that are fitted to a painted image
+  // and so can never be derived: the mini-brain box and the frieze band
+  // ellipse. Load the home page as /?tune (npm run tune prints the URL) to
+  // drag the brain box and slide the band, then paste the panel's numbers
+  // back into the source below. Inert without the flag.
+  // ============================================================
+  const TUNE = /[?&]tune\b/.test(location.search)
+
+  // one shared panel, built on first use
+  function tunePanel() {
+    let p = document.getElementById("vb-tune")
+    if (p) return p
+    p = document.createElement("div")
+    p.id = "vb-tune"
+    p.setAttribute(
+      "style",
+      "position:fixed;right:10px;bottom:10px;z-index:9999;max-width:340px;padding:10px 12px;" +
+        "border-radius:8px;background:rgba(10,14,28,.92);color:#dfe3f2;font:11px/1.5 ui-monospace,monospace;" +
+        "box-shadow:0 4px 20px rgba(0,0,0,.5)",
+    )
+    document.body.appendChild(p)
+    return p
+  }
+  // label + range + live number; writes obj[key] and calls onInput
+  function tuneRow(host, label, obj, key, min, max, step, onInput) {
+    const row = document.createElement("label")
+    row.setAttribute("style", "display:flex;gap:6px;align-items:center;margin:2px 0")
+    const name = document.createElement("span")
+    name.setAttribute("style", "width:74px;flex:none;opacity:.75")
+    name.textContent = label
+    const slider = document.createElement("input")
+    slider.type = "range"
+    slider.min = min
+    slider.max = max
+    slider.step = step
+    slider.value = obj[key]
+    slider.setAttribute("style", "flex:1;min-width:0")
+    const out = document.createElement("span")
+    out.setAttribute("style", "width:52px;flex:none;text-align:right")
+    out.textContent = obj[key]
+    slider.addEventListener("input", () => {
+      obj[key] = +slider.value
+      out.textContent = obj[key]
+      onInput()
+    })
+    row.append(name, slider, out)
+    host.appendChild(row)
+  }
+
+  // the mini-brain box: dashed outline over #vault-brain, drag it to move,
+  // drag the corner grip to resize. Numbers come out as the CSS inset rule.
+  function tuneBrain() {
+    const band = document.querySelector(".rotunda-band")
+    const wrap = document.getElementById("vault-brain")
+    if (!band || !wrap || wrap.dataset.vbTune) return
+    wrap.dataset.vbTune = "1"
+    const b = band.getBoundingClientRect(), r = wrap.getBoundingClientRect()
+    // start from whatever the stylesheet says, then own the box inline
+    const box = {
+      left: ((r.left - b.left) / b.width) * 100,
+      right: ((b.right - r.right) / b.width) * 100,
+      top: ((r.top - b.top) / b.height) * 100,
+      bottom: ((b.bottom - r.bottom) / b.height) * 100,
+    }
+    const panel = tunePanel()
+    const out = document.createElement("pre")
+    out.setAttribute("style", "margin:0 0 8px;white-space:pre-wrap;color:#9ad9ff")
+    panel.appendChild(out)
+    const apply = () => {
+      for (const k in box) wrap.style[k] = box[k].toFixed(2) + "%"
+      out.textContent =
+        "#vault-brain {\n" +
+        ["left", "right", "top", "bottom"].map((k) => `  ${k}: ${box[k].toFixed(2)}%;`).join("\n") +
+        "\n}"
+    }
+    // transparent catcher: the canvas underneath is a link to /brain, and a
+    // drag must not open it
+    const grab = document.createElement("div")
+    grab.id = "vb-tune-box"
+    grab.setAttribute(
+      "style",
+      "position:absolute;inset:0;z-index:9;cursor:move;outline:1px dashed #0ff;outline-offset:0",
+    )
+    const grip = document.createElement("div")
+    grip.setAttribute(
+      "style",
+      "position:absolute;right:-5px;bottom:-5px;width:12px;height:12px;background:#0ff;cursor:nwse-resize",
+    )
+    grab.appendChild(grip)
+    wrap.appendChild(grab)
+    let from = null
+    // stopPropagation matters: the grip sits inside the mover, and a bubbled
+    // pointerdown would restart the drag in move mode and never resize
+    const down = (e, mode) => {
+      e.preventDefault()
+      e.stopPropagation()
+      from = { x: e.clientX, y: e.clientY, mode, ...box }
+    }
+    grab.addEventListener("pointerdown", (e) => down(e, "move"))
+    grip.addEventListener("pointerdown", (e) => down(e, "size"))
+    // on window, so a fast drag that outruns the pointer keeps tracking
+    window.addEventListener("pointermove", (e) => {
+      if (!from) return
+      const now = band.getBoundingClientRect()
+      const dx = ((e.clientX - from.x) / now.width) * 100
+      const dy = ((e.clientY - from.y) / now.height) * 100
+      box.right = from.right - dx
+      box.bottom = from.bottom - dy
+      if (from.mode === "move") {
+        box.left = from.left + dx
+        box.top = from.top + dy
+      }
+      apply()
+    })
+    window.addEventListener("pointerup", () => (from = null))
+    apply()
+  }
+
+  // the frieze band: sliders for the ellipse the room names ride, plus the
+  // two x ranges. ry/rx is the curve's angle — the flatter the ratio, the
+  // less the words tilt at the edges. The cyan path draws the live curve.
+  function tuneFrieze(band, sides, layout) {
+    const panel = tunePanel()
+    const out = document.createElement("pre")
+    out.setAttribute("style", "margin:8px 0 0;white-space:pre-wrap;color:#ffd08a")
+    const redraw = () => {
+      layout()
+      out.textContent =
+        `const BAND = { cx: ${band.cx}, cy: ${band.cy}, rx: ${band.rx}, ry: ${band.ry}, ` +
+        `tilt: ${band.tilt} }\n` +
+        `const SIDES = [{ x0: ${sides[0].x0}, x1: ${sides[0].x1} }, ` +
+        `{ x0: ${sides[1].x0}, x1: ${sides[1].x1} }]`
+    }
+    tuneRow(panel, "band cx", band, "cx", 400, 900, 0.5, redraw)
+    tuneRow(panel, "band cy", band, "cy", -400, 200, 0.5, redraw)
+    tuneRow(panel, "band rx", band, "rx", 300, 1400, 1, redraw)
+    tuneRow(panel, "band ry", band, "ry", 120, 900, 1, redraw)
+    // word tilt, 1 = the curve's true tangent
+    tuneRow(panel, "word tilt", band, "tilt", 0.3, 1.7, 0.01, redraw)
+    tuneRow(panel, "left from", sides[0], "x0", 40, 500, 1, redraw)
+    tuneRow(panel, "left to", sides[0], "x1", 40, 500, 1, redraw)
+    tuneRow(panel, "right from", sides[1], "x0", 780, 1220, 1, redraw)
+    tuneRow(panel, "right to", sides[1], "x1", 780, 1220, 1, redraw)
+    panel.appendChild(out)
+    redraw()
+  }
+
   // rotunda frieze: one room name per real top-level folder, colored like
   // the constellation, counts live from the index — never a hand-kept list
   async function initFrieze() {
@@ -744,30 +892,30 @@
       const svg = document.createElementNS(NS, "svg")
       svg.setAttribute("viewBox", "0 0 1252 428")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // words sit on the entablature band ellipse (fitted to the carve line,
-      // image coords) and rotate with its tangent — exaggerated toward the
-      // edges where the band turns hard, true-to-tangent beside the brain
-      const CX = 630, CY = -372, RX = 800, RY = 688
-      const bandS = (x) => Math.sqrt(1 - ((x - CX) / RX) ** 2)
-      const bandY = (x) => CY + RY * bandS(x)
-      const bandDeg = (x) => {
-        const u = Math.abs(x - CX) / 570 // 0 at the brain, 1 at the image edge
-        return (
-          (Math.atan((-RY * (x - CX)) / (RX * RX * bandS(x))) * 180 / Math.PI) *
-          (0.85 + 0.5 * u * u)
-        )
-      }
-      // manual pixel overrides, keyed by folder slug — x/y/deg are viewBox px
-      // (0 0 1252 428), same space as the math below. Any field can be left
-      // out to keep the computed default for just that field. Empty by
-      // default: the band formula above positions everything until a room
-      // needs a hand-placed nudge.
-      const FRIEZE_OVERRIDES = {}
+      // words sit on the entablature band ellipse and rotate with its tangent,
+      // so no per-word lift or rotation fudge is needed anywhere. The starting
+      // ellipse was a least-squares fit of the cornice line read out of
+      // rotunda.png (cx 628.8, cy -16.5, rx 603.2, ry 333.9); these are that
+      // fit walked onto the carve line by eye in /?tune, which is the only
+      // reliable way to set them — see tuneFrieze below.
+      // tilt scales the tangent every word rotates by; 1 is the curve's own
+      // tangent. It is off 1 because the carve line and the cornice the fit
+      // was read off are different circles in 3D, so their projected tangents
+      // differ — but a value far from 1 means the ellipse itself is wrong.
+      const BAND = { cx: 624, cy: -15, rx: 580, ry: 333.9, tilt: 1.09 }
+      const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
+      const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
+      const bandDeg = (x) =>
+        ((Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI) *
+        BAND.tilt
+      // per-side x ranges: start where the band clears the front column, end
+      // where the carve line leaves the entablature. They may reach over the
+      // brain canvas box — .frieze stacks above it and hands the pointer back
+      // on its glyphs alone, so those words still open their own room.
+      const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
       const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
       const half = Math.ceil(folders.length / 2)
       const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
-      const EDGE_LIFT = 27.5 // px the outermost word is raised above the ellipse
-      const EDGE_ROT_BOOST = 0.15 // extra rotation fraction for the outermost word
       // attach before measuring: getComputedTextLength needs a laid-out tree
       frieze.appendChild(svg)
       // the hovered room's folder-note description surfaces in the middle of
@@ -790,55 +938,52 @@
           }),
         )
       }
-      // per-side x ranges, stopping short of the brain canvas box (x 426-851)
-      // where it would swallow the clicks
-      ;[[folders.slice(0, half), 85, 420], [folders.slice(half), 856, 1140]].forEach(
-        ([list, x0, x1]) => {
-          const leftSide = x0 < CX
-          const words = list.map((folder) => {
-            const text = document.createElementNS(NS, "text")
-            text.setAttribute("text-anchor", "middle")
-            const a = document.createElementNS(NS, "a")
-            a.setAttribute("href", "/" + folder + "/")
-            a.setAttribute("class", "frieze-word")
-            a.dataset.folder = folder
-            a.style.setProperty("--tint", folderColor(folder))
-            a.textContent = folder.replace(/-/g, " ")
-            a.addEventListener("pointerenter", () => hlEmit(folder))
-            a.addEventListener("pointerleave", () => hlEmit(null))
-            text.appendChild(a)
-            svg.appendChild(text)
-            return { folder, text, a }
-          })
+      const sides = [folders.slice(0, half), folders.slice(half)].map((list) =>
+        list.map((folder) => {
+          const text = document.createElementNS(NS, "text")
+          text.setAttribute("text-anchor", "middle")
+          const a = document.createElementNS(NS, "a")
+          a.setAttribute("href", "/" + folder + "/")
+          a.setAttribute("class", "frieze-word")
+          a.dataset.folder = folder
+          a.style.setProperty("--tint", folderColor(folder))
+          a.textContent = folder.replace(/-/g, " ")
+          a.addEventListener("pointerenter", () => hlEmit(folder))
+          a.addEventListener("pointerleave", () => hlEmit(null))
+          text.appendChild(a)
+          svg.appendChild(text)
+          return text
+        }),
+      )
+      // re-runnable so ?tune can re-place every word as the band is dragged
+      const layout = () => {
+        sides.forEach((words, s) => {
+          const { x0, x1 } = SIDES[s]
           // measure actual glyph widths (only possible once attached to the
           // DOM) so long words get real room instead of a fixed index slot
-          const widths = words.map((w) => w.text.getComputedTextLength())
-          const span = widths.reduce((s, w) => s + w, 0) + WORD_GAP * (words.length - 1)
+          const widths = words.map((t) => t.getComputedTextLength())
+          const span = widths.reduce((a, b) => a + b, 0) + WORD_GAP * (words.length - 1)
           const scale = Math.min(1, (x1 - x0) / (span || 1))
           let cursor = x0 + Math.max(0, (x1 - x0 - span * scale) / 2)
-          words.forEach(({ folder, text }, i) => {
-            const w = widths[i] * scale
-            const x = cursor + w / 2
-            cursor += w + WORD_GAP * scale
-            // the outermost two words per side sit right where the band
-            // ducks behind the columns and the ellipse model undershoots
-            // the real curve there — pull just those up/around faster
-            const outerRank = leftSide ? i : words.length - 1 - i
-            const edgeBoost = outerRank === 0 ? 1 : outerRank === 1 ? 0.35 : 0
-            // half a line-height back down for the outermost two — the edge
-            // lift above overshoots by a hair right at the two end words
-            const outerDrop = outerRank <= 1 ? 6 : 0
-            const o = FRIEZE_OVERRIDES[folder] || {}
-            const fx = o.x ?? x
-            const fy = o.y ?? bandY(x) - edgeBoost * EDGE_LIFT + outerDrop
-            const fdeg = o.deg ?? bandDeg(x) * (1 + edgeBoost * EDGE_ROT_BOOST)
+          words.forEach((text, i) => {
+            const x = cursor + (widths[i] * scale) / 2
+            cursor += widths[i] * scale + WORD_GAP * scale
             text.setAttribute(
               "transform",
-              `translate(${fx.toFixed(1)} ${fy.toFixed(1)}) rotate(${fdeg.toFixed(1)})`,
+              `translate(${x.toFixed(1)} ${bandY(x).toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
             )
           })
-        },
-      )
+        })
+        if (guide) {
+          const pts = []
+          for (let x = 40; x <= 1212; x += 12) pts.push(`${x} ${bandY(x).toFixed(1)}`)
+          guide.setAttribute("d", "M" + pts.join("L"))
+        }
+      }
+      const guide = TUNE ? svg.appendChild(document.createElementNS(NS, "path")) : null
+      if (guide) guide.setAttribute("style", "fill:none;stroke:#0ff;stroke-width:1;opacity:.7")
+      layout()
+      if (TUNE) tuneFrieze(BAND, SIDES, layout)
       // the brain echoes back: hovering a section star lights its word — and
       // rides the same bus, so a star and its room name both raise the panel
       const onHl = (e) => {
@@ -1342,6 +1487,7 @@
       init()
       initExpand()
       initFrieze()
+      if (TUNE) tuneBrain()
       initShelf()
       initQuotes()
       initHelp()
@@ -1356,6 +1502,7 @@
   init()
   initExpand()
   initFrieze()
+  if (TUNE) tuneBrain()
   initShelf()
   initQuotes()
   initHelp()
