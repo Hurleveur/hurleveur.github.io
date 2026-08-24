@@ -738,6 +738,13 @@
         "box-shadow:0 4px 20px rgba(0,0,0,.5)",
     )
     document.body.appendChild(p)
+    // mirror the panel to tune.out on the dev server, debounced. One observer
+    // on the shared panel covers both tuners, whatever they print
+    let pending
+    new MutationObserver(() => {
+      clearTimeout(pending)
+      pending = setTimeout(() => fetch("/__tune", { method: "POST", body: p.innerText }), 250)
+    }).observe(p, { childList: true, characterData: true, subtree: true })
     return p
   }
   // label + range + live number; writes obj[key] and calls onInput
@@ -902,7 +909,7 @@
       // tangent. It is off 1 because the carve line and the cornice the fit
       // was read off are different circles in 3D, so their projected tangents
       // differ — but a value far from 1 means the ellipse itself is wrong.
-      const BAND = { cx: 624, cy: -15, rx: 580, ry: 333.9, tilt: 1.09 }
+      const BAND = { cx: 626.5, cy: -20, rx: 580, ry: 333.9, tilt: 1.02 }
       const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
       const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
       const bandDeg = (x) =>
