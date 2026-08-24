@@ -454,6 +454,16 @@ export async function handleBuild(argv) {
 
     await build(clientRefresh)
     const server = http.createServer(async (req, res) => {
+      // LOCI PATCH: /?tune posts its panel here so the numbers land in a file
+      // on disk — an agent can read tune.out instead of asking for a paste
+      if (req.method === "POST" && req.url?.endsWith("/__tune")) {
+        let body = ""
+        for await (const chunk of req) body += chunk
+        await promises.writeFile("tune.out", body)
+        res.writeHead(204)
+        res.end()
+        return
+      }
       if (argv.baseDir && !req.url?.startsWith(argv.baseDir)) {
         console.log(
           styleText(

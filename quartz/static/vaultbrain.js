@@ -738,6 +738,13 @@
         "box-shadow:0 4px 20px rgba(0,0,0,.5)",
     )
     document.body.appendChild(p)
+    // mirror the panel to tune.out on the dev server, debounced. One observer
+    // on the shared panel covers both tuners, whatever they print
+    let pending
+    new MutationObserver(() => {
+      clearTimeout(pending)
+      pending = setTimeout(() => fetch("/__tune", { method: "POST", body: p.innerText }), 250)
+    }).observe(p, { childList: true, characterData: true, subtree: true })
     return p
   }
   // label + range + live number; writes obj[key] and calls onInput

@@ -44,6 +44,8 @@ Four forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`,
 Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (1252x428 image px, the SVG viewBox and the band's own aspect ratio, so % insets map 1:1 at every width) and live in two different files: the mini-brain box (`#vault-brain` insets in `custom.scss`) and the frieze band ellipse the room names ride (`BAND` + `SIDES` in `vaultbrain.js`).
 
 - Run `npm run tune` and open `/?tune`: drag the brain box, slide the band, paste the panel's numbers back into the source. Nothing else is a reliable way to set these.
+- **Start the dev server with `dangerouslyDisableSandbox: true`.** The Bash sandbox unshares the network namespace, so a server started inside it prints "listening at 8080" while nothing is bound on the host — the browser gets nothing. Confirm with `ss -ltn | grep :8080`, never with `curl` from inside the sandbox (always `000`).
+- The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
 - `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
 - `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
 
