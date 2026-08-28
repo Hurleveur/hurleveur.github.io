@@ -53,6 +53,8 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 
 Markdown publishes on `publish: true` frontmatter. Everything else — pdf, html, canvas, excalidraw, images — needs a glob in `publish-exceptions.txt`, whose header explains the rest. Default is deny, in both paths.
 
+`quartz/static/pages/` sits outside both gates: anything committed there ships verbatim and is public the moment it is pushed — the repo itself is public. Nothing from the vault goes there without Alexandre saying so; a vault HTML page publishes through `publish-exceptions.txt`, never by copying it under `static/`.
+
 `build.ts` sets `ctx.allFiles` to the full, unfiltered file list before the `ExplicitPublish` filter ever runs — it stays unfiltered for the whole build, gate or no gate. Every emitter and pageType gets a separately filtered `content`/`allFiles` argument passed into `emit()`, and that filtered argument is the only file list that respects `publish: true`. Read `ctx.allFiles` anywhere in an emitter and private vault files leak into the public build. Hit twice already (community plugins doing exactly this) — when patching a fork in `local-plugins/` or writing a new emitter, always use the passed-in `content`/`allFiles`, never `ctx.allFiles`.
 
 ## Categories → folder membership
