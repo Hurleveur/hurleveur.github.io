@@ -1040,11 +1040,13 @@
     document.dispatchEvent(new CustomEvent("render"))
   }
 
-  // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
+  // palace quote slab: rotate through quotes.json (built by the Quotes emitter
   // from #quote lines + dashed lines in quote files). Each entry is
-  // [text, source, url?]; source is the note's folder, e.g. "from website",
+  // [html, source, url?]; source is the note's folder, e.g. "from website",
   // and url (only set for individual inline-tagged quotes, not quote files)
-  // points at the note the quote came from.
+  // points at the note the quote came from. The text is HTML, not plain text:
+  // the emitter escapes it and turns any [[wikilink]] in the line into an
+  // anchor, so the quote's own links go somewhere instead of showing brackets.
   async function initQuotes() {
     const q = document.getElementById("rotating-quote")
     const src = document.getElementById("quote-source")
@@ -1067,7 +1069,7 @@
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
         const [text, from, url] = QUOTES[i]
-        q.textContent = text
+        q.innerHTML = text
         if (url) {
           const a = document.createElement("a")
           a.href = url

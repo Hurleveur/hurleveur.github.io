@@ -1,6 +1,6 @@
 import test, { describe } from "node:test"
 import assert from "node:assert"
-import { isQuoteFile, extract } from "./quotes"
+import { isQuoteFile, extract, linkify } from "./quotes"
 
 describe("isQuoteFile", () => {
   test("frontmatter tags polluted by an inline #quote tag do NOT mark the whole file", () => {
@@ -44,5 +44,31 @@ describe("extract", () => {
       ["first quote", "from quotes", false],
       ["second quote", "from quotes", false],
     ])
+  })
+})
+
+describe("linkify", () => {
+  const slugs = ["meaning/on-the-shortness-of-time", "website/website/index", "religion"]
+
+  test("a wikilink in the quote becomes a link to the note", () => {
+    assert.strictEqual(
+      linkify("Read [[On the shortness of time]]", slugs),
+      'Read <a href="/meaning/on-the-shortness-of-time">On the shortness of time</a>',
+    )
+  })
+
+  test("an alias is the label, the target is the href", () => {
+    assert.strictEqual(linkify("[[religion|faith]]", slugs), '<a href="/religion">faith</a>')
+  })
+
+  test("a folder note resolves through its /index slug", () => {
+    assert.strictEqual(
+      linkify("[[Website]]", slugs),
+      '<a href="/website/website/index">Website</a>',
+    )
+  })
+
+  test("an unresolvable link degrades to plain text, and text is escaped", () => {
+    assert.strictEqual(linkify("a < b and [[No such note]]", slugs), "a &lt; b and No such note")
   })
 })

@@ -1,4 +1,4 @@
-import { FilePath, joinSegments } from "../../util/path"
+import { FilePath, joinSegments, slugifyFilePath } from "../../util/path"
 import { QuartzEmitterPlugin } from "../types"
 import { ProcessedContent } from "../vfile"
 import { BuildCtx } from "../../util/ctx"
@@ -33,6 +33,39 @@ function clean(line: string): string {
     .trim()
 }
 
+const ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ESCAPES[c]!)
+
+// A quote line can carry wikilinks — half the ones in the vault are a sentence
+// plus "[[On the shortness of time]]", and a few are nothing but the link. The
+// slab set them with textContent, so they showed as literal [[brackets]] and
+// went nowhere. Resolve them here, where the slug list exists, and the client
+// can set innerHTML on text that is already escaped.
+//
+// Resolution mirrors markdownLinkResolution: shortest — the exact slug, then
+// the "<slug>/index" spelling a folder note takes, then any slug ending in
+// either. An unresolvable link degrades to its label as plain text.
+export function linkify(text: string, slugs: string[]): string {
+  const out: string[] = []
+  let last = 0
+  for (const m of text.matchAll(/\[\[([^\]]+)\]\]/g)) {
+    const at = m.index ?? 0
+    out.push(esc(text.slice(last, at)))
+    last = at + m[0].length
+    const [target, alias] = (m[1] ?? "").split("|")
+    const name = ((target ?? "").split("#")[0] ?? "").trim()
+    const wanted = slugifyFilePath(name as FilePath) as string
+    const asIndex = `${wanted}/index`
+    const hit =
+      slugs.find((s) => s === wanted || s === asIndex) ??
+      slugs.find((s) => s.endsWith(`/${wanted}`) || s.endsWith(`/${asIndex}`))
+    const label = esc((alias ?? name).trim())
+    out.push(hit ? `<a href="/${hit}">${label}</a>` : label)
+  }
+  out.push(esc(text.slice(last)))
+  return out.join("")
+}
+
 // tagged = line carried an inline #quote tag (an individual quote, links back
 // to its note); dash-only lines from quote files stay unlinked
 export function extract(
@@ -60,6 +93,9 @@ export function extract(
 
 async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath> {
   const quotes: [string, string, string?][] = []
+  const slugs = content
+    .map(([, v]) => v.data.slug as string | undefined)
+    .filter(Boolean) as string[]
   for (const [, vfile] of content) {
     // filePath is the full openable path; relativePath is relative to content/
     const filePath = vfile.data.filePath as string | undefined
@@ -75,7 +111,8 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
     }
     const url = "/" + ((vfile.data.slug as string | undefined) ?? "")
     for (const [text, src, tagged] of extract(raw, isQuoteFile(relPath, vfile.data), source)) {
-      quotes.push(tagged ? [text, src, url] : [text, src])
+      const html = linkify(text, slugs)
+      quotes.push(tagged ? [html, src, url] : [html, src])
     }
   }
   const dest = joinSegments(ctx.argv.output, "static", "quotes.json") as FilePath
