@@ -543,6 +543,15 @@ body[data-slug="index"] {
           drop-shadow(0 0 5px var(--tint))
           drop-shadow(0 0 14px color-mix(in srgb, var(--tint) 60%, transparent));
       }
+
+      /* the idle tour (hlEmit's soft flag): lit, but a step under a real
+         hover. It runs unattended, so it should read as light sweeping slowly
+         round the room, not as something the pointer is doing. */
+      &.hl-soft:not(:hover) {
+        fill: color-mix(in srgb, var(--tint) 80%, #5c6470);
+        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
+          drop-shadow(0 0 4px color-mix(in srgb, var(--tint) 65%, transparent));
+      }
     }
   }
 
