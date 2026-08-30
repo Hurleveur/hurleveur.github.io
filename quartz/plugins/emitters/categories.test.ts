@@ -16,6 +16,11 @@ describe("categorySlug", () => {
     assert.strictEqual(categorySlug("Podcast episodes"), "podcast-episodes")
   })
 
+  test("a full-path folder-note link reduces to its last segment", () => {
+    assert.strictEqual(categorySlug("[[Shared/Clippings/Clippings|Clippings]]"), "clippings")
+    assert.strictEqual(categorySlug("[[Meaning/Questions/Questions|Questions]]"), "questions")
+  })
+
   test("empty for junk", () => {
     assert.strictEqual(categorySlug("[[]]"), "")
   })

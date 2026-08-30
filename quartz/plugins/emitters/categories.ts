@@ -26,9 +26,17 @@ export type CategoryMember = { slug: string; title: string; origin: string }
 // A categories entry is a wikilink or bare name: "[[Library]]",
 // "[[Books.base#Author]]", "[[Guides|the guides]]", "Quotes". Reduce it to the
 // folder-name slug so matching is case- and space-insensitive.
+//
+// Only the last path segment counts. A folder note has to be linked by its full
+// path — `markdownLinkResolution: shortest` cannot find "[[Clippings]]" because
+// `Shared/Clippings/Clippings.md` slugs to "shared/clippings/index" — so the
+// vault writes "[[Shared/Clippings/Clippings|Clippings]]". Slugifying the whole
+// path gives "shared/clippings/index", which matches no folder name and silently
+// dropped every note in that form from its category.
 export function categorySlug(raw: string): string {
   const name = raw.replace(/^\[\[/, "").replace(/\]\]$/, "").split(/[#|]/)[0].trim()
-  return name ? slugifyFilePath(name as FilePath, true) : ""
+  const leaf = name.split("/").filter(Boolean).pop() ?? ""
+  return leaf ? slugifyFilePath(leaf as FilePath, true) : ""
 }
 
 export function categoriesOf(data: any): string[] {
