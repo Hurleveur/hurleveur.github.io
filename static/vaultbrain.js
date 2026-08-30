@@ -45,8 +45,14 @@
 
   // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
   // stars, hovering a star lights its frieze word. detail = folder or null.
-  function hlEmit(folder) {
-    window.dispatchEvent(new CustomEvent("vb-folder-hl", { detail: folder }))
+  // ev.soft marks the idle tour in initFrieze rather than a pointer: the same
+  // highlight at SOFT_HL strength, so the rooms it is not on stay readable
+  // instead of being pushed down the way a real hover pushes them.
+  const SOFT_HL = 0.5
+  function hlEmit(folder, soft) {
+    const ev = new CustomEvent("vb-folder-hl", { detail: folder })
+    ev.soft = !!soft
+    window.dispatchEvent(ev)
   }
 
   // canvas colors follow the theme: Quartz's darkmode script stamps saved-theme
@@ -375,6 +381,8 @@
     // cutting. hlMax is how lit the sky is at all — 0 means nothing is hovered
     // and nothing should be dimmed.
     const hlW = {}
+    // how far the lit section is pushed: 1 for a pointer, SOFT_HL for the tour
+    let hlAmp = 1
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
     function easeHl() {
@@ -382,7 +390,7 @@
       const k = reduceMotion ? 1 : 0.12
       hlMax = 0
       for (const f of folders) {
-        hlW[f] += ((f === hlFolder ? 1 : 0) - hlW[f]) * k
+        hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
         if (hlW[f] > hlMax) hlMax = hlW[f]
       }
     }
@@ -395,6 +403,7 @@
       mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
     const onHl = (e) => {
       hlFolder = e.detail
+      hlAmp = e.soft ? SOFT_HL : 1
       if (reduceMotion) draw()
     }
     window.addEventListener("vb-folder-hl", onHl)
@@ -994,13 +1003,42 @@
       // the brain echoes back: hovering a section star lights its word — and
       // rides the same bus, so a star and its room name both raise the panel
       const onHl = (e) => {
-        svg
-          .querySelectorAll(".frieze-word")
-          .forEach((w) => w.classList.toggle("hl", w.dataset.folder === e.detail))
+        svg.querySelectorAll(".frieze-word").forEach((w) => {
+          const on = w.dataset.folder === e.detail
+          w.classList.toggle("hl", on)
+          w.classList.toggle("hl-soft", on && !!e.soft)
+        })
         showDesc(e.detail)
       }
       window.addEventListener("vb-folder-hl", onHl)
       if (window.addCleanup) window.addCleanup(() => window.removeEventListener("vb-folder-hl", onHl))
+
+      // idle tour: with nothing hovered, the rooms light one after another so
+      // the brain reads as alive and every room name gets its turn with its
+      // description. A pointer anywhere on the bus wins and stops the tour;
+      // it picks back up a few seconds after the pointer leaves. Paused while
+      // the observatory is open (the frieze is hidden under it) and while the
+      // tab is in the background, where the animation is only burning battery.
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && folders.length > 1) {
+        let at = -1
+        let quietUntil = 0
+        const tour = setInterval(() => {
+          if (Date.now() < quietUntil || document.hidden) return
+          if (document.body.classList.contains("vb-open")) return
+          at = (at + 1) % folders.length
+          hlEmit(folders[at], true)
+        }, 3200)
+        const onPointerBus = (e) => {
+          if (!e.soft) quietUntil = Date.now() + 6000
+        }
+        window.addEventListener("vb-folder-hl", onPointerBus)
+        if (window.addCleanup) {
+          window.addCleanup(() => {
+            clearInterval(tour)
+            window.removeEventListener("vb-folder-hl", onPointerBus)
+          })
+        }
+      }
     }
   }
 
@@ -1040,11 +1078,13 @@
     document.dispatchEvent(new CustomEvent("render"))
   }
 
-  // palace quote slab: rotate through quotes.json (built by scripts/quotes.mjs
+  // palace quote slab: rotate through quotes.json (built by the Quotes emitter
   // from #quote lines + dashed lines in quote files). Each entry is
-  // [text, source, url?]; source is the note's folder, e.g. "from website",
+  // [html, source, url?]; source is the note's folder, e.g. "from website",
   // and url (only set for individual inline-tagged quotes, not quote files)
-  // points at the note the quote came from.
+  // points at the note the quote came from. The text is HTML, not plain text:
+  // the emitter escapes it and turns any [[wikilink]] in the line into an
+  // anchor, so the quote's own links go somewhere instead of showing brackets.
   async function initQuotes() {
     const q = document.getElementById("rotating-quote")
     const src = document.getElementById("quote-source")
@@ -1067,7 +1107,7 @@
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
         const [text, from, url] = QUOTES[i]
-        q.textContent = text
+        q.innerHTML = text
         if (url) {
           const a = document.createElement("a")
           a.href = url
