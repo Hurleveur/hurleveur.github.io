@@ -40,16 +40,23 @@ function resolveEmbeds(
     if (!link.startsWith("[[")) continue;
 
     const target = link.replace(/^\[\[/, "").replace(/\]\]$/, "");
-    const targetLower = target.toLowerCase();
 
-    const page = allFiles.find((f) => {
-      if (!f.slug) return false;
-      if (f.slug === targetLower) return true;
-      const lastSegment = f.slug.split("/").pop();
-      return lastSegment === targetLower;
-    });
+    // LOCI PATCH: match on the SLUGIFIED wikilink, not its lowercased raw text.
+    // "[[information inputs]]" lowercases to "information inputs", which never
+    // equals the slug "information-inputs", so every multi-word link fell to the
+    // "Note not found" fallback and a root-relative href. Folder notes slug to
+    // "<folder>/index", so "[[Life structure]]" has to be accepted in that
+    // spelling too. Exact slug wins over a trailing-segment match.
+    const name = (target.split(/[#|]/)[0] ?? "").trim();
+    const wanted = slugifyFilePath(name as FilePath) as string;
+    const wantedIndex = wanted.endsWith("/index") ? wanted : `${wanted}/index`;
+    const page =
+      allFiles.find((f) => f.slug === wanted || f.slug === wantedIndex) ??
+      allFiles.find(
+        (f) => f.slug?.endsWith(`/${wanted}`) || f.slug?.endsWith(`/${wantedIndex}`),
+      );
 
-    const pageSlug = (page?.slug ?? slugifyFilePath(target as FilePath)) as FullSlug;
+    const pageSlug = (page?.slug ?? wanted) as FullSlug;
     const href = resolveRelative(currentSlug, pageSlug);
 
     if (!page || !page.htmlAst) {

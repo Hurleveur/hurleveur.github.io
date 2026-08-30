@@ -4630,14 +4630,13 @@ function resolveEmbeds(data, currentSlug, allFiles) {
     const link = el.link ?? "";
     if (!link.startsWith("[[")) continue;
     const target = link.replace(/^\[\[/, "").replace(/\]\]$/, "");
-    const targetLower = target.toLowerCase();
-    const page = allFiles.find((f5) => {
-      if (!f5.slug) return false;
-      if (f5.slug === targetLower) return true;
-      const lastSegment = f5.slug.split("/").pop();
-      return lastSegment === targetLower;
-    });
-    const pageSlug = page?.slug ?? slugifyFilePath(target);
+    const name = (target.split(/[#|]/)[0] ?? "").trim();
+    const wanted = slugifyFilePath(name);
+    const wantedIndex = wanted.endsWith("/index") ? wanted : `${wanted}/index`;
+    const page = allFiles.find((f5) => f5.slug === wanted || f5.slug === wantedIndex) ?? allFiles.find(
+      (f5) => f5.slug?.endsWith(`/${wanted}`) || f5.slug?.endsWith(`/${wantedIndex}`)
+    );
+    const pageSlug = page?.slug ?? wanted;
     const href = resolveRelative(currentSlug, pageSlug);
     if (!page || !page.htmlAst) {
       result[el.id] = {
