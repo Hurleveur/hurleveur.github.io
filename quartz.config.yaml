@@ -196,7 +196,7 @@ plugins:
     layout:
       position: left
       priority: 10
-  - source: github:quartz-community/darkmode
+  - source: ./local-plugins/darkmode # patched: light is the default theme; the OS preference is never read or written
     enabled: true
     layout:
       position: left
