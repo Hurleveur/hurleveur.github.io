@@ -610,11 +610,13 @@ body[data-slug="index"] {
    brain-hide below and stays the way in on small screens */
 #vb-expand {
   position: absolute;
-  /* tucked onto the brain's own top-right corner (the #vault-brain box below
-     starts at top 31.19%, right 32.12%) so it reads as that object's control
-     rather than a widget floating in the dome */
-  top: 30%;
-  right: 31%;
+  /* inside the #vault-brain box's top-right corner (box: top 31.19%,
+     right 32.12%), grazing the painted glow's upper-right shoulder rather than
+     floating in the dome. Measured at 1440px: the button's left edge lands ~16px
+     off the silhouette, against ~73px at the box corner itself — the brain is a
+     dome, so its bounding-box corner is empty sky. */
+  top: 36%;
+  right: 33.6%;
   z-index: 3;
   display: inline-flex;
   align-items: center;
