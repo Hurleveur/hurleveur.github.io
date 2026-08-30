@@ -28,10 +28,11 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 
 `.quartz/plugins/` holds clones of the community plugins. It is **gitignored and regenerated** by `prebuild` (`npm run install-plugins`), so edits there get wiped. To change a community plugin: copy it to `local-plugins/<name>/`, point `source:` at that path in `quartz.config.yaml` with a `# patched:` comment saying why, and mark every changed hunk with a `LOCI PATCH` comment so the diff against upstream stays findable.
 
-Four forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`, `explorer`.
+Six forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`, `explorer`, `content-meta`, `darkmode`.
 
 - `dist/` must be committed — the loader's entry is `dist/index.js`, not `src/`.
-- After patching a fork: `npm i && npm run build` inside it, **then restart the dev server**. It bundles `dist` at startup and silently serves the stale build otherwise.
+- Delete the copied `.git` before `git add`, or the fork commits as an empty gitlink instead of its files.
+- After patching a fork: `npm install --allow-git=root && npm run build` inside it, **then restart the dev server**. It bundles `dist` at startup and silently serves the stale build otherwise.
 - `quartz.lock.json` keeps a now-unused entry per forked plugin. Leave it: its `commit` records the upstream fork point for a future re-sync.
 - `node_modules/` inside a fork is gitignored and only needed to rebuild `dist`.
 
@@ -48,6 +49,7 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 - The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
 - `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
 - `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
+- `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
 
 ## Publishing gates
