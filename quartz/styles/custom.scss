@@ -86,12 +86,15 @@ body {
   }
 
   h1 {
-    font-size: clamp(2rem, 4.6vw, 3.3rem);
-    font-weight: 500;
+    /* a plaque over the door, not a billboard: the rotunda above it is the
+       thing to look at, so this stays quiet — small, light, slightly faded */
+    font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+    font-weight: 400;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    line-height: 1.08;
+    line-height: 1.25;
     margin: 0;
+    color: #6f6857;
   }
 
   .latin {
@@ -435,7 +438,11 @@ body[data-slug="index"] {
   aspect-ratio: 1252 / 428;
   border-radius: 6px;
   overflow: hidden;
-  background: url("/static/rotunda.png") center / cover no-repeat;
+  /* webp, 62KB against the PNG's 880KB — this is the first paint of the home
+     page, so the PNG's weight was all above-the-fold latency. rotunda.png stays
+     as the lossless master and the reference the /?tune insets are read off:
+     python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)" */
+  background: url("/static/rotunda.webp") center / cover no-repeat;
 
   &::after {
     /* fade the band's foot into the marble page */
@@ -603,8 +610,11 @@ body[data-slug="index"] {
    brain-hide below and stays the way in on small screens */
 #vb-expand {
   position: absolute;
-  top: 27%;
-  right: 30%;
+  /* tucked onto the brain's own top-right corner (the #vault-brain box below
+     starts at top 31.19%, right 32.12%) so it reads as that object's control
+     rather than a widget floating in the dome */
+  top: 30%;
+  right: 31%;
   z-index: 3;
   display: inline-flex;
   align-items: center;
@@ -612,9 +622,11 @@ body[data-slug="index"] {
   min-height: 44px;
   padding: 0 0.7rem;
   border-radius: 999px;
-  border: 1px solid rgba(223, 227, 242, 0.5);
-  background: rgba(11, 14, 31, 0.55);
-  color: #dfe3f2;
+  /* gilded: the one warm thing on a cold blue dome, so the eye finds it */
+  border: 1px solid rgba(226, 189, 112, 0.65);
+  background: rgba(28, 20, 8, 0.55);
+  color: #e8c884;
+  box-shadow: 0 0 12px rgba(226, 189, 112, 0.22);
   font-family: var(--sans);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -631,9 +643,10 @@ body[data-slug="index"] {
 
   &:hover,
   &:focus-visible {
-    background: rgba(11, 14, 31, 0.82);
-    border-color: #6ab7e0;
-    color: #fff;
+    background: rgba(38, 27, 10, 0.85);
+    border-color: #f4d79b;
+    color: #fff3d8;
+    box-shadow: 0 0 18px rgba(226, 189, 112, 0.45);
   }
 }
 
