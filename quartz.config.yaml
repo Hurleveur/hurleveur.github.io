@@ -46,9 +46,10 @@ plugins:
     enabled: true
     options:
       defaultDateType: modified
+      # content/ is gitignored (vault snapshot), so git can never date a note:
+      # the lookup only produced ~600 "isn't yet tracked by git" warnings per build.
       priority:
         - frontmatter
-        - git
         - filesystem
     order: 10
   - source: github:quartz-community/syntax-highlighting
@@ -92,8 +93,11 @@ plugins:
   - source: github:quartz-community/description
     enabled: true
     order: 70
+  # Off: the vault has zero math — a full build renders no katex span on any page,
+  # while KaTeX's strict parser warned ~680 times about emoji it read as math.
+  # Flip back to true the day a note actually needs $...$.
   - source: github:quartz-community/latex
-    enabled: true
+    enabled: false
     options:
       renderEngine: katex
     order: 80
@@ -181,7 +185,7 @@ plugins:
     layout:
       position: beforeBody
       priority: 10
-  - source: ./local-plugins/content-meta # patched: render a note's `url:` frontmatter as a source link (clippings must show where they came from)
+  - source: ./local-plugins/content-meta # patched: render a note's `url:` or `link:` frontmatter as a source link (clippings and shared notes must show where they came from)
     enabled: true
     layout:
       position: beforeBody
