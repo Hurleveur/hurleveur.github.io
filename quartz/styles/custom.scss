@@ -183,6 +183,46 @@ body {
   }
 }
 
+/* NIGHT — the hero is painted in daylight hex, so every one of its colours has
+   to be restated for the dark page. Left as-is they are dark ink on a dark
+   ground: the eyebrow, the colonnade bars and the quote itself all but vanish.
+   Contrast against --light (#191713) is at least 5:1 for text here. */
+[saved-theme="dark"] .palace-hero {
+  /* the oculus beam is painted into rotunda.png above; on a dark page this
+     overlay reads as a grey rectangle laid over the top of the hero, so it
+     drops to a hint of warmth rather than a wash */
+  &::before {
+    background:
+      radial-gradient(ellipse 46% 60% at 50% -12%, rgba(255, 247, 225, 0.09) 0%, rgba(0, 0, 0, 0) 62%),
+      linear-gradient(180deg, rgba(150, 172, 190, 0.06) 0%, rgba(0, 0, 0, 0) 30%);
+  }
+
+  .eyebrow {
+    opacity: 0.8;
+  }
+
+  h1 {
+    color: #a89f8a;
+  }
+
+  .latin {
+    color: #a9a18d;
+  }
+
+  .colonnade {
+    opacity: 0.62;
+
+    span {
+      background: #8d8674;
+    }
+  }
+}
+
+[saved-theme="dark"] .quote-slab blockquote {
+  color: #d2cbb6;
+}
+
+
 .whoami-card {
   max-width: 34rem;
   margin: 3rem auto 0;
