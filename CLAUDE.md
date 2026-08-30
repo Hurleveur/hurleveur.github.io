@@ -48,6 +48,7 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 - The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
 - `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
 - `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
+- The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
 
 ## Publishing gates
 
