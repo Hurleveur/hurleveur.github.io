@@ -6,7 +6,8 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 
 - A note edited in the vault — new frontmatter, a rename, a move — is invisible here until a resync. Check the vault before concluding a feature is broken; that mistake has already cost a debugging session.
 - Editing `content/` directly is pointless, the next resync overwrites it.
-- `content/` is gitignored except `content/index.md`, so vault content never enters git.
+- `content/` is excluded in `.git/info/exclude`, not `.gitignore` — Quartz's input glob honors `.gitignore` and saw 0 input files (7413e91c).
+- That file is per-clone and untracked: a fresh clone has no such rule and `git add -A` publishes the whole private vault to this public repo. Check `git check-ignore -v "content/Daily Journal"` before any broad `git add`; if it prints nothing, re-add `content/*` and `!content/index.md` there.
 - Drift accumulates. A resync can move hundreds of files. Dry-run it (`rsync -avn --delete …`, same flags as deploy.sh) and read the deletion list before running it for real — renames and reorganisation show up as deletes.
 
 ## How the site actually publishes
@@ -65,3 +66,5 @@ Markdown publishes on `publish: true` frontmatter. Everything else — pdf, html
 A note's `categories:` frontmatter lists it inside any published folder of that name, wherever it physically lives — a book under `Alignment/` carrying `[[Library]]` appears in `/library` too, marked as a guest with its real origin. `quartz/plugins/emitters/categories.ts` emits `static/categoryIndex.json`; `vaultbrain.js` merges it into folder listing pages, the `explorer` fork into the sidebar trie. No category name is hardcoded: a category starts working the moment a published folder of that name exists.
 
 Only the wikilink's **last segment** names the category. A folder note has to be linked by its full path (`[[Shared/Clippings/Clippings|Clippings]]`) because `markdownLinkResolution: shortest` can't resolve `[[Clippings]]` — `Folder/Folder.md` slugs to `folder/index`.
+
+The full path only wins when no other note shares that name. Where one does, every link form loses to it and there is no wikilink that reaches the folder note — `[[Meaning]]`, `[[Meaning/Meaning]]` and `[[Meaning/index]]` all land on `Friends/Meaning.md`. Build such a link in code as `/<folder>/`, or link a different note.
