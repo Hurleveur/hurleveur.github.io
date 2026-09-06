@@ -159,7 +159,7 @@ body {
    would push the quote off a phone screen. */
 .vault-intro {
   margin: 2.2rem auto 0;
-  max-width: 34rem;
+  max-width: 44rem;
   padding: 0 1rem;
   text-align: center;
 
@@ -168,17 +168,6 @@ body {
     font-size: 1rem;
     line-height: 1.65;
     color: #5f5949;
-  }
-
-  /* "Getting around" arrives as a heading and a list; neither is hero furniture,
-     so they read as a quiet aside rather than a second title */
-  h2 {
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    margin: 1.6rem 0 0.7rem;
-    color: #8a8168;
   }
 
   ul {
@@ -190,15 +179,44 @@ body {
 
   li {
     margin: 0 0 0.5rem;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.65;
     color: #5f5949;
   }
 }
 
+/* the note's "Getting around" section folds under its own heading, open by
+   default. The heading becomes the summary and keeps the voice of the
+   paragraph above it — a line of the same prose you can roll up, not a second
+   title. <details> carries the toggle, the keyboard and the a11y on its own. */
+.vault-intro-fold {
+  margin-top: 1.4rem;
+
+  > summary {
+    cursor: pointer;
+    list-style: none; /* Firefox's own marker */
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #5f5949;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    /* the only mark that it opens: a caret in the text's own colour */
+    &::after {
+      content: " \2304";
+      opacity: 0.55;
+    }
+  }
+
+  &[open] > summary::after {
+    content: " \2303";
+  }
+}
+
 /* same control as the whoami card's "Read more" — var(--secondary) carries its
-   own night colour, so these need no [saved-theme="dark"] restatement */
-.vault-intro-more,
+   own night colour, so this needs no [saved-theme="dark"] restatement */
 .vault-intro-map {
   all: unset;
   cursor: pointer;
@@ -214,13 +232,9 @@ body {
   }
 }
 
-.vault-intro-map {
-  margin-right: 1.2rem;
-}
-
 .quote-slab {
   margin: 1.4rem auto 0;
-  max-width: 34rem;
+  max-width: 44rem;
   padding: 0 1rem;
   min-height: 5.2rem;
 
@@ -282,12 +296,9 @@ body {
   }
 
   .vault-intro p,
-  .vault-intro li {
+  .vault-intro li,
+  .vault-intro-fold > summary {
     color: #b3ab95;
-  }
-
-  .vault-intro h2 {
-    color: #9a927c;
   }
 }
 
@@ -297,7 +308,7 @@ body {
 
 
 .whoami-card {
-  max-width: 34rem;
+  max-width: 44rem;
   margin: 3rem auto 0;
   padding: 0 1.5rem;
   display: flex;
@@ -809,13 +820,15 @@ body[data-slug="index"] {
     right: -16%;
     top: 50%;
     /* shrink-to-fit inside that inset range: the slab hugs the sentence
-       instead of spanning the whole band. Bare `fit-content` clamps against
-       the unwrapped single-line width, so once a description is long enough
-       to need two lines, that clamp picks the full -16%/+16% span instead of
-       the actual wrapped-line width — the slab balloons out even though the
-       text only fills half of it. fit-content(<length>) clamps against this
-       explicit cap instead, so the wrapped shape gets hugged at any length. */
-    width: fit-content(28rem);
+       instead of spanning the whole band. Not `fit-content`, in either form —
+       the bare keyword clamps against the available -16%/+16% span, so any
+       description long enough to wrap takes the whole band; and the
+       fit-content(<length>) function is only implemented for grid tracks, so
+       as a `width` it is dropped as invalid and the box falls back to `auto`,
+       which with both insets set stretches even wider. max-content asks for
+       the unwrapped line and max-width caps it, which every engine honours. */
+    width: max-content;
+    max-width: 28rem;
     margin-inline: auto;
     transform: translateY(-50%);
     z-index: 2;

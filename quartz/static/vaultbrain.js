@@ -1309,23 +1309,22 @@
     map.href = "/vault-map"
     map.textContent = "the full map →"
 
-    box.replaceChildren(paras[0])
-    if (paras.length < 2) {
-      box.appendChild(map)
-      return
+    // the opening prose reads straight, down to the note's next heading
+    // ("Getting around"). That heading and everything under it fold into a
+    // details that starts open, so the section can be rolled up without hiding
+    // the part that says what this place is.
+    const head = paras.findIndex((el) => /^H[1-6]$/.test(el.tagName))
+    box.replaceChildren(...(head < 0 ? paras : paras.slice(0, head)))
+    if (head > -1) {
+      const fold = document.createElement("details")
+      fold.className = "vault-intro-fold"
+      fold.open = true
+      const sum = document.createElement("summary")
+      sum.textContent = paras[head].textContent
+      fold.append(sum, ...paras.slice(head + 1))
+      box.appendChild(fold)
     }
-    const more = document.createElement("button")
-    more.className = "vault-intro-more"
-    more.type = "button"
-    more.textContent = "Read more"
-    box.appendChild(more)
-    let expanded = false
-    more.addEventListener("click", () => {
-      expanded = !expanded
-      box.replaceChildren(...(expanded ? paras : [paras[0]]), more)
-      if (expanded) box.insertBefore(map, more)
-      more.textContent = expanded ? "Read less" : "Read more"
-    })
+    box.appendChild(map)
   }
 
   // the rooms: one arched door per real top-level folder, tinted like the

@@ -42,6 +42,22 @@ describe("the rooms", () => {
     )
   })
 
+  test("the getting-around section folds open, not shut", () => {
+    // the note's second heading and its list fold into a <details>; it must
+    // carry `open`, or the part of the map that tells a first-time reader how
+    // to move around the site ships collapsed and nobody clicks it.
+    assert.match(
+      initVaultIntro,
+      /fold\.open = true/,
+      "the getting-around fold no longer starts open — the section ships collapsed",
+    )
+    assert.match(
+      initVaultIntro,
+      /\^H\[1-6\]\$/,
+      "initVaultIntro no longer splits the intro at the note's own heading",
+    )
+  })
+
   test("the home page container and the selector still name each other", () => {
     assert.match(
       indexMd,
