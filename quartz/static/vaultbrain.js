@@ -386,8 +386,10 @@
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
     function easeHl() {
-      // reduced motion asked for no animation: land on the target in one frame
-      const k = reduceMotion ? 1 : 0.12
+      // reduced motion asked for no animation: land on the target in one frame.
+      // 0.12 (the old rate) crossed a room in a handful of frames — barely a
+      // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
+      const k = reduceMotion ? 1 : 0.06
       hlMax = 0
       for (const f of folders) {
         hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
@@ -418,6 +420,10 @@
       return null
     }
     function onMove(e) {
+      // touch fires pointerenter/pointermove the instant a finger lands, before
+      // pointerdown — a bare tap would flash the tooltip/highlight it was never
+      // meant to trigger, so touch skips hover entirely and acts only on tap
+      if (e.pointerType === "touch") return
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
@@ -964,8 +970,14 @@
           a.dataset.folder = folder
           a.style.setProperty("--tint", folderColor(folder))
           a.textContent = folder.replace(/-/g, " ")
-          a.addEventListener("pointerenter", () => hlEmit(folder))
-          a.addEventListener("pointerleave", () => hlEmit(null))
+          // same touch-contact-reads-as-hover issue as onMove above: a tap on
+          // the word must not flash its description before the click navigates
+          a.addEventListener("pointerenter", (e) => {
+            if (e.pointerType !== "touch") hlEmit(folder)
+          })
+          a.addEventListener("pointerleave", (e) => {
+            if (e.pointerType !== "touch") hlEmit(null)
+          })
           text.appendChild(a)
           svg.appendChild(text)
           return text
