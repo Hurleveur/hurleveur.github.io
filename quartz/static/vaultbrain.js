@@ -1274,10 +1274,12 @@
     }
   }
 
-  // homepage "what this place is": the opening paragraphs of Vault Map, via
-  // static/vaultmap.json (VaultPages emitter splits the note at its first
-  // heading). First paragraph shows; "Read more" swaps in the rest plus the way
-  // through to the full map — same teaser mechanic as the whoami card above.
+  // homepage "what this place is": Vault Map down to its rooms section, via
+  // static/vaultmap.json. Everything above "The rooms" — what this place is and
+  // how to get around it — belongs on the home page; the rooms themselves are
+  // the doors below, and the sections after them have their own homes.
+  // First paragraph shows; "Read more" swaps in the rest plus the way through
+  // to the full map — same teaser mechanic as the whoami card above.
   async function initVaultIntro() {
     const box = document.getElementById("vault-intro")
     if (!box || box.dataset.vbDone) return
@@ -1290,8 +1292,16 @@
       return
     }
     const tmp = document.createElement("div")
-    tmp.innerHTML = data.intro || ""
-    const paras = [...tmp.children]
+    tmp.innerHTML = data.html || ""
+    // cut at the rooms heading — the same anchor initRooms keys off. If the
+    // heading is ever renamed the id changes, so fall back to the first heading
+    // of any kind rather than pouring the whole note into the hero.
+    const stop = tmp.querySelector("#the-rooms") ?? tmp.querySelector("h1, h2, h3, h4, h5, h6")
+    const paras = []
+    for (const el of tmp.children) {
+      if (el === stop) break
+      paras.push(el)
+    }
     if (!paras.length) return
 
     const map = document.createElement("a")

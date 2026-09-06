@@ -32,14 +32,9 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
     const jsx = htmlToJsx(filePath as FilePath, htmlRoot)
     const html = jsx ? render(jsx) : ""
 
-    // intro = everything above the note's first heading. Vault Map opens with
-    // three paragraphs saying what this place is, then breaks into sections;
-    // the homepage wants only that opening, the sections have their own homes.
-    const intro = html.split(/<h[1-6][\s>]/)[0]
-
     const dest = joinSegments(ctx.argv.output, "static", outName) as FilePath
     await fs.promises.mkdir(path.dirname(dest), { recursive: true })
-    await fs.promises.writeFile(dest, JSON.stringify({ html, intro }))
+    await fs.promises.writeFile(dest, JSON.stringify({ html }))
     dests.push(dest)
   }
   return dests

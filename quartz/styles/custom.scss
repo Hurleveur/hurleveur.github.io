@@ -169,27 +169,48 @@ body {
     line-height: 1.65;
     color: #5f5949;
   }
+
+  /* "Getting around" arrives as a heading and a list; neither is hero furniture,
+     so they read as a quiet aside rather than a second title */
+  h2 {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 1.6rem 0 0.7rem;
+    color: #8a8168;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  li {
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #5f5949;
+  }
 }
 
+/* same control as the whoami card's "Read more" — var(--secondary) carries its
+   own night colour, so these need no [saved-theme="dark"] restatement */
 .vault-intro-more,
 .vault-intro-map {
-  display: inline-block;
-  margin-top: 0.2rem;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: var(--sans);
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #8a8168;
+  all: unset;
   cursor: pointer;
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--secondary);
 
   &:hover,
   &:focus-visible {
-    color: #3a372f;
+    text-decoration: underline;
   }
 }
 
@@ -260,18 +281,13 @@ body {
     }
   }
 
-  .vault-intro p {
+  .vault-intro p,
+  .vault-intro li {
     color: #b3ab95;
   }
 
-  .vault-intro-more,
-  .vault-intro-map {
+  .vault-intro h2 {
     color: #9a927c;
-
-    &:hover,
-    &:focus-visible {
-      color: #ded6bf;
-    }
   }
 }
 
@@ -409,9 +425,12 @@ body {
    grid is over a thousand pixels of scrolling, the same seven as rows is half
    that. */
 .doors {
+  /* inside .palace-hero, a centred flex column: without an explicit width the
+     section shrinks to its content and max-width never bites */
+  width: 100%;
   max-width: 72rem;
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: 2rem 0 0.5rem;
 
   h2 {
     text-align: center;

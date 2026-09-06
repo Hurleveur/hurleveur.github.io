@@ -18,8 +18,30 @@ const initRooms = js.slice(
   js.indexOf("async function initRooms()"),
   js.indexOf("async function initRandomNote()"),
 )
+const initVaultIntro = js.slice(
+  js.indexOf("async function initVaultIntro()"),
+  js.indexOf("async function initRooms()"),
+)
 
 describe("the rooms", () => {
+  test("both halves cut the map at the same heading", () => {
+    // initVaultIntro shows Vault Map down to its rooms section and initRooms
+    // replaces the link line under that same heading. Both find it by the id
+    // Quartz slugs from the heading text, so if one is ever pointed at a
+    // different anchor the home page silently shows the wrong slice of the
+    // note and the doors silently stop replacing anything.
+    assert.match(
+      initVaultIntro,
+      /"#the-rooms"/,
+      "initVaultIntro no longer cuts the note at the rooms heading",
+    )
+    assert.match(
+      initRooms,
+      /"the-rooms"/,
+      "initRooms no longer finds the rooms heading, so the link line is never replaced",
+    )
+  })
+
   test("the home page container and the selector still name each other", () => {
     assert.match(
       indexMd,
