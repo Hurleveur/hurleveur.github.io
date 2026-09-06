@@ -23,6 +23,7 @@ publish: true
   <div class="colonnade" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>
+  <div class="vault-intro" id="vault-intro"></div>
   <div class="quote-slab">
     <blockquote id="rotating-quote">How others treat you is not a reflection of who you are. How you treat others is.</blockquote>
     <p class="attribution eyebrow" id="quote-source">from the hall of quotes</p>
@@ -42,6 +43,12 @@ publish: true
       <circle cx="44" cy="28" r="3.5" fill="currentColor" />
     </svg>
   </a>
+</section>
+
+<section class="doors" hidden>
+  <h2>The rooms</h2>
+  <p class="sub">one door per wing of the vault — open one to see what it holds</p>
+  <div class="door-row" data-vb-doors></div>
 </section>
 
 <section class="whoami-card" id="whoami-card">

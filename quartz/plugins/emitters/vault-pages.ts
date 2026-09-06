@@ -7,14 +7,17 @@ import { render } from "preact-render-to-string"
 import path from "path"
 import fs from "fs"
 
-// Emits static/help.json and static/whoami.json — the rendered HTML body of
-// content/help.md and content/woami.md — so the taskbar help popover and the
-// homepage whoami card can show live vault content instead of a copy baked
-// into index.md. Both source notes publish unlisted (off nav/graph, still
-// reachable by direct URL); editing either and rebuilding updates both spots.
+// Emits static/help.json, static/whoami.json and static/vaultmap.json — the
+// rendered HTML body of content/help.md, content/woami.md and content/Vault
+// Map.md — so the taskbar help popover, the homepage whoami card and the
+// homepage "what this place is" block can show live vault content instead of a
+// copy baked into index.md. All three source notes publish unlisted (off
+// nav/graph, still reachable by direct URL); editing one and rebuilding updates
+// its spot.
 const TARGETS: Record<string, string> = {
   "help.md": "help.json",
   "woami.md": "whoami.json",
+  "Vault Map.md": "vaultmap.json",
 }
 
 async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePath[]> {
@@ -29,9 +32,14 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
     const jsx = htmlToJsx(filePath as FilePath, htmlRoot)
     const html = jsx ? render(jsx) : ""
 
+    // intro = everything above the note's first heading. Vault Map opens with
+    // three paragraphs saying what this place is, then breaks into sections;
+    // the homepage wants only that opening, the sections have their own homes.
+    const intro = html.split(/<h[1-6][\s>]/)[0]
+
     const dest = joinSegments(ctx.argv.output, "static", outName) as FilePath
     await fs.promises.mkdir(path.dirname(dest), { recursive: true })
-    await fs.promises.writeFile(dest, JSON.stringify({ html }))
+    await fs.promises.writeFile(dest, JSON.stringify({ html, intro }))
     dests.push(dest)
   }
   return dests

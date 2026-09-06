@@ -154,6 +154,49 @@ body {
   }
 }
 
+/* what this place is — the opening paragraphs of the vault's own Vault Map note,
+   fetched live by initVaultIntro(). First paragraph only until asked; the rest
+   would push the quote off a phone screen. */
+.vault-intro {
+  margin: 2.2rem auto 0;
+  max-width: 34rem;
+  padding: 0 1rem;
+  text-align: center;
+
+  p {
+    margin: 0 0 0.7rem;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #5f5949;
+  }
+}
+
+.vault-intro-more,
+.vault-intro-map {
+  display: inline-block;
+  margin-top: 0.2rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a8168;
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+
+  &:hover,
+  &:focus-visible {
+    color: #3a372f;
+  }
+}
+
+.vault-intro-map {
+  margin-right: 1.2rem;
+}
+
 .quote-slab {
   margin: 1.4rem auto 0;
   max-width: 34rem;
@@ -214,6 +257,20 @@ body {
 
     span {
       background: #8d8674;
+    }
+  }
+
+  .vault-intro p {
+    color: #b3ab95;
+  }
+
+  .vault-intro-more,
+  .vault-intro-map {
+    color: #9a927c;
+
+    &:hover,
+    &:focus-visible {
+      color: #ded6bf;
     }
   }
 }
@@ -341,7 +398,16 @@ body {
   }
 }
 
-/* the six doors */
+/* the rooms — one arched door per top-level folder, built by initRooms().
+   A <details name="rooms"> each, so the accordion is the browser's: opening
+   one closes the rest, keyboard and screen readers come free, no JS.
+
+   Two homes with two shapes. Wide, on /vault-map: a colonnade of arches, the
+   opened one growing downward on its own (align-items: start keeps its
+   row-mates put). Narrow, on the home page under the hero: the arches lie down
+   into full-width doorways you walk past — seven tall portals in a two-column
+   grid is over a thousand pixels of scrolling, the same seven as rows is half
+   that. */
 .doors {
   max-width: 72rem;
   margin: 0 auto;
@@ -364,40 +430,33 @@ body {
   }
 }
 
+/* the frieze carries the rooms wherever it is visible, so the home page copy
+   only earns its space on the phones the frieze hides on */
+@media (min-width: 641px) {
+  body[data-slug="index"] .doors {
+    display: none;
+  }
+}
+
 .door-row {
   display: grid;
-  /* all rooms on one line; equal shares of the row */
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  /* an opened door grows alone; the arches beside it keep their height */
+  align-items: start;
   gap: 1.2rem;
-
-  @media (max-width: 800px) {
-    grid-auto-flow: row;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
 }
 
 .door {
   --tint: #a8843c;
   position: relative;
-  text-decoration: none;
-  color: inherit;
-  aspect-ratio: 5 / 8;
   background: linear-gradient(180deg, #efece4, #e5e1d6);
   border: 1px solid rgba(58, 55, 47, 0.14);
   border-radius: 999px 999px 6px 6px; /* arched portal */
-  padding: 2.2rem 1rem 1.3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
   overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 
   &::before {
-    /* glow of the room beyond */
+    /* glow of the room beyond, brightening as the door opens */
     content: "";
     position: absolute;
     inset: 8% 14% 34% 14%;
@@ -405,10 +464,29 @@ body {
     background: radial-gradient(ellipse at 50% 25%, var(--tint) 0%, transparent 75%);
     opacity: 0.28;
     transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  > summary {
+    /* a wide arch rather than a tall one: the open door has to hold a sentence
+       of description, and a 150px-wide column makes that eight lines */
+    min-height: 200px;
+    padding: 2.2rem 1rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    list-style: none; /* no disclosure triangle inside the arch */
+  }
+
+  > summary::-webkit-details-marker {
+    display: none;
   }
 
   &:hover,
-  &:focus-visible {
+  &:focus-within {
     transform: translateY(-6px);
     box-shadow: 0 18px 34px -18px rgba(58, 55, 47, 0.45);
     border-color: var(--tint);
@@ -422,9 +500,23 @@ body {
     }
   }
 
-  &:focus-visible {
+  > summary:focus-visible {
     outline: 2px solid var(--tint);
-    outline-offset: 3px;
+    outline-offset: -4px;
+  }
+
+  &[open] {
+    border-color: var(--tint);
+
+    &::before {
+      opacity: 0.85;
+    }
+
+    /* the arch keeps its shape but gives the room below to the text */
+    > summary {
+      min-height: 132px;
+      padding-bottom: 0.9rem;
+    }
   }
 
   .name {
@@ -440,6 +532,122 @@ body {
     color: #7a7362;
     margin-top: 0.3rem;
   }
+
+  .door-body {
+    position: relative; /* above the arch glow */
+    padding: 0 1.3rem 1.4rem;
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #55503f;
+    }
+  }
+
+  .door-enter {
+    display: inline-block;
+    margin-top: 0.9rem;
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: color-mix(in srgb, var(--tint) 70%, #3a372f);
+    border-bottom: 1px solid currentColor;
+  }
+}
+
+/* phones: the colonnade lies down — one wide doorway per row, name left,
+   count right, the description opening underneath it */
+@media (max-width: 640px) {
+  .doors {
+    padding: 1.5rem 0 3rem;
+
+    .sub {
+      margin-bottom: 1.6rem;
+    }
+  }
+
+  .door-row {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
+
+  .door {
+    border-radius: 999px 6px 6px 999px; /* the arch turns onto its side */
+
+    &::before {
+      inset: 12% 55% 12% 4%;
+      border-radius: 999px 0 0 999px;
+      background: radial-gradient(ellipse at 25% 50%, var(--tint) 0%, transparent 75%);
+    }
+
+    > summary {
+      min-height: 0;
+      padding: 1rem 1.4rem;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+      text-align: left;
+      /* a doorway is a tap target before it is a picture */
+      min-height: 3.4rem;
+    }
+
+    &:hover,
+    &:focus-within {
+      transform: none;
+    }
+
+    &[open] > summary {
+      min-height: 3.4rem;
+      padding-bottom: 1rem;
+    }
+
+    .count {
+      margin-top: 0;
+    }
+
+    .door-body {
+      padding: 0 1.4rem 1.2rem;
+      text-align: left;
+    }
+  }
+}
+
+/* NIGHT — the doors are painted in the same daylight hex as the hero: pale
+   stone and dark ink. Restated here as lit stone on a dark ground, with the
+   room's tint carrying more of the weight since the marble no longer does. */
+[saved-theme="dark"] .door {
+  background: linear-gradient(180deg, #24211c, #1c1a16);
+  border-color: rgba(222, 214, 191, 0.14);
+
+  &:hover,
+  &:focus-within {
+    box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.8);
+
+    .name {
+      color: color-mix(in srgb, var(--tint) 70%, #ded6bf);
+    }
+  }
+
+  .name {
+    color: #c4bca6;
+  }
+
+  .count,
+  .door-body p {
+    color: #a49c86;
+  }
+
+  .door-enter {
+    color: color-mix(in srgb, var(--tint) 55%, #ded6bf);
+  }
+}
+
+[saved-theme="dark"] .doors .sub {
+  color: #a49c86;
 }
 
 /* home page is a hall, not an article — drop title/meta/graph chrome */
