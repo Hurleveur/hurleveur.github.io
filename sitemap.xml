@@ -1,6 +1,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url>
     <loc>https://hurleveur.github.io/agents</loc>
-    <lastmod>2026-08-04T11:39:11.600Z</lastmod>
+    <lastmod>2026-09-06T10:07:11.512Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/a-story-is-a-deal</loc>
     <lastmod>2026-07-03T22:00:00.000Z</lastmod>
@@ -8,14 +8,14 @@
     <loc>https://hurleveur.github.io/alignment/ai-alignment</loc>
     <lastmod>2026-08-17T18:29:43.913Z</lastmod>
   </url><url>
+    <loc>https://hurleveur.github.io/alignment/ai-and-open-source</loc>
+    <lastmod>2026-09-04T15:16:56.914Z</lastmod>
+  </url><url>
     <loc>https://hurleveur.github.io/alignment/ai-and-thinking</loc>
     <lastmod>2026-08-03T12:50:55.031Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/alignment/against-noise</loc>
-    <lastmod>2026-08-03T12:50:55.031Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/alignment/</loc>
-    <lastmod>2026-08-17T07:48:46.467Z</lastmod>
+    <lastmod>2026-09-04T15:44:52.502Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/beauty</loc>
     <lastmod>2026-08-13T18:53:56.315Z</lastmod>
@@ -24,7 +24,7 @@
     <lastmod>2026-08-03T12:50:55.031Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/forest-of-knowledge</loc>
-    <lastmod>2026-08-03T12:50:55.031Z</lastmod>
+    <lastmod>2026-09-06T08:57:39.769Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/how-ai-should-be-used</loc>
     <lastmod>2026-08-03T12:50:55.031Z</lastmod>
@@ -55,6 +55,9 @@
   </url><url>
     <loc>https://hurleveur.github.io/alignment/life-structure/never-just-believe-me</loc>
     <lastmod>2026-08-03T12:50:55.040Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/alignment/life-structure/tasks</loc>
+    <lastmod>2026-09-05T15:00:10.914Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/life-structure/information-inputs</loc>
     <lastmod>2026-08-03T12:50:55.040Z</lastmod>
@@ -87,16 +90,19 @@
     <lastmod>2026-08-03T12:50:55.040Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/linux</loc>
-    <lastmod>2026-08-03T12:50:55.040Z</lastmod>
+    <lastmod>2026-09-04T15:15:49.411Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/mindful-daily-schedule</loc>
     <lastmod>2026-08-03T12:50:55.040Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/alignment/noise</loc>
+    <lastmod>2026-09-04T15:44:29.036Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/on-the-shortness-of-time</loc>
     <lastmod>2026-06-22T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/powerful-power-less-sundays</loc>
-    <lastmod>2026-08-03T12:50:55.041Z</lastmod>
+    <lastmod>2026-09-04T15:31:39.874Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/take-pride-in-what-you-do</loc>
     <lastmod>2026-08-03T12:50:55.041Z</lastmod>
@@ -117,7 +123,7 @@
     <lastmod>2026-08-25T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/guardians-of-knowledge</loc>
-    <lastmod>2026-08-03T12:50:55.041Z</lastmod>
+    <lastmod>2026-09-06T08:57:12.710Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/if-you-believe-you-make-sense,-you-don't</loc>
     <lastmod>2026-08-03T12:50:55.041Z</lastmod>
@@ -126,7 +132,7 @@
     <lastmod>2026-08-22T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/why-you-should-write</loc>
-    <lastmod>2026-08-03T12:50:55.041Z</lastmod>
+    <lastmod>2026-09-06T08:56:25.773Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/friends/birthday</loc>
     <lastmod>2026-08-25T06:07:32.959Z</lastmod>
@@ -183,7 +189,7 @@
     <lastmod>2026-08-03T12:50:55.074Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/a-more-beautiful-question</loc>
-    <lastmod>2026-08-03T12:50:55.074Z</lastmod>
+    <lastmod>2026-09-05T07:38:53.165Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/bible</loc>
     <lastmod>2026-08-30T12:07:23.913Z</lastmod>
@@ -201,10 +207,10 @@
     <lastmod>2026-08-30T12:07:23.914Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/decouverte-de-l'islam</loc>
-    <lastmod>2026-08-30T12:07:23.915Z</lastmod>
+    <lastmod>2026-09-05T07:45:25.322Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/emotional-intelligence-why-it-can-matter-more-than-iq</loc>
-    <lastmod>2026-08-03T12:50:55.075Z</lastmod>
+    <lastmod>2026-09-05T07:40:00.404Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/how-to-talk-to-anyone-92-little-tricks</loc>
     <lastmod>2026-08-03T12:50:55.075Z</lastmod>
@@ -239,9 +245,6 @@
     <loc>https://hurleveur.github.io/library/making-it-so</loc>
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/library/man-and-his-symbols</loc>
-    <lastmod>2026-08-03T12:50:55.076Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/library/meditations</loc>
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
   </url><url>
@@ -255,13 +258,13 @@
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/moonwalking-with-einstein-the-art-and-science-of-remembering</loc>
-    <lastmod>2026-08-03T12:50:55.076Z</lastmod>
+    <lastmod>2026-09-05T08:03:24.140Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/never-split-the-difference</loc>
     <lastmod>2026-08-30T12:07:23.916Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/non-violent-communication-a-language-of-life</loc>
-    <lastmod>2026-08-03T12:50:55.076Z</lastmod>
+    <lastmod>2026-09-05T07:40:15.894Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/pieds-nus-sur-la-terre-sacr%C3%A9e</loc>
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
@@ -270,7 +273,7 @@
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/prakriti-your-ayurvedic-constitution</loc>
-    <lastmod>2026-08-03T12:50:55.076Z</lastmod>
+    <lastmod>2026-09-05T15:03:59.191Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/pre-suasion-a-revolutionary-way-to-influence-and-persuade</loc>
     <lastmod>2026-08-03T12:50:55.076Z</lastmod>
@@ -294,12 +297,9 @@
     <lastmod>2026-08-03T12:50:55.077Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/the-art-of-conversation-a-guided-tour-of-a-neglected-pleasure</loc>
-    <lastmod>2026-08-03T12:50:55.077Z</lastmod>
+    <lastmod>2026-09-05T07:40:41.609Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/the-art-of-seduction</loc>
-    <lastmod>2026-08-03T12:50:55.077Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/library/the-biology-of-transcendence-a-blueprint-of-the-human-spirit</loc>
     <lastmod>2026-08-03T12:50:55.077Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/the-crack-in-the-cosmic-egg-new-constructs-of-mind-and-reality</loc>
@@ -321,7 +321,7 @@
     <lastmod>2026-08-03T12:50:55.078Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/the-hidden-life-of-trees</loc>
-    <lastmod>2026-08-03T12:50:55.078Z</lastmod>
+    <lastmod>2026-09-05T07:44:53.236Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/library/the-laws-of-human-nature</loc>
     <lastmod>2026-08-03T12:50:55.078Z</lastmod>
@@ -414,7 +414,7 @@
     <lastmod>2026-08-03T12:50:55.080Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/life-toolkit/growth/finding-the-future-self</loc>
-    <lastmod>2026-08-03T12:50:55.080Z</lastmod>
+    <lastmod>2026-09-05T11:23:47.802Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/life-toolkit/growth/</loc>
     <lastmod>2026-08-03T12:58:07.669Z</lastmod>
@@ -448,6 +448,9 @@
   </url><url>
     <loc>https://hurleveur.github.io/meaning/life-toolkit/you-have-no-obligation-to-your-former-self</loc>
     <lastmod>2026-08-03T12:50:55.080Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/man-and-his-symbols</loc>
+    <lastmod>2026-09-05T07:39:44.427Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/</loc>
     <lastmod>2026-08-03T18:31:56.265Z</lastmod>
@@ -543,10 +546,10 @@
     <lastmod>2026-08-03T13:11:22.491Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/questions/better</loc>
-    <lastmod>2026-08-03T13:11:22.492Z</lastmod>
+    <lastmod>2026-09-05T07:43:56.776Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/questions/free-will</loc>
-    <lastmod>2026-08-03T13:11:22.490Z</lastmod>
+    <lastmod>2026-09-05T07:44:41.181Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/questions/love</loc>
     <lastmod>2026-08-29T14:15:14.872Z</lastmod>
@@ -590,29 +593,35 @@
     <loc>https://hurleveur.github.io/meaning/song/aye-close-yer-eyes-n-hear-the-seas-song</loc>
     <lastmod>2025-03-07T23:00:00.000Z</lastmod>
   </url><url>
+    <loc>https://hurleveur.github.io/meaning/the-biology-of-transcendence-a-blueprint-of-the-human-spirit</loc>
+    <lastmod>2026-09-05T07:40:10.410Z</lastmod>
+  </url><url>
     <loc>https://hurleveur.github.io/meaning/why-i-write</loc>
     <lastmod>2026-08-03T13:11:22.359Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/ai-suggestions</loc>
     <lastmod>2026-08-03T12:50:55.083Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/meaning/world-change/change-the-world</loc>
-    <lastmod>2026-08-30T13:12:46.469Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/realize</loc>
     <lastmod>2026-08-03T12:50:55.083Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/world-change/theory-of-change</loc>
+    <lastmod>2026-09-05T11:21:31.980Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/unism</loc>
     <lastmod>2026-08-03T12:50:55.083Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/</loc>
-    <lastmod>2026-08-03T13:11:22.385Z</lastmod>
+    <lastmod>2026-09-05T10:48:48.884Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/meaning/world-change/how-people-people</loc>
+    <lastmod>2026-09-05T10:38:50.319Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/live-what-you-preach</loc>
     <lastmod>2026-08-03T12:50:55.083Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/real-media</loc>
-    <lastmod>2026-08-27T14:05:01.805Z</lastmod>
+    <lastmod>2026-09-04T17:27:48.934Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/world-change/religion</loc>
     <lastmod>2026-08-03T12:50:55.084Z</lastmod>
@@ -632,14 +641,11 @@
     <loc>https://hurleveur.github.io/obsidian-plugins</loc>
     <lastmod>2026-08-30T11:31:14.158Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/readme</loc>
-    <lastmod>2026-08-26T17:53:31.661Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/shared/80000-hours</loc>
     <lastmod>2026-08-30T12:07:23.910Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/clippings/</loc>
-    <lastmod>2026-08-30T11:31:14.159Z</lastmod>
+    <lastmod>2026-09-06T08:37:42.450Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/clippings/deep-work</loc>
     <lastmod>2026-07-22T22:00:00.000Z</lastmod>
@@ -653,7 +659,7 @@
     <loc>https://hurleveur.github.io/shared/clippings/emotional-awareness</loc>
     <lastmod>2026-08-30T11:24:11.655Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/shared/clippings/evergreen-notes-turn-ideas-into-objects-that-you-can-manipulate</loc>
+    <loc>https://hurleveur.github.io/shared/clippings/evergreen-notes</loc>
     <lastmod>2023-09-13T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/clippings/files-reign-supreme</loc>
@@ -670,6 +676,9 @@
   </url><url>
     <loc>https://hurleveur.github.io/shared/clippings/idiots</loc>
     <lastmod>2026-08-11T22:00:00.000Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/shared/clippings/pauseai</loc>
+    <lastmod>2026-09-04T22:00:00.000Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/clippings/personal-myth</loc>
     <lastmod>2026-08-03T22:00:00.000Z</lastmod>
@@ -693,7 +702,7 @@
     <lastmod>2026-08-03T12:50:55.086Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/interesting-to-follow</loc>
-    <lastmod>2026-08-30T11:22:02.290Z</lastmod>
+    <lastmod>2026-09-05T12:41:23.759Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/phone</loc>
     <lastmod>2026-08-03T12:50:55.086Z</lastmod>
@@ -702,10 +711,10 @@
     <lastmod>2026-08-21T10:40:55.279Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/</loc>
-    <lastmod>2026-08-30T11:24:11.605Z</lastmod>
+    <lastmod>2026-09-04T15:52:32.569Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/story-of-ai</loc>
-    <lastmod>2026-08-03T13:25:08.566Z</lastmod>
+    <lastmod>2026-09-05T08:53:07.720Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/shared/tv/blade-runner</loc>
     <lastmod>2026-08-03T12:50:55.086Z</lastmod>
@@ -842,9 +851,6 @@
     <loc>https://hurleveur.github.io/travel/ready-for-the-trip</loc>
     <lastmod>2026-08-03T12:50:55.091Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/vault-map</loc>
-    <lastmod>2026-08-26T18:00:31.700Z</lastmod>
-  </url><url>
     <loc>https://hurleveur.github.io/work/experience/ai-conference</loc>
     <lastmod>2026-08-03T12:55:51.626Z</lastmod>
   </url><url>
@@ -852,7 +858,7 @@
     <lastmod>2026-08-03T12:50:55.092Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/experience/ctf</loc>
-    <lastmod>2026-08-03T12:50:55.092Z</lastmod>
+    <lastmod>2026-09-04T18:29:35.680Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/experience/claude-office</loc>
     <lastmod>2026-08-22T16:42:59.839Z</lastmod>
@@ -867,7 +873,7 @@
     <lastmod>2026-08-03T12:50:55.092Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/experience/security-at-ingram</loc>
-    <lastmod>2026-08-03T12:50:55.092Z</lastmod>
+    <lastmod>2026-09-04T18:13:52.318Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/experience/strix-ai-pentest</loc>
     <lastmod>2026-08-03T12:50:55.092Z</lastmod>
@@ -879,7 +885,7 @@
     <lastmod>2026-08-03T12:50:55.092Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/guides/</loc>
-    <lastmod>2026-08-30T11:31:14.160Z</lastmod>
+    <lastmod>2026-09-04T18:25:54.223Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/guides/security-guidelines</loc>
     <lastmod>2026-08-01T08:12:17.850Z</lastmod>
@@ -902,8 +908,11 @@
     <loc>https://hurleveur.github.io/work/lean-startup</loc>
     <lastmod>2026-06-11T22:00:00.000Z</lastmod>
   </url><url>
+    <loc>https://hurleveur.github.io/work/plans/change-the-world</loc>
+    <lastmod>2026-09-05T11:21:31.999Z</lastmod>
+  </url><url>
     <loc>https://hurleveur.github.io/work/startup</loc>
-    <lastmod>2026-08-03T12:50:55.093Z</lastmod>
+    <lastmod>2026-09-05T07:43:03.286Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/system-setup/claude-code-setup</loc>
     <lastmod>2026-08-04T08:41:53.340Z</lastmod>
@@ -912,170 +921,152 @@
     <lastmod>2026-08-03T12:50:55.094Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/</loc>
-    <lastmod>2026-08-03T18:32:07.218Z</lastmod>
+    <lastmod>2026-09-04T15:14:49.923Z</lastmod>
   </url><url>
-    <loc>https://hurleveur.github.io/work/open-source</loc>
-    <lastmod>2026-08-03T12:50:55.094Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/help</loc>
-    <lastmod>2026-08-03T12:34:17.839Z</lastmod>
+    <loc>https://hurleveur.github.io/work/open-source-is-the-base-of-the-world</loc>
+    <lastmod>2026-09-04T15:14:46.163Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/</loc>
     <lastmod>2026-08-28T12:05:28.914Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/manual-of-alex</loc>
-    <lastmod>2026-08-27T19:58:44.713Z</lastmod>
+    <lastmod>2026-09-05T11:23:26.413Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/alignment/life-structure/overview.excalidraw</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/instagram/</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/meaning/song/</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/work/plans/</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/work/system-setup/</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/llm-written</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/connection</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/limitation</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/todo</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/blocked</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/important</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/rules</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/llm-written</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/connection</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/limitation</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/blocked</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/website</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/reading</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/opinion</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/idea</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/insight</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/quote</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/quotes</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/llm-written/85</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/unfinished</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/read</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/value</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/incomplete</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/question</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/to-read</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/clippings</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/makeyourmyth</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/king</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/digitaldetox</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/mindfulliving</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/mentalhealth</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/arrange</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
+  </url><url>
+    <loc>https://hurleveur.github.io/tags/todo</loc>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/emotions</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/0%F0%9F%8C%B2</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/ai</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/shadow-work</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/ladakh</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/india</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/travel</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/greatness</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/thought</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/modern-society</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo/blocked</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo/blocked/waiting</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo/blocked/waiting/verify</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
-  </url><url>
-    <loc>https://hurleveur.github.io/tags/question/idea/incomplete/todo/blocked/waiting/verify/recurring</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/friends</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url><url>
     <loc>https://hurleveur.github.io/tags/</loc>
-    <lastmod>2026-09-04T06:45:50.850Z</lastmod>
+    <lastmod>2026-09-06T10:22:53.893Z</lastmod>
   </url></urlset>
