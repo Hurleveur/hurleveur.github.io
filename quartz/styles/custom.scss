@@ -790,8 +790,13 @@ body[data-slug="index"] {
     right: -16%;
     top: 50%;
     /* shrink-to-fit inside that inset range: the slab hugs the sentence
-       instead of spanning the whole band */
-    width: fit-content;
+       instead of spanning the whole band. Bare `fit-content` clamps against
+       the unwrapped single-line width, so once a description is long enough
+       to need two lines, that clamp picks the full -16%/+16% span instead of
+       the actual wrapped-line width — the slab balloons out even though the
+       text only fills half of it. fit-content(<length>) clamps against this
+       explicit cap instead, so the wrapped shape gets hugged at any length. */
+    width: fit-content(28rem);
     margin-inline: auto;
     transform: translateY(-50%);
     z-index: 2;
