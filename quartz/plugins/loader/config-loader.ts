@@ -39,7 +39,7 @@ function resolveConfigPath(): string {
   if (fs.existsSync(LEGACY_DEFAULT_PLUGINS_JSON_PATH)) return LEGACY_DEFAULT_PLUGINS_JSON_PATH
   return CONFIG_YAML_PATH
 }
-function readPluginsJson(): QuartzPluginsJson | null {
+export function readPluginsJson(): QuartzPluginsJson | null {
   const configPath = resolveConfigPath()
   if (!fs.existsSync(configPath)) {
     return null

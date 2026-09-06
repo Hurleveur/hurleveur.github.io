@@ -1,25 +1,28 @@
 #!/usr/bin/env node
-import { installPlugins, parsePluginSource } from "./gitLoader.js"
-import config from "../../../quartz.js"
+import { installPlugins, parsePluginSource, isLocalSource, regeneratePluginIndex } from "./gitLoader.js"
+import { readPluginsJson } from "./config-loader.js"
 
 async function main() {
-  const quartzConfig: any = config
-  const externalPlugins = quartzConfig.externalPlugins || []
+  const pluginsJson = readPluginsJson()
+  const entries = pluginsJson?.plugins ?? []
+  const specs = entries
+    .filter((entry) => entry.enabled && !isLocalSource(entry.source))
+    .map((entry) => parsePluginSource(entry.source))
 
-  if (externalPlugins.length === 0) {
+  if (specs.length === 0) {
     console.log("No external plugins to install.")
+    await regeneratePluginIndex({ verbose: true })
     return
   }
 
-  console.log(`Installing ${externalPlugins.length} plugin(s) from Git...`)
+  console.log(`Installing ${specs.length} plugin(s) from Git...`)
 
-  const specs = externalPlugins.map((source: string) => parsePluginSource(source))
   const installed = await installPlugins(specs, { verbose: true })
 
-  if (installed.size === externalPlugins.length) {
+  if (installed.size === specs.length) {
     console.log("✓ All plugins installed successfully")
   } else {
-    console.error(`✗ Only ${installed.size}/${externalPlugins.length} plugins installed`)
+    console.error(`✗ Only ${installed.size}/${specs.length} plugins installed`)
     process.exit(1)
   }
 }
