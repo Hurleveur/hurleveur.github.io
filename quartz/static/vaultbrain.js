@@ -1280,15 +1280,19 @@
   // the doors below, and the sections after them have their own homes.
   // First paragraph shows; "Read more" swaps in the rest plus the way through
   // to the full map — same teaser mechanic as the whoami card above.
-  // the home page carries Vault Map itself, section by section: each "##" of
-  // the note becomes a fold titled by its own heading, and the rooms section is
-  // dropped because the doors below render it. Sections before the rooms land
-  // above them, the rest below, so the page reads in the note's own order.
+  // the home page carries Vault Map itself, section by section, in the note's
+  // own order: heading and body render plainly, the rooms section is dropped
+  // because the doors below already render it, and whatever follows the rooms
+  // lands in #vault-outro underneath them.
   //
-  // Which sections arrive open is a content call the note has no syntax for, so
-  // it lives here. Anything unnamed opens closed — including the "put together"
-  // callout, which the note already writes as collapsed.
-  const INTRO_OPEN = new Set(["getting-around", "start-here"])
+  // Two exceptions, neither of which the note has syntax for:
+  //   - a section named here shows only its first N blocks, the rest behind a
+  //     "Read more" — the Palace prose opens the page, but the paragraph on
+  //     evergreen notes is detail nobody needs before they have walked in.
+  //   - a collapsible callout becomes a <details>. That is also the only thing
+  //     that works: the callout script binds on nav, so a callout injected
+  //     after it would render but never toggle.
+  const INTRO_TEASER = { palace: 2 }
 
   async function initVaultIntro() {
     const box = document.getElementById("vault-intro")
@@ -1304,29 +1308,30 @@
     }
     const tmp = document.createElement("div")
     tmp.innerHTML = data.html || ""
+    // the heading anchors are for a note page, not a hero
+    tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
 
-    // group the note by heading. A collapsible callout is a section of its own
-    // — it already carries a title and a collapsed state, and rebuilt as a fold
-    // it needs none of the callout script, which binds on nav and so would
-    // never see anything injected here.
+    // group the note by heading; a collapsible callout is a section of its own,
+    // titled by its callout title
     const sections = []
-    let cur = { id: "", title: "", nodes: [] }
+    let cur = { id: "", title: "", fold: false, nodes: [] }
     const flush = () => {
       if (cur.title || cur.nodes.length) sections.push(cur)
     }
     for (const el of [...tmp.children]) {
       if (/^H[1-6]$/.test(el.tagName)) {
         flush()
-        cur = { id: el.id, title: el.textContent.trim(), nodes: [] }
+        cur = { id: el.id, title: el.textContent.trim(), fold: false, nodes: [] }
       } else if (el.matches("blockquote.callout.is-collapsible")) {
         flush()
         cur = {
           id: "",
           title: el.querySelector(".callout-title-inner")?.textContent.trim() ?? "",
+          fold: true,
           nodes: [...(el.querySelector(".callout-content")?.children ?? [])],
         }
         flush()
-        cur = { id: "", title: "", nodes: [] }
+        cur = { id: "", title: "", fold: false, nodes: [] }
       } else {
         cur.nodes.push(el)
       }
@@ -1336,17 +1341,38 @@
 
     const put = (target, s) => {
       if (!target) return
-      if (!s.title) {
+      if (s.fold) {
+        const fold = document.createElement("details")
+        fold.className = "vault-intro-fold"
+        const sum = document.createElement("summary")
+        sum.textContent = s.title
+        fold.append(sum, ...s.nodes)
+        target.appendChild(fold)
+        return
+      }
+      if (s.title) {
+        const h = document.createElement("h2")
+        h.textContent = s.title
+        target.appendChild(h)
+      }
+      const cut = INTRO_TEASER[s.id]
+      if (!cut || s.nodes.length <= cut) {
         target.append(...s.nodes)
         return
       }
-      const fold = document.createElement("details")
-      fold.className = "vault-intro-fold"
-      fold.open = INTRO_OPEN.has(s.id)
-      const sum = document.createElement("summary")
-      sum.textContent = s.title
-      fold.append(sum, ...s.nodes)
-      target.appendChild(fold)
+      const rest = document.createElement("div")
+      rest.className = "vault-intro-rest"
+      rest.hidden = true
+      rest.append(...s.nodes.slice(cut))
+      const more = document.createElement("button")
+      more.className = "vault-intro-more"
+      more.type = "button"
+      more.textContent = "Read more"
+      more.addEventListener("click", () => {
+        rest.hidden = !rest.hidden
+        more.textContent = rest.hidden ? "Read more" : "Read less"
+      })
+      target.append(...s.nodes.slice(0, cut), rest, more)
     }
 
     box.replaceChildren()

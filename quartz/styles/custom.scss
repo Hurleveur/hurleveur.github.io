@@ -170,6 +170,22 @@ body {
     color: #5f5949;
   }
 
+  /* the note's own section headings. They label the prose under them without
+     competing with the h1 above — same warmth, one step firmer, no small-caps
+     micro-type of the kind that reads as a second title. */
+  h2 {
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 1.9rem 0 0.6rem;
+    color: #6f6857;
+  }
+
+  > h2:first-child {
+    margin-top: 0;
+  }
+
   ul {
     margin: 0;
     padding: 0;
@@ -185,10 +201,26 @@ body {
   }
 }
 
-/* the note's "Getting around" section folds under its own heading, open by
-   default. The heading becomes the summary and keeps the voice of the
-   paragraph above it — a line of the same prose you can roll up, not a second
-   title. <details> carries the toggle, the keyboard and the a11y on its own. */
+/* same control as the whoami card's "Read more" — var(--secondary) carries its
+   own night colour, so this needs no [saved-theme="dark"] restatement */
+.vault-intro-more {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--secondary);
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+/* the note's "put together" callout, rebuilt as a fold: its title becomes a
+   summary in the voice of the prose around it rather than a callout box.
+   <details> carries the toggle, the keyboard and the a11y on its own. */
 .vault-intro-fold {
   margin-top: 1.4rem;
 
@@ -282,6 +314,10 @@ body {
   .vault-intro li,
   .vault-intro-fold > summary {
     color: #b3ab95;
+  }
+
+  .vault-intro h2 {
+    color: #c0b8a1;
   }
 }
 

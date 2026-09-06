@@ -42,17 +42,33 @@ describe("the rooms", () => {
     )
   })
 
-  test("the sections that must arrive open still do", () => {
-    // every "##" of the note becomes a <details>; the two that orient a
-    // first-time reader have to arrive open, or the part of the map that says
-    // how to move around ships collapsed and nobody clicks it.
-    const open = js.slice(js.indexOf("const INTRO_OPEN"), js.indexOf("async function initVaultIntro"))
-    assert.match(open, /"getting-around"/, "getting-around no longer opens by default")
-    assert.match(open, /"start-here"/, "start-here no longer opens by default")
+  test("only the Palace prose hides behind Read more", () => {
+    // every other section of the note renders plainly. If the teaser map grows
+    // a second entry, or the button stops being built, part of the map either
+    // disappears from the home page or arrives already spent.
+    const teaser = js.slice(js.indexOf("const INTRO_TEASER"), js.indexOf("async function initVaultIntro"))
+    assert.match(teaser, /\{ palace: 2 \}/, "the Palace teaser no longer cuts at two blocks")
+    assert.match(initVaultIntro, /"Read more"/, "the Read more control is gone")
     assert.match(
       initVaultIntro,
       /\^H\[1-6\]\$/,
       "initVaultIntro no longer groups the note by its own headings",
+    )
+  })
+
+  test("the collapsible callout is rebuilt as a fold", () => {
+    // Quartz's callout script binds on the nav event, so a callout injected
+    // afterwards renders but never opens. Rebuilding it as <details> is what
+    // makes "How this vault is put together" clickable at all.
+    assert.match(
+      initVaultIntro,
+      /blockquote\.callout\.is-collapsible/,
+      "initVaultIntro no longer recognises the note's callout",
+    )
+    assert.match(
+      initVaultIntro,
+      /createElement\("details"\)/,
+      "the callout is no longer rebuilt as a <details> — it will never toggle",
     )
   })
 
