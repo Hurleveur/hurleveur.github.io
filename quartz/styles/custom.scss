@@ -159,6 +159,14 @@ body {
    would push the quote off a phone screen. */
 .vault-intro {
   margin: 2.2rem auto 0;
+  /* explicit width for the same reason .doors carries one: inside .palace-hero,
+     a centred flex column, this is a flex item that shrinks to its content, so
+     max-width never bites. Left to shrink-fit, opening a fold widens the box and
+     every centred line under it slides sideways to re-centre. border-box because
+     this page is not globally border-box: content-box would add the padding on
+     top of the 100% and push the whole column off centre. */
+  box-sizing: border-box;
+  width: 100%;
   max-width: 44rem;
   padding: 0 1rem;
   text-align: center;
@@ -249,6 +257,9 @@ body {
 
 .quote-slab {
   margin: 1.4rem auto 0;
+  /* same flex-item shrink as .vault-intro — quotes differ in length */
+  box-sizing: border-box;
+  width: 100%;
   max-width: 44rem;
   padding: 0 1rem;
   min-height: 5.2rem;
