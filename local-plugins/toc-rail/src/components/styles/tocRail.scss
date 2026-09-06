@@ -1,0 +1,83 @@
+// LessWrong-style rail: a narrow strip of tick marks fixed to the left edge
+// of the viewport, independent of the sidebar grid so it survives the
+// mobile layout switch untouched. Hover (desktop) or tap (mobile, via
+// tocRail.inline.ts) widens it to show the heading text.
+.toc-rail {
+  position: fixed;
+  // 6rem matches the sidebar's own top padding (quartz/styles/variables.scss $topSpacing)
+  top: 6rem;
+  left: 0;
+  z-index: 20;
+  max-height: calc(100vh - 8rem);
+  overflow: hidden;
+  width: 14px;
+  background: var(--light);
+  border-right: 1px solid var(--lightgray);
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: width 0.2s ease;
+
+  &:hover,
+  &.expanded {
+    width: min(320px, 70vw);
+    overflow-y: auto;
+  }
+
+  @media all and (max-width: 600px) {
+    &:hover,
+    &.expanded {
+      width: min(260px, 80vw);
+    }
+  }
+}
+
+.toc-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toc-rail-item {
+  & > a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.15rem 0.35rem;
+    white-space: nowrap;
+    color: var(--darkgray);
+
+    &:hover {
+      color: var(--secondary);
+    }
+  }
+
+  @for $depth from 0 through 5 {
+    &.depth-#{$depth} > a {
+      padding-left: calc(0.35rem + #{$depth} * 0.75rem);
+    }
+  }
+}
+
+.toc-rail-tick {
+  flex-shrink: 0;
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--gray);
+}
+
+.toc-rail-label {
+  opacity: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  transition: opacity 0.15s ease;
+}
+
+.toc-rail:hover .toc-rail-label,
+.toc-rail.expanded .toc-rail-label {
+  opacity: 1;
+}
