@@ -26,6 +26,7 @@ publish: true
     <p class="sub">one door per wing of the vault — open one to see what it holds</p>
     <div class="door-row" data-vb-doors></div>
   </section>
+  <div class="vault-intro" id="vault-outro"></div>
   <div class="colonnade" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>

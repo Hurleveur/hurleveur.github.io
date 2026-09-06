@@ -215,23 +215,6 @@ body {
   }
 }
 
-/* same control as the whoami card's "Read more" — var(--secondary) carries its
-   own night colour, so this needs no [saved-theme="dark"] restatement */
-.vault-intro-map {
-  all: unset;
-  cursor: pointer;
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--secondary);
-
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline;
-  }
-}
-
 .quote-slab {
   margin: 1.4rem auto 0;
   max-width: 44rem;

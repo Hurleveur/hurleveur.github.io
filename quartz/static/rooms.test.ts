@@ -32,8 +32,8 @@ describe("the rooms", () => {
     // note and the doors silently stop replacing anything.
     assert.match(
       initVaultIntro,
-      /"#the-rooms"/,
-      "initVaultIntro no longer cuts the note at the rooms heading",
+      /"the-rooms"/,
+      "initVaultIntro no longer splits the note at the rooms heading",
     )
     assert.match(
       initRooms,
@@ -42,19 +42,17 @@ describe("the rooms", () => {
     )
   })
 
-  test("the getting-around section folds open, not shut", () => {
-    // the note's second heading and its list fold into a <details>; it must
-    // carry `open`, or the part of the map that tells a first-time reader how
-    // to move around the site ships collapsed and nobody clicks it.
-    assert.match(
-      initVaultIntro,
-      /fold\.open = true/,
-      "the getting-around fold no longer starts open — the section ships collapsed",
-    )
+  test("the sections that must arrive open still do", () => {
+    // every "##" of the note becomes a <details>; the two that orient a
+    // first-time reader have to arrive open, or the part of the map that says
+    // how to move around ships collapsed and nobody clicks it.
+    const open = js.slice(js.indexOf("const INTRO_OPEN"), js.indexOf("async function initVaultIntro"))
+    assert.match(open, /"getting-around"/, "getting-around no longer opens by default")
+    assert.match(open, /"start-here"/, "start-here no longer opens by default")
     assert.match(
       initVaultIntro,
       /\^H\[1-6\]\$/,
-      "initVaultIntro no longer splits the intro at the note's own heading",
+      "initVaultIntro no longer groups the note by its own headings",
     )
   })
 
@@ -68,6 +66,17 @@ describe("the rooms", () => {
       initRooms,
       /\[data-vb-doors\]/,
       "initRooms no longer queries the attribute index.md writes, so it finds no home",
+    )
+    // the sections after the rooms render below the doors, into their own box
+    assert.match(
+      indexMd,
+      /id="vault-outro"/,
+      "content/index.md lost #vault-outro — Start here and the callout have nowhere to land",
+    )
+    assert.match(
+      initVaultIntro,
+      /"vault-outro"/,
+      "initVaultIntro no longer fills the box below the doors",
     )
   })
 

@@ -1280,10 +1280,21 @@
   // the doors below, and the sections after them have their own homes.
   // First paragraph shows; "Read more" swaps in the rest plus the way through
   // to the full map — same teaser mechanic as the whoami card above.
+  // the home page carries Vault Map itself, section by section: each "##" of
+  // the note becomes a fold titled by its own heading, and the rooms section is
+  // dropped because the doors below render it. Sections before the rooms land
+  // above them, the rest below, so the page reads in the note's own order.
+  //
+  // Which sections arrive open is a content call the note has no syntax for, so
+  // it lives here. Anything unnamed opens closed — including the "put together"
+  // callout, which the note already writes as collapsed.
+  const INTRO_OPEN = new Set(["getting-around", "start-here"])
+
   async function initVaultIntro() {
     const box = document.getElementById("vault-intro")
     if (!box || box.dataset.vbDone) return
     box.dataset.vbDone = "1"
+    const outro = document.getElementById("vault-outro")
 
     let data
     try {
@@ -1293,38 +1304,63 @@
     }
     const tmp = document.createElement("div")
     tmp.innerHTML = data.html || ""
-    // cut at the rooms heading — the same anchor initRooms keys off. If the
-    // heading is ever renamed the id changes, so fall back to the first heading
-    // of any kind rather than pouring the whole note into the hero.
-    const stop = tmp.querySelector("#the-rooms") ?? tmp.querySelector("h1, h2, h3, h4, h5, h6")
-    const paras = []
-    for (const el of tmp.children) {
-      if (el === stop) break
-      paras.push(el)
+
+    // group the note by heading. A collapsible callout is a section of its own
+    // — it already carries a title and a collapsed state, and rebuilt as a fold
+    // it needs none of the callout script, which binds on nav and so would
+    // never see anything injected here.
+    const sections = []
+    let cur = { id: "", title: "", nodes: [] }
+    const flush = () => {
+      if (cur.title || cur.nodes.length) sections.push(cur)
     }
-    if (!paras.length) return
+    for (const el of [...tmp.children]) {
+      if (/^H[1-6]$/.test(el.tagName)) {
+        flush()
+        cur = { id: el.id, title: el.textContent.trim(), nodes: [] }
+      } else if (el.matches("blockquote.callout.is-collapsible")) {
+        flush()
+        cur = {
+          id: "",
+          title: el.querySelector(".callout-title-inner")?.textContent.trim() ?? "",
+          nodes: [...(el.querySelector(".callout-content")?.children ?? [])],
+        }
+        flush()
+        cur = { id: "", title: "", nodes: [] }
+      } else {
+        cur.nodes.push(el)
+      }
+    }
+    flush()
+    if (!sections.length) return
 
-    const map = document.createElement("a")
-    map.className = "vault-intro-map"
-    map.href = "/vault-map"
-    map.textContent = "the full map →"
-
-    // the opening prose reads straight, down to the note's next heading
-    // ("Getting around"). That heading and everything under it fold into a
-    // details that starts open, so the section can be rolled up without hiding
-    // the part that says what this place is.
-    const head = paras.findIndex((el) => /^H[1-6]$/.test(el.tagName))
-    box.replaceChildren(...(head < 0 ? paras : paras.slice(0, head)))
-    if (head > -1) {
+    const put = (target, s) => {
+      if (!target) return
+      if (!s.title) {
+        target.append(...s.nodes)
+        return
+      }
       const fold = document.createElement("details")
       fold.className = "vault-intro-fold"
-      fold.open = true
+      fold.open = INTRO_OPEN.has(s.id)
       const sum = document.createElement("summary")
-      sum.textContent = paras[head].textContent
-      fold.append(sum, ...paras.slice(head + 1))
-      box.appendChild(fold)
+      sum.textContent = s.title
+      fold.append(sum, ...s.nodes)
+      target.appendChild(fold)
     }
-    box.appendChild(map)
+
+    box.replaceChildren()
+    outro?.replaceChildren()
+    // "the-rooms" is the id Quartz slugs from the note's own heading — the same
+    // anchor initRooms keys off to replace the link line on /vault-map
+    let target = box
+    for (const s of sections) {
+      if (s.id === "the-rooms") {
+        target = outro
+        continue
+      }
+      put(target, s)
+    }
   }
 
   // the rooms: one arched door per real top-level folder, tinted like the
