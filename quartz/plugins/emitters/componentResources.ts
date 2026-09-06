@@ -6,6 +6,8 @@ import { QuartzEmitterPlugin } from "../types"
 import spaRouterScript from "../../components/scripts/spa.inline"
 // @ts-ignore
 import popoverScript from "../../components/scripts/popover.inline"
+// @ts-ignore
+import shortcutsScript from "../../components/scripts/shortcuts.inline"
 import baseStyles from "../../styles/base.scss"
 import customStyles from "../../styles/custom.scss"
 import popoverStyle from "../../components/styles/popover.scss"
@@ -89,6 +91,9 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
     componentResources.afterDOMLoaded.push(popoverScript)
     componentResources.css.push(popoverStyle)
   }
+
+  // Obsidian-style keyboard shortcuts (Ctrl+O search, Ctrl+Q reveal in explorer)
+  componentResources.afterDOMLoaded.push(shortcutsScript)
 
   if (cfg.analytics?.provider === "google") {
     const tagId = cfg.analytics.tagId
