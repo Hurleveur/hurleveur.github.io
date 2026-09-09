@@ -1274,6 +1274,214 @@
     }
   }
 
+  // homepage "what this place is": Vault Map down to its rooms section, via
+  // static/vaultmap.json. Everything above "The rooms" — what this place is and
+  // how to get around it — belongs on the home page; the rooms themselves are
+  // the doors below, and the sections after them have their own homes.
+  // First paragraph shows; "Read more" swaps in the rest plus the way through
+  // to the full map — same teaser mechanic as the whoami card above.
+  // the home page carries Vault Map itself, section by section, in the note's
+  // own order: heading and body render plainly, the rooms section is dropped
+  // because the doors below already render it, and whatever follows the rooms
+  // lands in #vault-outro underneath them.
+  //
+  // Two exceptions, neither of which the note has syntax for:
+  //   - a section named here shows only its first N blocks, the rest behind a
+  //     "Read more" — the Palace prose opens the page, but the paragraph on
+  //     evergreen notes is detail nobody needs before they have walked in.
+  //   - a collapsible callout becomes a <details>. That is also the only thing
+  //     that works: the callout script binds on nav, so a callout injected
+  //     after it would render but never toggle.
+  const INTRO_TEASER = { palace: 2 }
+
+  async function initVaultIntro() {
+    const box = document.getElementById("vault-intro")
+    if (!box || box.dataset.vbDone) return
+    box.dataset.vbDone = "1"
+    const outro = document.getElementById("vault-outro")
+
+    let data
+    try {
+      data = await fetch("/static/vaultmap.json").then((r) => r.json())
+    } catch (e) {
+      return
+    }
+    const tmp = document.createElement("div")
+    tmp.innerHTML = data.html || ""
+    // the heading anchors are for a note page, not a hero
+    tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
+
+    // group the note by heading; a collapsible callout is a section of its own,
+    // titled by its callout title
+    const sections = []
+    let cur = { id: "", title: "", fold: false, nodes: [] }
+    const flush = () => {
+      if (cur.title || cur.nodes.length) sections.push(cur)
+    }
+    for (const el of [...tmp.children]) {
+      if (/^H[1-6]$/.test(el.tagName)) {
+        flush()
+        cur = { id: el.id, title: el.textContent.trim(), fold: false, nodes: [] }
+      } else if (el.matches("blockquote.callout.is-collapsible")) {
+        flush()
+        cur = {
+          id: "",
+          title: el.querySelector(".callout-title-inner")?.textContent.trim() ?? "",
+          fold: true,
+          nodes: [...(el.querySelector(".callout-content")?.children ?? [])],
+        }
+        flush()
+        cur = { id: "", title: "", fold: false, nodes: [] }
+      } else {
+        cur.nodes.push(el)
+      }
+    }
+    flush()
+    if (!sections.length) return
+
+    const put = (target, s) => {
+      if (!target) return
+      if (s.fold) {
+        const fold = document.createElement("details")
+        fold.className = "vault-intro-fold"
+        const sum = document.createElement("summary")
+        sum.textContent = s.title
+        fold.append(sum, ...s.nodes)
+        target.appendChild(fold)
+        return
+      }
+      if (s.title) {
+        const h = document.createElement("h2")
+        h.textContent = s.title
+        target.appendChild(h)
+      }
+      const cut = INTRO_TEASER[s.id]
+      if (!cut || s.nodes.length <= cut) {
+        target.append(...s.nodes)
+        return
+      }
+      const rest = document.createElement("div")
+      rest.className = "vault-intro-rest"
+      rest.hidden = true
+      rest.append(...s.nodes.slice(cut))
+      const more = document.createElement("button")
+      more.className = "vault-intro-more"
+      more.type = "button"
+      more.textContent = "Read more"
+      more.addEventListener("click", () => {
+        rest.hidden = !rest.hidden
+        more.textContent = rest.hidden ? "Read more" : "Read less"
+      })
+      target.append(...s.nodes.slice(0, cut), rest, more)
+    }
+
+    box.replaceChildren()
+    outro?.replaceChildren()
+    // "the-rooms" is the id Quartz slugs from the note's own heading — the same
+    // anchor initRooms keys off to replace the link line on /vault-map
+    let target = box
+    for (const s of sections) {
+      if (s.id === "the-rooms") {
+        target = outro
+        continue
+      }
+      put(target, s)
+    }
+  }
+
+  // the rooms: one arched door per real top-level folder, tinted like the
+  // constellation, count and description live from the index — never a hand-kept
+  // list. Two homes: the homepage below the hero (phones only, where the frieze
+  // is hidden and nothing else navigates) and the "The rooms" section of
+  // /vault-map, where it replaces the plain link line the note carries as its
+  // no-JS fallback.
+  //
+  // <details name> gives an exclusive accordion with no JS at all: opening one
+  // door closes the others, keyboard and screen readers come free. Browsers
+  // without it just open several at once, which is only a longer page.
+  async function initRooms() {
+    const homes = [...document.querySelectorAll("[data-vb-doors]")]
+    // /vault-map: the "The rooms" heading carries its own slug id. Under it the
+    // note keeps a plain "Meaning · Alignment · ..." line as the no-JS fallback;
+    // find that one by its separator, not by position — the lead sentence is a
+    // paragraph too. Stop at the next heading so a missing line can't make this
+    // eat a paragraph out of the following section.
+    let fallback = document.getElementById("the-rooms")
+    while (fallback) {
+      fallback = fallback.nextElementSibling
+      if (!fallback || /^H[1-6]$/.test(fallback.tagName)) {
+        fallback = null
+        break
+      }
+      if (fallback.tagName === "P" && fallback.textContent.includes("·")) break
+    }
+    if (fallback) {
+      const row = document.createElement("div")
+      row.className = "door-row"
+      row.setAttribute("data-vb-doors", "")
+      fallback.replaceWith(row)
+      homes.push(row)
+    }
+    // claim every home before the await: initial load fires both the direct
+    // call and "nav", and two runs racing on one container build the doors twice
+    const mine = homes.filter((h) => !h.dataset.vbDone)
+    for (const h of mine) h.dataset.vbDone = "1"
+    if (!mine.length) return
+
+    let data
+    try {
+      data = await loadIndex()
+    } catch (e) {
+      return
+    }
+    const counts = {}
+    for (const slug of Object.keys(data)) {
+      if (slug.startsWith("tags/") || !slug.includes("/")) continue
+      const folder = slug.split("/")[0]
+      counts[folder] = (counts[folder] || 0) + 1
+    }
+    const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+
+    for (const home of mine) {
+      for (const folder of folders) {
+        const name = folder.replace(/-/g, " ")
+        const d = document.createElement("details")
+        d.className = "door"
+        // property form is not reflected in browsers without exclusive
+        // accordions, where the attribute is simply ignored
+        d.setAttribute("name", "rooms")
+        d.style.setProperty("--tint", folderColor(folder))
+
+        const sum = document.createElement("summary")
+        const nm = document.createElement("span")
+        nm.className = "name"
+        nm.textContent = name
+        const ct = document.createElement("span")
+        ct.className = "count"
+        ct.textContent = counts[folder] + (counts[folder] === 1 ? " note" : " notes")
+        sum.append(nm, ct)
+
+        const bodyEl = document.createElement("div")
+        bodyEl.className = "door-body"
+        const desc = data[folder + "/index"]?.description
+        if (desc) {
+          const p = document.createElement("p")
+          p.textContent = desc
+          bodyEl.appendChild(p)
+        }
+        const enter = document.createElement("a")
+        enter.className = "door-enter"
+        enter.href = "/" + folder + "/"
+        enter.textContent = "Enter " + name + " →"
+        bodyEl.appendChild(enter)
+
+        d.append(sum, bodyEl)
+        home.appendChild(d)
+      }
+      home.closest(".doors")?.removeAttribute("hidden")
+    }
+  }
+
   // whoami card: "surprise me" link to a random published note, from the same
   // contentIndex.json as the shelf/graph. Excludes empty notes (folder/tag
   // index pages have no content) and anything tagged #unfinished. Reroll
@@ -1551,6 +1759,8 @@
       initQuotes()
       initHelp()
       initWhoami()
+      initVaultIntro()
+      initRooms()
       initRandomNote()
       initAudio()
       initFolderAssets()
@@ -1566,6 +1776,8 @@
   initQuotes()
   initHelp()
   initWhoami()
+  initVaultIntro()
+  initRooms()
   initRandomNote()
   initAudio()
   initFolderAssets()
