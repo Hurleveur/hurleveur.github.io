@@ -576,6 +576,16 @@ var ContentMeta_default = ((opts) => {
           ] })
         );
       }
+      const rawAuthor = fileData.frontmatter?.author;
+      const authors = (Array.isArray(rawAuthor) ? rawAuthor : [rawAuthor]).filter((a2) => typeof a2 === "string").map(
+        (a2) => a2.trim().replace(/^\[\[(.*)\]\]$/, "$1").split("|").pop().trim()
+      ).filter((a2) => a2 !== "");
+      if (authors.length > 0) {
+        segments.push(/* @__PURE__ */ u2("span", { children: [
+          "author: ",
+          authors.join(", ")
+        ] }));
+      }
       return /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments });
     } else {
       return null;

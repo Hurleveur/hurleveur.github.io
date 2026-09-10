@@ -83,6 +83,26 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
         );
       }
 
+      // LOCI PATCH: `author:` frontmatter is inconsistent across the vault (a plain string, a
+      // YAML list, or empty/blank) — normalize every shape here instead of trusting one upstream.
+      const rawAuthor = fileData.frontmatter?.author;
+      const authors = (Array.isArray(rawAuthor) ? rawAuthor : [rawAuthor])
+        .filter((a): a is string => typeof a === "string")
+        // a vault author is often written as a wikilink; frontmatter is never
+        // link-resolved, so show the name rather than the raw brackets
+        .map((a) =>
+          a
+            .trim()
+            .replace(/^\[\[(.*)\]\]$/, "$1")
+            .split("|")
+            .pop()!
+            .trim(),
+        )
+        .filter((a) => a !== "");
+      if (authors.length > 0) {
+        segments.push(<span>author: {authors.join(", ")}</span>);
+      }
+
       return (
         <p show-comma={options.showComma} class={classNames(displayClass, "content-meta")}>
           {segments}
