@@ -62,3 +62,30 @@ describe("rotunda frieze over the brain canvas", () => {
     }
   })
 })
+
+// Touch hover is a hair-trigger: a finger landing dispatches pointermove before
+// pointerdown, so gating it wrong either flashes a preview on every tap or (the
+// regression this guards) kills the drag preview on phones entirely. Neither
+// shows up in a build, and neither is reachable from a desktop browser.
+describe("touch preview on the canvas", () => {
+  const onMove = js.slice(js.indexOf("function onMove(e) {"), js.indexOf("function onClick(e) {"))
+  const onClick = js.slice(js.indexOf("function onClick(e) {"), js.indexOf("function onWheel(e) {"))
+
+  test("a touch previews only once it has travelled past the slop", () => {
+    assert.match(onMove, /touchDrag\.moved/, "onMove no longer tracks whether the finger moved")
+    assert.match(onMove, /TOUCH_SLOP/, "onMove no longer measures the contact's travel")
+    assert.doesNotMatch(
+      onMove,
+      /pointerType === "touch"\) return/,
+      "onMove is back to refusing touch hover outright — the phone preview is dead",
+    )
+  })
+
+  test("the click ending a preview drag does not navigate", () => {
+    assert.match(
+      onClick,
+      /touchDrag && touchDrag\.moved/,
+      "a dragged preview now ends in a navigation the finger never asked for",
+    )
+  })
+})

@@ -419,11 +419,27 @@
       }
       return null
     }
+    // touch takes its hover from a deliberate drag, never from bare contact: a
+    // finger landing dispatches pointermove before pointerdown, so a plain tap
+    // used to flash a preview nobody asked for. Hover turns on once the contact
+    // has travelled TOUCH_SLOP px, and the click ending such a drag is
+    // swallowed — on touch the tap navigates, the drag only previews.
+    const TOUCH_SLOP = 12
+    let touchDrag = null // { id, x, y, moved }
+    function onTouchDown(e) {
+      touchDrag =
+        e.pointerType === "touch"
+          ? { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }
+          : null
+    }
     function onMove(e) {
-      // touch fires pointerenter/pointermove the instant a finger lands, before
-      // pointerdown — a bare tap would flash the tooltip/highlight it was never
-      // meant to trigger, so touch skips hover entirely and acts only on tap
-      if (e.pointerType === "touch") return
+      if (e.pointerType === "touch") {
+        if (!touchDrag || touchDrag.id !== e.pointerId) return
+        if (!touchDrag.moved) {
+          if (Math.hypot(e.clientX - touchDrag.x, e.clientY - touchDrag.y) < TOUCH_SLOP) return
+          touchDrag.moved = true
+        }
+      }
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
@@ -454,6 +470,11 @@
       }
     }
     function onClick(e) {
+      // a finger that dragged was previewing, not picking: the click that ends
+      // it must not navigate. Cleared here so the next gesture starts fresh.
+      const wasTouchDrag = touchDrag && touchDrag.moved
+      touchDrag = null
+      if (wasTouchDrag) return
       if (dragged) return // pan release, not a pick
       // hit-test the click's own coords: on touch, pointerleave fires before
       // click and clears `hovered`, and a stationary tap never fires pointermove
@@ -639,6 +660,7 @@
       tip.style.opacity = 0
       if (hlFolder) hlEmit(null)
     }
+    cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
@@ -663,6 +685,7 @@
       cancelAnimationFrame(raf)
       document.removeEventListener("themechange", onTheme)
       window.removeEventListener("vb-folder-hl", onHl)
+      cv.removeEventListener("pointerdown", onTouchDown)
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
