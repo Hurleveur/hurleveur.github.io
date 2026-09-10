@@ -856,9 +856,15 @@ body[data-slug="index"] {
        fit-content(<length>) function is only implemented for grid tracks, so
        as a `width` it is dropped as invalid and the box falls back to `auto`,
        which with both insets set stretches even wider. max-content asks for
-       the unwrapped line and max-width caps it, which every engine honours. */
+       the unwrapped line and max-width caps it, which every engine honours.
+       The cap itself has to be the viewport, not 28rem alone: the observatory
+       centres this same box on a full-screen brain, so on a phone a 28rem slab
+       is wider than the screen and reads as a full-bleed bar with its text
+       cut off at both edges. The gutter is 4rem rather than 2 because the cap
+       lands on the content box and the slab's padding and border ride outside
+       it. */
     width: max-content;
-    max-width: 28rem;
+    max-width: min(28rem, calc(100vw - 4rem));
     margin-inline: auto;
     transform: translateY(-50%);
     z-index: 2;

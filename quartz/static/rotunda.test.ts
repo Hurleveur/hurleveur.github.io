@@ -89,3 +89,23 @@ describe("touch preview on the canvas", () => {
     )
   })
 })
+
+// The hovered-room description is one box in two places: a slab over the mini
+// brain on the home page, and the same element centred on a full-screen brain
+// in the observatory. Its width is capped in rem, so without a viewport term in
+// that cap the phone observatory renders it wider than the screen — a full-bleed
+// bar with its text cut off at both edges, which is what the last two attempts
+// at this box left behind.
+describe("the room description fits the screen", () => {
+  const descRules = scss.slice(scss.indexOf("#vb-desc {"), scss.indexOf("@keyframes vb-desc-in"))
+
+  test("the width cap is bounded by the viewport, not by rem alone", () => {
+    const cap = descRules.match(/max-width:\s*([^;]+);/)
+    assert.ok(cap, "#vb-desc no longer caps its width at all")
+    assert.match(
+      cap![1],
+      /100vw/,
+      "the cap dropped its viewport term — on a phone the slab is wider than the screen again",
+    )
+  })
+})
