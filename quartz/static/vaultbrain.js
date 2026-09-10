@@ -19,6 +19,17 @@
     meaning: "#9b7ede",    // crown — purpose / spirit
   }
 
+  // the rooms read root -> crown wherever they are listed: the frieze along the
+  // rotunda and the doors under the hero. Anything outside the chakra scheme
+  // follows, alphabetically, so a new folder never jumps the seven.
+  const CHAKRA = Object.keys(COLORS)
+  function chakraSort(a, b) {
+    const ia = CHAKRA.indexOf(a.toLowerCase())
+    const ib = CHAKRA.indexOf(b.toLowerCase())
+    if (ia !== ib) return (ia < 0 ? CHAKRA.length : ia) - (ib < 0 ? CHAKRA.length : ib)
+    return a.localeCompare(b)
+  }
+
   function folderColor(folder) {
     const key = folder.toLowerCase()
     if (COLORS[key]) return COLORS[key]
@@ -958,7 +969,7 @@
       // brain canvas box — .frieze stacks above it and hands the pointer back
       // on its glyphs alone, so those words still open their own room.
       const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
-      const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+      const folders = Object.keys(counts).sort(chakraSort)
       const half = Math.ceil(folders.length / 2)
       const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
       // attach before measuring: getComputedTextLength needs a laid-out tree
@@ -1406,7 +1417,7 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+    const folders = Object.keys(counts).sort(chakraSort)
 
     for (const home of mine) {
       for (const folder of folders) {
