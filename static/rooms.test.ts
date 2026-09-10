@@ -46,7 +46,10 @@ describe("the rooms", () => {
     // every other section of the note renders plainly. If the teaser map grows
     // a second entry, or the button stops being built, part of the map either
     // disappears from the home page or arrives already spent.
-    const teaser = js.slice(js.indexOf("const INTRO_TEASER"), js.indexOf("async function initVaultIntro"))
+    const teaser = js.slice(
+      js.indexOf("const INTRO_TEASER"),
+      js.indexOf("async function initVaultIntro"),
+    )
     assert.match(teaser, /\{ palace: 2 \}/, "the Palace teaser no longer cuts at two blocks")
     assert.match(initVaultIntro, /"Read more"/, "the Read more control is gone")
     assert.match(
@@ -119,6 +122,33 @@ describe("the rooms", () => {
       initRooms,
       /enter\.href = "\/" \+ folder \+ "\/"/,
       "the Enter link no longer points straight at the folder page",
+    )
+  })
+})
+
+// The rooms are listed root -> crown wherever they appear — the frieze along
+// the rotunda and the doors under the hero both sort through chakraSort. The
+// order is the vault's own scheme, not a count or an alphabet, and nothing but
+// this test notices when a sort call drifts back to the old counts comparator.
+describe("chakra order", () => {
+  const chakraSrc = js.slice(js.indexOf("const COLORS = {"), js.indexOf("function folderColor("))
+  const chakraSort = new Function(chakraSrc + "; return chakraSort")() as (
+    a: string,
+    b: string,
+  ) => number
+
+  test("the seven run root to crown, strangers after them", () => {
+    const order = ["Meaning", "zebra", "Alignment", "Work", "Attachments", "Friends"].sort(
+      chakraSort,
+    )
+    assert.deepEqual(order, ["Alignment", "Work", "Friends", "Meaning", "Attachments", "zebra"])
+  })
+
+  test("both listings sort through it, not by note count", () => {
+    assert.equal(
+      (js.match(/Object\.keys\(counts\)\.sort\(chakraSort\)/g) || []).length,
+      2,
+      "the frieze or the doors stopped sorting by chakra order",
     )
   })
 })

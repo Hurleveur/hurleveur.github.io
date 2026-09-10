@@ -19,6 +19,17 @@
     meaning: "#9b7ede",    // crown — purpose / spirit
   }
 
+  // the rooms read root -> crown wherever they are listed: the frieze along the
+  // rotunda and the doors under the hero. Anything outside the chakra scheme
+  // follows, alphabetically, so a new folder never jumps the seven.
+  const CHAKRA = Object.keys(COLORS)
+  function chakraSort(a, b) {
+    const ia = CHAKRA.indexOf(a.toLowerCase())
+    const ib = CHAKRA.indexOf(b.toLowerCase())
+    if (ia !== ib) return (ia < 0 ? CHAKRA.length : ia) - (ib < 0 ? CHAKRA.length : ib)
+    return a.localeCompare(b)
+  }
+
   function folderColor(folder) {
     const key = folder.toLowerCase()
     if (COLORS[key]) return COLORS[key]
@@ -419,11 +430,27 @@
       }
       return null
     }
+    // touch takes its hover from a deliberate drag, never from bare contact: a
+    // finger landing dispatches pointermove before pointerdown, so a plain tap
+    // used to flash a preview nobody asked for. Hover turns on once the contact
+    // has travelled TOUCH_SLOP px, and the click ending such a drag is
+    // swallowed — on touch the tap navigates, the drag only previews.
+    const TOUCH_SLOP = 12
+    let touchDrag = null // { id, x, y, moved }
+    function onTouchDown(e) {
+      touchDrag =
+        e.pointerType === "touch"
+          ? { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }
+          : null
+    }
     function onMove(e) {
-      // touch fires pointerenter/pointermove the instant a finger lands, before
-      // pointerdown — a bare tap would flash the tooltip/highlight it was never
-      // meant to trigger, so touch skips hover entirely and acts only on tap
-      if (e.pointerType === "touch") return
+      if (e.pointerType === "touch") {
+        if (!touchDrag || touchDrag.id !== e.pointerId) return
+        if (!touchDrag.moved) {
+          if (Math.hypot(e.clientX - touchDrag.x, e.clientY - touchDrag.y) < TOUCH_SLOP) return
+          touchDrag.moved = true
+        }
+      }
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
@@ -454,6 +481,11 @@
       }
     }
     function onClick(e) {
+      // a finger that dragged was previewing, not picking: the click that ends
+      // it must not navigate. Cleared here so the next gesture starts fresh.
+      const wasTouchDrag = touchDrag && touchDrag.moved
+      touchDrag = null
+      if (wasTouchDrag) return
       if (dragged) return // pan release, not a pick
       // hit-test the click's own coords: on touch, pointerleave fires before
       // click and clears `hovered`, and a stationary tap never fires pointermove
@@ -639,6 +671,7 @@
       tip.style.opacity = 0
       if (hlFolder) hlEmit(null)
     }
+    cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
@@ -663,6 +696,7 @@
       cancelAnimationFrame(raf)
       document.removeEventListener("themechange", onTheme)
       window.removeEventListener("vb-folder-hl", onHl)
+      cv.removeEventListener("pointerdown", onTouchDown)
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
@@ -935,7 +969,7 @@
       // brain canvas box — .frieze stacks above it and hands the pointer back
       // on its glyphs alone, so those words still open their own room.
       const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
-      const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+      const folders = Object.keys(counts).sort(chakraSort)
       const half = Math.ceil(folders.length / 2)
       const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
       // attach before measuring: getComputedTextLength needs a laid-out tree
@@ -1112,9 +1146,14 @@
     }
     if (!QUOTES.length) return
 
+    // a long quote needs longer on screen than a one-liner: 7s base plus 20ms
+    // per character of the quote actually rendered, capped at twice the base so
+    // an essay-length one can never park the slab.
+    const dwell = () => Math.min(14000, 7000 + q.textContent.length * 20)
+
     let i = 0
-    const timer = setInterval(() => {
-      if (!q.isConnected) return clearInterval(timer)
+    const advance = () => {
+      if (!q.isConnected) return
       q.style.opacity = 0
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
@@ -1129,72 +1168,10 @@
           src.textContent = from
         }
         q.style.opacity = 1
+        setTimeout(advance, dwell())
       }, 600)
-    }, 7000)
-  }
-
-  // taskbar help icon: sits beside darkmode/reader-mode in the toolbar (found
-  // via .darkmode's flex-component parent, since the toolbar has no id of its
-  // own). The toolbar is rebuilt on every SPA nav, so the button is re-created
-  // each time; the popover panel lives on <body> (survives nav) and its
-  // content is fetched from static/help.json (built from content/Help.md by
-  // the VaultPages emitter) once, on first open.
-  let helpHtml = null
-  function initHelp() {
-    const darkBtn = document.querySelector(".darkmode")
-    const toolbar = darkBtn?.closest(".flex-component")
-    if (!toolbar) return
-
-    let panel = document.getElementById("vb-help-panel")
-    if (!panel) {
-      panel = document.createElement("div")
-      panel.id = "vb-help-panel"
-      panel.hidden = true
-      document.body.appendChild(panel)
-
-      const onOutside = (e) => {
-        if (!panel.hidden && !panel.contains(e.target) && e.target.id !== "vb-help-btn") {
-          panel.hidden = true
-        }
-      }
-      const onKey = (e) => {
-        if (e.key === "Escape" && !panel.hidden) panel.hidden = true
-      }
-      document.addEventListener("pointerdown", onOutside)
-      document.addEventListener("keydown", onKey)
-      if (window.addCleanup) {
-        window.addCleanup(() => {
-          document.removeEventListener("pointerdown", onOutside)
-          document.removeEventListener("keydown", onKey)
-        })
-      }
     }
-
-    if (toolbar.querySelector("#vb-help-btn")) return
-    const wrap = document.createElement("div")
-    const btn = document.createElement("button")
-    btn.id = "vb-help-btn"
-    btn.type = "button"
-    btn.textContent = "?"
-    btn.setAttribute("aria-label", "Help")
-    btn.addEventListener("click", async () => {
-      if (!panel.hidden) {
-        panel.hidden = true
-        return
-      }
-      if (helpHtml === null) {
-        try {
-          const data = await fetch("/static/help.json").then((r) => r.json())
-          helpHtml = data.html || ""
-        } catch (e) {
-          helpHtml = "<p>Couldn't load help.</p>"
-        }
-        panel.innerHTML = helpHtml
-      }
-      panel.hidden = false
-    })
-    wrap.appendChild(btn)
-    toolbar.appendChild(wrap)
+    setTimeout(advance, dwell())
   }
 
   // homepage whoami card: avatar + live text from content/woami.md, via
@@ -1440,7 +1417,7 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    const folders = Object.keys(counts).sort((a, b) => counts[b] - counts[a])
+    const folders = Object.keys(counts).sort(chakraSort)
 
     for (const home of mine) {
       for (const folder of folders) {
@@ -1757,7 +1734,6 @@
       if (TUNE) tuneBrain()
       initShelf()
       initQuotes()
-      initHelp()
       initWhoami()
       initVaultIntro()
       initRooms()
@@ -1774,7 +1750,6 @@
   if (TUNE) tuneBrain()
   initShelf()
   initQuotes()
-  initHelp()
   initWhoami()
   initVaultIntro()
   initRooms()
