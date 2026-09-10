@@ -1135,9 +1135,14 @@
     }
     if (!QUOTES.length) return
 
+    // a long quote needs longer on screen than a one-liner: 7s base plus 20ms
+    // per character of the quote actually rendered, capped at twice the base so
+    // an essay-length one can never park the slab.
+    const dwell = () => Math.min(14000, 7000 + q.textContent.length * 20)
+
     let i = 0
-    const timer = setInterval(() => {
-      if (!q.isConnected) return clearInterval(timer)
+    const advance = () => {
+      if (!q.isConnected) return
       q.style.opacity = 0
       setTimeout(() => {
         i = (i + 1) % QUOTES.length
