@@ -38,6 +38,20 @@ const defaultOptions: ExplorerOptions = {
     return node;
   },
   sortFn: (a: FileTrieNode, b: FileTrieNode) => {
+    // LOCI PATCH: top-level folders follow the vault's chakra order, root to
+    // crown, the same order the frieze and the home page doors use. Anything
+    // outside the scheme keeps sorting alphabetically, after the seven.
+    // This function is serialized with toString() into data-data-fns and
+    // rebuilt with new Function() in the browser, so it can close over
+    // nothing — the order has to be spelled out inside the body.
+    if (a.isFolder && b.isFolder && a.slugSegments?.length === 1 && b.slugSegments?.length === 1) {
+      const chakra = ["alignment", "travel", "work", "friends", "shared", "library", "meaning"];
+      const ai = chakra.indexOf((a.slugSegment || "").toLowerCase());
+      const bi = chakra.indexOf((b.slugSegment || "").toLowerCase());
+      if (ai !== bi) {
+        return (ai < 0 ? chakra.length : ai) - (bi < 0 ? chakra.length : bi);
+      }
+    }
     if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
       return (a.displayName || "").localeCompare(b.displayName || "", undefined, {
         numeric: true,

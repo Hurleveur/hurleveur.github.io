@@ -109,25 +109,8 @@ function folderColor(folder) {
   return FOLDER_PALETTE[h % FOLDER_PALETTE.length];
 }
 
-// LOCI PATCH: chakra order, root -> crown (mirrors COLORS in vaultbrain.js) —
-// top-level explorer folders follow the vault's structure, not the alphabet.
-// Folders not listed here keep sorting alphabetically, after the chakra ones.
-const CHAKRA_ORDER = ["alignment", "travel", "work", "friends", "shared", "library", "meaning"];
-
 // Process and sort nodes
 const defaultSortFn = (a, b) => {
-  // LOCI PATCH: only applies at the top level — slugSegments.length === 1 means
-  // this node sits directly under the trie root (see FileTrieNode.makeChild:
-  // fullPath = [...parent.slugSegments, segment]). Nested folders/files at any
-  // deeper level fall straight through to the alphabetical rule below.
-  if (a.isFolder && b.isFolder && a.slugSegments.length === 1 && b.slugSegments.length === 1) {
-    const ai = CHAKRA_ORDER.indexOf(a.slugSegment.toLowerCase());
-    const bi = CHAKRA_ORDER.indexOf(b.slugSegment.toLowerCase());
-    if (ai !== -1 && bi !== -1) return ai - bi;
-    if (ai !== -1) return -1;
-    if (bi !== -1) return 1;
-    // neither is a chakra folder — fall through to alphabetical below
-  }
   if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
     return a.displayName.localeCompare(b.displayName, undefined, {
       numeric: true,
