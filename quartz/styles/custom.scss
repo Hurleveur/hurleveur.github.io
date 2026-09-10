@@ -1109,51 +1109,6 @@ body.vb-open {
   }
 }
 
-/* taskbar help icon + popover (vaultbrain.js), content from content/Help.md */
-#vb-help-btn {
-  cursor: pointer;
-  padding: 0;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--darkgray) 55%, transparent);
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  align-self: center;
-  font-size: 0.68rem;
-  line-height: 1;
-  color: var(--darkgray);
-  flex-shrink: 0;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--secondary);
-    color: var(--secondary);
-  }
-}
-
-#vb-help-panel {
-  position: fixed;
-  top: 3.6rem;
-  right: 1rem;
-  z-index: 10;
-  max-width: min(24rem, calc(100vw - 2rem));
-  max-height: min(28rem, calc(100vh - 5rem));
-  overflow-y: auto;
-  padding: 1.2rem 1.4rem;
-  background: var(--light);
-  border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
-  border-radius: 6px;
-  box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.35);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--darkgray);
-
-  h2 {
-    font-size: 1rem;
-    margin-top: 0;
-  }
-}
-
 /* explorer width grip (vaultbrain.js) — full-height strip on the explorer panel's right edge */
 #vb-resize {
   position: absolute;

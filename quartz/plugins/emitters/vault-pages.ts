@@ -7,15 +7,13 @@ import { render } from "preact-render-to-string"
 import path from "path"
 import fs from "fs"
 
-// Emits static/help.json, static/whoami.json and static/vaultmap.json — the
-// rendered HTML body of content/help.md, content/woami.md and content/Vault
-// Map.md — so the taskbar help popover, the homepage whoami card and the
-// homepage "what this place is" block can show live vault content instead of a
-// copy baked into index.md. All three source notes publish unlisted (off
+// Emits static/whoami.json and static/vaultmap.json — the rendered HTML body
+// of content/woami.md and content/Vault Map.md — so the homepage whoami card
+// and the homepage "what this place is" block can show live vault content
+// instead of a copy baked into index.md. Both source notes publish unlisted (off
 // nav/graph, still reachable by direct URL); editing one and rebuilding updates
 // its spot.
 const TARGETS: Record<string, string> = {
-  "help.md": "help.json",
   "woami.md": "whoami.json",
   "Vault Map.md": "vaultmap.json",
 }

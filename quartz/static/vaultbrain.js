@@ -1157,72 +1157,10 @@
           src.textContent = from
         }
         q.style.opacity = 1
+        setTimeout(advance, dwell())
       }, 600)
-    }, 7000)
-  }
-
-  // taskbar help icon: sits beside darkmode/reader-mode in the toolbar (found
-  // via .darkmode's flex-component parent, since the toolbar has no id of its
-  // own). The toolbar is rebuilt on every SPA nav, so the button is re-created
-  // each time; the popover panel lives on <body> (survives nav) and its
-  // content is fetched from static/help.json (built from content/Help.md by
-  // the VaultPages emitter) once, on first open.
-  let helpHtml = null
-  function initHelp() {
-    const darkBtn = document.querySelector(".darkmode")
-    const toolbar = darkBtn?.closest(".flex-component")
-    if (!toolbar) return
-
-    let panel = document.getElementById("vb-help-panel")
-    if (!panel) {
-      panel = document.createElement("div")
-      panel.id = "vb-help-panel"
-      panel.hidden = true
-      document.body.appendChild(panel)
-
-      const onOutside = (e) => {
-        if (!panel.hidden && !panel.contains(e.target) && e.target.id !== "vb-help-btn") {
-          panel.hidden = true
-        }
-      }
-      const onKey = (e) => {
-        if (e.key === "Escape" && !panel.hidden) panel.hidden = true
-      }
-      document.addEventListener("pointerdown", onOutside)
-      document.addEventListener("keydown", onKey)
-      if (window.addCleanup) {
-        window.addCleanup(() => {
-          document.removeEventListener("pointerdown", onOutside)
-          document.removeEventListener("keydown", onKey)
-        })
-      }
     }
-
-    if (toolbar.querySelector("#vb-help-btn")) return
-    const wrap = document.createElement("div")
-    const btn = document.createElement("button")
-    btn.id = "vb-help-btn"
-    btn.type = "button"
-    btn.textContent = "?"
-    btn.setAttribute("aria-label", "Help")
-    btn.addEventListener("click", async () => {
-      if (!panel.hidden) {
-        panel.hidden = true
-        return
-      }
-      if (helpHtml === null) {
-        try {
-          const data = await fetch("/static/help.json").then((r) => r.json())
-          helpHtml = data.html || ""
-        } catch (e) {
-          helpHtml = "<p>Couldn't load help.</p>"
-        }
-        panel.innerHTML = helpHtml
-      }
-      panel.hidden = false
-    })
-    wrap.appendChild(btn)
-    toolbar.appendChild(wrap)
+    setTimeout(advance, dwell())
   }
 
   // homepage whoami card: avatar + live text from content/woami.md, via
@@ -1785,7 +1723,6 @@
       if (TUNE) tuneBrain()
       initShelf()
       initQuotes()
-      initHelp()
       initWhoami()
       initVaultIntro()
       initRooms()
@@ -1802,7 +1739,6 @@
   if (TUNE) tuneBrain()
   initShelf()
   initQuotes()
-  initHelp()
   initWhoami()
   initVaultIntro()
   initRooms()
