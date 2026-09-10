@@ -36,6 +36,7 @@ Six forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`, 
 - After patching a fork: `npm install --allow-git=root && npm run build` inside it, **then restart the dev server**. It bundles `dist` at startup and silently serves the stale build otherwise.
 - `quartz.lock.json` keeps a now-unused entry per forked plugin. Leave it: its `commit` records the upstream fork point for a future re-sync.
 - `node_modules/` inside a fork is gitignored and only needed to rebuild `dist`.
+- The explorer's sort/filter/map rules come from `Explorer.tsx`'s `defaultOptions`, serialised into `data-data-fns` and rebuilt with `new Function()`; the same functions in `explorer.inline.ts` never run, and a serialised one can close over nothing.
 
 ## Two files are hand-formatted — never prettier them
 
@@ -49,6 +50,7 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 - **Start the dev server with `dangerouslyDisableSandbox: true`.** The Bash sandbox unshares the network namespace, so a server started inside it prints "listening at 8080" while nothing is bound on the host — the browser gets nothing. Confirm with `ss -ltn | grep :8080`, never with `curl` from inside the sandbox (always `000`).
 - The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
 - `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
+- `#vb-desc` is one element in two places — the mini brain and the full-screen observatory — so any rem-only size cap on it overflows a phone screen; keep a `100vw` term in the cap.
 - `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
 - `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
