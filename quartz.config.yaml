@@ -261,9 +261,8 @@ plugins:
     enabled: true
     options:
       includeAll: false
-      includedProperties:
+      includedProperties: # tags now render on the content-meta line, not here (LOCI PATCH)
         - description
-        - tags
         - aliases
       excludedProperties: []
       hidePropertiesView: false

@@ -6,6 +6,7 @@ import type {
 } from "@quartz-community/types";
 import readingTime from "reading-time";
 import { classNames } from "../util/lang";
+import { resolveRelative, type SimpleSlug } from "@quartz-community/utils/path";
 import { i18n } from "../i18n";
 import { DateComponent, getDate } from "../util/date";
 import type { JSX } from "preact";
@@ -101,6 +102,34 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
         .filter((a) => a !== "");
       if (authors.length > 0) {
         segments.push(<span>author: {authors.join(", ")}</span>);
+      }
+
+      // LOCI PATCH: tags used to only show in the collapsible Properties table; the owner
+      // wants them on this line instead. `tags` frontmatter is a string, a list, empty, or
+      // missing depending on the note, so normalize every shape rather than trusting one.
+      // By the time this runs, obsidian-flavored-markdown has already slugified every tag
+      // (see slugTag in its transformer), so the same string is both the display text and
+      // the tag page's slug — same assumption TagList.tsx makes for its tag links.
+      const rawTags = fileData.frontmatter?.tags;
+      const tags = (Array.isArray(rawTags) ? rawTags : [rawTags]).filter(
+        (t): t is string => typeof t === "string" && t.trim() !== "",
+      );
+      if (tags.length > 0) {
+        segments.push(
+          <span>
+            {tags.map((tag, i) => (
+              <>
+                {i > 0 ? " " : ""}
+                <a
+                  href={resolveRelative(fileData.slug!, `tags/${tag}` as SimpleSlug)}
+                  class="internal tag-link"
+                >
+                  #{tag}
+                </a>
+              </>
+            ))}
+          </span>,
+        );
       }
 
       return (

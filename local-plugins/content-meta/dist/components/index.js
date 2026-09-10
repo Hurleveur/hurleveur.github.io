@@ -167,6 +167,56 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
+// node_modules/@quartz-community/utils/dist/path.js
+function simplifySlug(fp) {
+  const res = stripSlashes(trimSuffix(fp, "index"), true);
+  return res.length === 0 ? "/" : res;
+}
+function joinSegments(...args) {
+  if (args.length === 0) {
+    return "";
+  }
+  let joined = args.filter((segment) => segment !== "" && segment !== "/").map((segment) => stripSlashes(segment)).join("/");
+  const first = args[0];
+  const last = args[args.length - 1];
+  if (first?.startsWith("/")) {
+    joined = "/" + joined;
+  }
+  if (last?.endsWith("/")) {
+    joined = joined + "/";
+  }
+  return joined;
+}
+function endsWith(s2, suffix) {
+  return s2 === suffix || s2.endsWith("/" + suffix);
+}
+function trimSuffix(s2, suffix) {
+  if (endsWith(s2, suffix)) {
+    s2 = s2.slice(0, -suffix.length);
+  }
+  return s2;
+}
+function stripSlashes(s2, onlyStripPrefix) {
+  if (s2.startsWith("/")) {
+    s2 = s2.substring(1);
+  }
+  if (!onlyStripPrefix && s2.endsWith("/")) {
+    s2 = s2.slice(0, -1);
+  }
+  return s2;
+}
+function pathToRoot(slug2) {
+  let rootPath = slug2.split("/").filter((x2) => x2 !== "").slice(0, -1).map((_2) => "..").join("/");
+  if (rootPath.length === 0) {
+    rootPath = ".";
+  }
+  return rootPath;
+}
+function resolveRelative(current, target) {
+  const res = joinSegments(pathToRoot(current), simplifySlug(target));
+  return res;
+}
+
 // src/i18n/locales/en-US.ts
 var en_US_default = {
   components: {
@@ -498,6 +548,9 @@ function getDate(data) {
   return dates?.[defaultDateType];
 }
 var l;
+function S(n2) {
+  return n2.children;
+}
 l = { __e: function(n2, l2, u3, t2) {
   for (var i2, r2, o2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
     if ((r2 = i2.constructor) && null != r2.getDerivedStateFromError && (i2.setState(r2.getDerivedStateFromError(n2)), o2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, t2 || {}), o2 = i2.__d), o2) return i2.__E = i2;
@@ -585,6 +638,28 @@ var ContentMeta_default = ((opts) => {
           "author: ",
           authors.join(", ")
         ] }));
+      }
+      const rawTags = fileData.frontmatter?.tags;
+      const tags = (Array.isArray(rawTags) ? rawTags : [rawTags]).filter(
+        (t2) => typeof t2 === "string" && t2.trim() !== ""
+      );
+      if (tags.length > 0) {
+        segments.push(
+          /* @__PURE__ */ u2("span", { children: tags.map((tag, i2) => /* @__PURE__ */ u2(S, { children: [
+            i2 > 0 ? " " : "",
+            /* @__PURE__ */ u2(
+              "a",
+              {
+                href: resolveRelative(fileData.slug, `tags/${tag}`),
+                class: "internal tag-link",
+                children: [
+                  "#",
+                  tag
+                ]
+              }
+            )
+          ] })) })
+        );
       }
       return /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments });
     } else {
