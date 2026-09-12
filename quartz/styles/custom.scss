@@ -154,6 +154,128 @@ body {
   }
 }
 
+/* PauseAI: a standing invitation beside the "why does this exist" paragraph.
+   The row exists only to give the badge a right edge to hang off without
+   pushing .vault-intro out of the hero's centre — hence relative + absolute.
+   Under 60rem there is no room beside the prose, so it stacks under it. */
+.palace-hero .intro-row {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.palace-hero .pauseai {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(8rem, 13vw, 10.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+
+  .pauseai-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    color: #d93d1a;
+    text-decoration: none;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+    svg {
+      display: block;
+      width: clamp(38px, 4.4vw, 54px);
+      height: auto;
+      border-radius: 50%;
+      /* the halo is what makes it read as a call, not decoration */
+      box-shadow: 0 0 0 0 rgba(217, 61, 26, 0.45);
+      animation: pauseai-pulse 2.8s ease-out infinite;
+    }
+
+    /* crawl-links tags external anchors with an icon — not wanted here */
+    svg.external-icon {
+      display: none;
+    }
+  }
+
+  .pauseai-label {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #d93d1a;
+  }
+
+  .pauseai-cta {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: #8a5043;
+    border-bottom: 1px solid rgba(217, 61, 26, 0.45);
+  }
+
+  .pauseai-why {
+    font-size: 0.75rem;
+    font-style: italic;
+    line-height: 1.35;
+    color: #6f6857;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(111, 104, 87, 0.35);
+  }
+
+  .pauseai-badge:hover,
+  .pauseai-badge:focus-visible {
+    transform: translateY(-3px);
+  }
+
+  .pauseai-why:hover,
+  .pauseai-why:focus-visible {
+    color: #d93d1a;
+    border-bottom-color: #d93d1a;
+  }
+}
+
+@keyframes pauseai-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(217, 61, 26, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(217, 61, 26, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(217, 61, 26, 0); }
+}
+
+[saved-theme="dark"] .palace-hero .pauseai {
+  .pauseai-badge,
+  .pauseai-label {
+    color: #ff6a42;
+  }
+
+  .pauseai-cta {
+    color: #c98d7c;
+    border-bottom-color: rgba(255, 106, 66, 0.5);
+  }
+
+  .pauseai-why {
+    color: var(--darkgray);
+    border-bottom-color: rgba(190, 183, 164, 0.35);
+  }
+}
+
+@media all and (max-width: 60rem) {
+  .palace-hero .intro-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .palace-hero .pauseai {
+    position: static;
+    transform: none;
+    width: auto;
+    margin-top: 1.4rem;
+  }
+}
+
 /* what this place is — the opening paragraphs of the vault's own Vault Map note,
    fetched live by initVaultIntro(). First paragraph only until asked; the rest
    would push the quote off a phone screen. */
@@ -1513,7 +1635,12 @@ body[data-slug^="books"] {
   .door,
   .spine,
   .quote-slab blockquote,
-  .palace-hero .clippy {
+  .palace-hero .clippy,
+  .palace-hero .pauseai .pauseai-badge {
     transition: none !important;
+  }
+
+  .palace-hero .pauseai .pauseai-badge svg {
+    animation: none !important;
   }
 }

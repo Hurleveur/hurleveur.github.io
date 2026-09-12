@@ -20,7 +20,21 @@ publish: true
   <p class="eyebrow">Nosce te ipsum</p>
   <h1>A palace<br>of the mind</h1>
   <p class="latin">Everything I have learned, kept in rooms — walk in, take what serves you.</p>
-  <div class="vault-intro" id="vault-intro"></div>
+  <div class="intro-row">
+    <div class="vault-intro" id="vault-intro"></div>
+    <aside class="pauseai">
+      <a class="pauseai-badge" href="https://luma.com/s8bbku99" target="_blank" rel="noopener">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="29" fill="currentColor" />
+          <rect x="21" y="19" width="8" height="26" rx="2" fill="#fff" />
+          <rect x="35" y="19" width="8" height="26" rx="2" fill="#fff" />
+        </svg>
+        <span class="pauseai-label">Pause AI</span>
+        <span class="pauseai-cta">join the protest</span>
+      </a>
+      <a class="pauseai-why" href="/alignment/i-think-ai-is-the-most-pressing-issue-of-our-time">I think AI is the most pressing issue of our time</a>
+    </aside>
+  </div>
   <section class="doors" hidden>
     <h2>The rooms</h2>
     <p class="sub">one door per wing of the vault — open one to see what it holds</p>
