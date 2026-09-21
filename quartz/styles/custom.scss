@@ -1805,8 +1805,8 @@ body.vb-open #quartz-body .sidebar.right {
     grid-template-columns: auto 320px;
   }
 
-  /* ✦ off takes the whole column with it — TOC, recent notes, backlinks —
-     and the page gets the width (initFolderRail keeps the listing out) */
+  /* ✦ off takes the whole column with it — TOC, recent notes, backlinks,
+     a folder page's listing — and the page gets the width */
   body:not([data-slug="index"]).brain-off #quartz-body {
     grid-template-columns: auto 0;
     column-gap: 0;

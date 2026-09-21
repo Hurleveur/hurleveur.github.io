@@ -38,11 +38,12 @@ test("side brain", async (t) => {
     assert.match(js, /const near = hovered \? adj\.get\(hovered\)/)
   })
 
-  await t.test("✦ off takes the whole column, and the listing back out of it", () => {
+  await t.test("✦ off takes the whole column, listing included", () => {
     const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
     assert.match(scss, /\.brain-off #quartz-body \{[\s\S]*?\.sidebar\.right \{\s*display: none/)
-    // otherwise a folder page loses its listing along with the column
-    assert.match(js, /if \(nowOff\) unrailFolder\(\)/)
+    // the listing hides only because it lives in the column: a brain-off gate
+    // in initFolderRail would leave it showing under the page
+    assert.doesNotMatch(js, /function initFolderRail[\s\S]{0,300}brain-off/)
   })
 
   await t.test("the graph plugin it replaces stays off", () => {
