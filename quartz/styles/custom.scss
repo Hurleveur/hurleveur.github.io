@@ -1724,10 +1724,21 @@ body.vb-open #quartz-body .sidebar.right {
     color: var(--gray);
   }
 
+  /* the stock listing spaces itself for the article (2em above the list,
+     1em under every item); in a column that read as holes between rows */
+  ul.section-ul {
+    margin: 0;
+  }
+
+  li.section-li {
+    margin: 0;
+    line-height: 1.2; /* base.scss gives li and p 1.6rem */
+  }
+
   .section-li > .section {
     /* the stock listing is a 3-column grid built for the article width */
     display: block;
-    padding: 0.35rem 0;
+    padding: 0.1rem 0;
   }
 
   h3 {
@@ -1739,6 +1750,7 @@ body.vb-open #quartz-body .sidebar.right {
   .meta {
     margin: 0;
     font-size: 0.68rem;
+    line-height: 1.2;
   }
 
   .tags {
