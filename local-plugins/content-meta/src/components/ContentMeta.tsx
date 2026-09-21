@@ -132,10 +132,39 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
         );
       }
 
+      // LOCI PATCH: `description` and `aliases` used to sit in the collapsible
+      // Properties table (note-properties, now disabled). A description is the note's
+      // standfirst — it reads as one, right under the title — and an alias is a name,
+      // not a table row. Frontmatter is never link-resolved, so a wikilink is shown
+      // as its display text, the same normalization the author line above does.
+      const plain = (s: string) =>
+        s
+          .trim()
+          .replace(/\[\[([^\]]*)\]\]/g, (_m, inner: string) => inner.split("|").pop()!.trim());
+
+      const rawDescription = fileData.frontmatter?.description;
+      const description =
+        typeof rawDescription === "string" && rawDescription.trim() !== ""
+          ? plain(rawDescription)
+          : undefined;
+
+      const rawAliases = fileData.frontmatter?.aliases;
+      const aliases = (Array.isArray(rawAliases) ? rawAliases : [rawAliases])
+        .filter((a): a is string => typeof a === "string" && a.trim() !== "")
+        .map(plain);
+
       return (
-        <p show-comma={options.showComma} class={classNames(displayClass, "content-meta")}>
-          {segments}
-        </p>
+        <>
+          {description && <p class={classNames(displayClass, "note-description")}>{description}</p>}
+          {aliases.length > 0 && (
+            <p class={classNames(displayClass, "note-aliases")}>
+              also known as {aliases.join(", ")}
+            </p>
+          )}
+          <p show-comma={options.showComma} class={classNames(displayClass, "content-meta")}>
+            {segments}
+          </p>
+        </>
       );
     } else {
       return null;

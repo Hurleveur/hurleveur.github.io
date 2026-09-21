@@ -12,3 +12,19 @@
     }
   }
 }
+
+/* LOCI PATCH: the note's standfirst — the `description` frontmatter, set as the
+   line a reader takes the page's subject from, not as a table row. */
+.note-description {
+  margin: 0 0 0.3rem;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: var(--darkgray);
+}
+
+.note-aliases {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--gray);
+}

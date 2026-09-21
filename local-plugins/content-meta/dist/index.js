@@ -577,7 +577,7 @@ function DateComponent({ date, locale }) {
 }
 
 // src/components/styles/contentMeta.scss
-var contentMeta_default = '.content-meta {\n  margin-top: 0;\n  color: var(--darkgray);\n}\n.content-meta[show-comma=true] > *:not(:last-child) {\n  margin-right: 8px;\n}\n.content-meta[show-comma=true] > *:not(:last-child)::after {\n  content: ",";\n}';
+var contentMeta_default = '@charset "UTF-8";\n.content-meta {\n  margin-top: 0;\n  color: var(--darkgray);\n}\n.content-meta[show-comma=true] > *:not(:last-child) {\n  margin-right: 8px;\n}\n.content-meta[show-comma=true] > *:not(:last-child)::after {\n  content: ",";\n}\n\n/* LOCI PATCH: the note\'s standfirst \u2014 the `description` frontmatter, set as the\n   line a reader takes the page\'s subject from, not as a table row. */\n.note-description {\n  margin: 0 0 0.3rem;\n  font-size: 1.15rem;\n  line-height: 1.45;\n  color: var(--darkgray);\n}\n\n.note-aliases {\n  margin: 0 0 0.3rem;\n  font-size: 0.9rem;\n  font-style: italic;\n  color: var(--gray);\n}';
 
 // src/components/ContentMeta.tsx
 var defaultOptions = {
@@ -661,7 +661,19 @@ var ContentMeta_default = ((opts) => {
           ] })) })
         );
       }
-      return /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments });
+      const plain = (s2) => s2.trim().replace(/\[\[([^\]]*)\]\]/g, (_m, inner) => inner.split("|").pop().trim());
+      const rawDescription = fileData.frontmatter?.description;
+      const description = typeof rawDescription === "string" && rawDescription.trim() !== "" ? plain(rawDescription) : void 0;
+      const rawAliases = fileData.frontmatter?.aliases;
+      const aliases = (Array.isArray(rawAliases) ? rawAliases : [rawAliases]).filter((a2) => typeof a2 === "string" && a2.trim() !== "").map(plain);
+      return /* @__PURE__ */ u2(S, { children: [
+        description && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-description"), children: description }),
+        aliases.length > 0 && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-aliases"), children: [
+          "also known as ",
+          aliases.join(", ")
+        ] }),
+        /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments })
+      ] });
     } else {
       return null;
     }

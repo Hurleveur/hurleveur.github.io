@@ -17,8 +17,8 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 - It runs daily via the `loci-deploy.timer` user unit → `loci-deploy.service`. Not a vault watcher; a clock — a vault edit waits until midnight.
 - `SITE` resolves to the clone the script lives in. It used to hardcode `~/Sites/loci`, a second checkout that went stale and silently deployed Jul-29 source for a week while `v5` kept advancing. One clone only — if a second ever appears, that bug is back.
 - **"Deployed N minutes ago but the feature is missing" is not a Pages problem.** A green deploy only proves _something_ built. Check what it built from: `git log origin/gh-pages -1` for the deploy time, then confirm the feature's own artifact is live (`curl -sI https://hurleveur.github.io/static/categoryIndex.json`). Chasing the site before checking the source cost a session.
-- The timer's `Persistent=true` makes it fire at boot catch-up, before the desktop session is ready. Two things are missing then and both kill the push *after* a full build: DNS (`Could not resolve host`) and the login keyring (`could not read Username for 'https://github.com'` — the helper is `!/usr/bin/gh auth git-credential` and `gh`'s token lives in the keyring). `loci-deploy.service`'s `ExecStartPre` polls both for 15 min. A user unit can order against neither: `network-online.target` is a system target, and nothing signals "keyring unlocked".
-- `ExecStartPre` only proves DNS worked *before* the build; resolution can still fail at push time three minutes later. `deploy.sh` retries the push 5× / 30s so a finished build is never thrown away.
+- The timer's `Persistent=true` makes it fire at boot catch-up, before the desktop session is ready. Two things are missing then and both kill the push _after_ a full build: DNS (`Could not resolve host`) and the login keyring (`could not read Username for 'https://github.com'` — the helper is `!/usr/bin/gh auth git-credential` and `gh`'s token lives in the keyring). `loci-deploy.service`'s `ExecStartPre` polls both for 15 min. A user unit can order against neither: `network-online.target` is a system target, and nothing signals "keyring unlocked".
+- `ExecStartPre` only proves DNS worked _before_ the build; resolution can still fail at push time three minutes later. `deploy.sh` retries the push 5× / 30s so a finished build is never thrown away.
 - A failed deploy raises a critical desktop notification — `loci-deploy.service` has `OnFailure=loci-deploy-notify.service`, which is just a `notify-send` (the user manager already carries `DBUS_SESSION_BUS_ADDRESS` and `DISPLAY`). Before it existed, three keyring failures passed unnoticed for two weeks.
 - Reading deploy history: `journalctl --user -u loci-deploy.service | grep -E 'Finished|Failed|gh-pages ->'` is honest. `git log origin/gh-pages -1` is not — a plain `git fetch origin gh-pages` writes FETCH_HEAD and leaves the tracking ref stale, which once made a 3-day gap look like an 11-day outage. Use `git ls-remote origin gh-pages`.
 - `deploy.sh` force-resets `gh-pages` to `origin/gh-pages` before building, so a local ref left behind by an aborted run can't make the push non-fast-forward.
@@ -54,6 +54,21 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 - `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
 - `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
+
+## Frontmatter on a page
+
+`note-properties` is the frontmatter parser here — its transformer is what sets
+`file.data.frontmatter`, and no separate frontmatter plugin is configured. Disabling it
+makes every note fail the publish gate (a full build emits 74 files instead of ~1460).
+Turn off its view with `hidePropertiesView: true`, never the plugin.
+
+- `description` and `aliases` render as their own elements in the `content-meta` fork
+  (`.note-description`, `.note-aliases`), not as rows in the Properties table.
+- The vault's agent marks — the `#llm-written[/confidence]` tag and the `generated-*`
+  keys — are stripped from the public build by `quartz/plugins/transformers/hideLlmMarks.ts`,
+  a first-party transformer registered in `config-loader.ts`'s `builtinTransformers`.
+  A tag written inside a sentence keeps its words and loses its link, so the vault's own
+  rule notes still read; everything else about the mark is gone, tag page included.
 
 ## Publishing gates
 
