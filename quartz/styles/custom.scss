@@ -1794,6 +1794,10 @@ body.vb-open #quartz-body .sidebar.right {
   background: color-mix(in srgb, var(--light) 85%, transparent);
   color: var(--secondary);
   font-size: 1rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
   cursor: pointer;
 
   &:hover,
@@ -1807,6 +1811,14 @@ body.vb-open #quartz-body .sidebar.right {
     outline-offset: 3px;
   }
 
+  /* no fixed bar on a phone: this is the last child of the stock stacked
+     sidebar row, next to the explorer's ☰. Match that icon, not the bar. */
+  @media all and ($mobile) {
+    width: 1.9rem;
+    height: 1.9rem;
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+  }
 }
 
 /* below $desktop the panel has no column to live in: the markup is still
