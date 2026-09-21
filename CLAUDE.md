@@ -69,6 +69,9 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   links to, what links back (`local`). A folder note, or a note with no links,
   falls back to its folder's shelf. Only `local` drops the section hub stars —
   their counts are the whole vault's and would lie inside a neighbourhood.
+- A hover lights in two tiers: the section (`hlW`, set through `hlEmit`, which
+  the frieze and tour share) and the star (`n.lw` glow, `n.cw` own threads, from
+  `adj`). The glow follows the star tier only; `local` uses the star tier alone.
 - `⤢` on the panel and `✦` in the top bar both reach the full vault through the
   same `toggleExpand()` the home rotunda uses; `wrap.dataset.vbFrom` is what
   sends the close back to the right mode.

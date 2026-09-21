@@ -460,11 +460,13 @@
     const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
-    // a neighbourhood lights by star, not by section — lighting a whole room
-    // there lit most of the panel. The hovered star and the stars it links to
-    // come up (n.lw), its own threads take its colour (n.cw), the rest recede.
+    let starMax = 0 // how much a single hovered star holds the sky, eased
+    // a hover lights by star as well as by section: the hovered star and the
+    // stars it links to glow (n.lw) and its own threads take its colour (n.cw).
+    // The main sky keeps the section as the group around them; a neighbourhood
+    // lights by star alone — lighting a whole room there lit most of the panel.
     const adj = new Map(nodes.map((n) => [n, new Set([n])]))
-    for (const [a, b] of local ? links : []) {
+    for (const [a, b] of links) {
       adj.get(a).add(b)
       adj.get(b).add(a)
     }
@@ -474,15 +476,15 @@
       // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
       const k = reduceMotion ? 1 : 0.06
       hlMax = 0
-      if (local) {
-        const near = hovered ? adj.get(hovered) : null
-        for (const n of nodes) {
-          n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
-          n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
-          if (n.lw > hlMax) hlMax = n.lw
-        }
-        return
+      starMax = 0
+      const near = hovered ? adj.get(hovered) : null
+      for (const n of nodes) {
+        n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
+        n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
+        if (local && n.lw > hlMax) hlMax = n.lw
+        if (n.cw > starMax) starMax = n.cw
       }
+      if (local) return
       for (const f of folders) {
         hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
         if (hlW[f] > hlMax) hlMax = hlW[f]
@@ -686,14 +688,16 @@
       nodes.forEach((n, i) => {
         // highlighted section burns brighter, the rest of the sky recedes
         const lit = litOf(n)
-        const dim = 1 - 0.85 * (hlMax - lit)
+        // a star linked to the hovered one stands out even from another room
+        const near = n.lw || 0
+        const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * lit)
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * near)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * lit))
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * near))
         ctx.fillStyle = g
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
@@ -760,21 +764,34 @@
       // does this room connect to". Each thread carries its own strength and
       // the hue of whichever end is more lit, so the room being left keeps its
       // color on the way out while the room being entered comes up in its own.
-      if (hlMax > 0.01 && !mini) {
-        ctx.lineWidth = 1.4 / view.s
-        links.forEach(([a, b]) => {
-          const w = linkLit(a, b)
-          if (w < 0.01) return
-          if (local) ctx.strokeStyle = ((a.cw || 0) >= (b.cw || 0) ? a : b).color
-          else {
-            const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
-            ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
-          }
-          ctx.globalAlpha = 0.8 * w
+      // The rotunda has no room for a section's threads, and a neighbourhood
+      // has no section: both draw only the hovered star's own. A hovered star
+      // pushes its room's threads back so its own, drawn over them, read as its.
+      if (hlMax > 0.01) {
+        const thread = (a, b) => {
           ctx.beginPath()
           ctx.moveTo(a.x, a.y)
           ctx.lineTo(b.x, b.y)
           ctx.stroke()
+        }
+        ctx.lineWidth = 1.4 / view.s
+        if (!mini && !local) {
+          links.forEach(([a, b]) => {
+            const w = linkLit(a, b) * (1 - 0.6 * starMax)
+            if (w < 0.01) return
+            const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
+            ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
+            ctx.globalAlpha = 0.8 * w
+            thread(a, b)
+          })
+        }
+        ctx.lineWidth = 2 / view.s
+        links.forEach(([a, b]) => {
+          const own = Math.max(a.cw || 0, b.cw || 0)
+          if (own < 0.01) return
+          ctx.strokeStyle = ((a.cw || 0) >= (b.cw || 0) ? a : b).color
+          ctx.globalAlpha = own
+          thread(a, b)
         })
         ctx.globalAlpha = 1
       }
