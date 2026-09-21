@@ -38,6 +38,10 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // canvas has no ellipsis of its own — a title long enough to collide with
+  // its neighbour is cut here, and the hover tip still carries the whole thing
+  const short = (s) => (s.length > 22 ? s.slice(0, 21) + "…" : s)
+
   // lerp a hex toward white by t (0..1) — lighten while keeping the hue.
   function lighten(hex, t) {
     const n = parseInt(hex.slice(1), 16)
@@ -116,21 +120,29 @@
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
+  // $desktop in variables.scss: below it there is no column for a side panel,
+  // so the map is a full-screen overlay opened from the bar instead
+  const wide = () => matchMedia("(min-width: 1200px)").matches
+
   let cleanup = null
 
   async function init() {
     const wrap = document.getElementById("vault-brain")
     if (!wrap || wrap.dataset.vbActive) return
+    // a hidden wrap has no box to draw into — the phone's side panel, and the
+    // rotunda brain under 640px. The expanded overlay is fixed, so it has one.
+    if (!wrap.clientWidth || !wrap.clientHeight) return
     wrap.dataset.vbActive = "1"
     // mini mode (home-page rotunda): no labels, whole canvas is a door to /brain
     const mini = !!wrap.dataset.mini
+    // side mode: the same sky shrunk into the right column of every note page
+    // (initSideBrain). Reads like the observatory — labels, lit section, theme
+    // colors — but at rotunda tightness, and without zoom/pan stealing scroll.
+    const side = !!wrap.dataset.side
     // the observatory spreads the constellation wider than the tight rotunda
     // brain so notes and labels stay legible at the zoomed-out overview
-    const spread = mini ? 1 : 1.8
-    const repelRange = mini ? 1600 : 3000
-    // phones: the observatory is a ~400px-wide sky — shrink stars (and their
-    // glows, which follow r) so the labels and caption aren't drowned in glow
-    const rs = mini ? 1 : Math.max(0.55, Math.min(1, wrap.clientWidth / 1100))
+    const spread = mini || side ? 1 : 1.8
+    const repelRange = mini || side ? 1600 : 3000
 
     const cv = document.getElementById("vb-graph")
     const starsCv = document.getElementById("vb-stars")
@@ -149,7 +161,32 @@
     let sky = skyColors(mini)
 
     // tag pages are generated indexes, not notes — they'd swamp the constellation as fake hubs
-    const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
+    let slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
+    const me = document.body.dataset.slug || ""
+    // the side panel is a neighbourhood, not the sky: this page, what it links
+    // to, and what links back. The whole vault stays one button away (⤢ opens
+    // the same observatory the home rotunda does).
+    let local = false
+    if (side) {
+      const near = new Set()
+      if (data[me]) {
+        near.add(me)
+        for (const l of data[me].links || []) if (data[l] && l !== me) near.add(l)
+        for (const t of slugs) if ((data[t].links || []).includes(me)) near.add(t)
+      }
+      // a folder note's neighbourhood is its shelf; so is a lone note's, which
+      // would otherwise be a single star in an empty panel
+      const folderOf = me.endsWith("/index") ? me.slice(0, -6) : near.size < 2 && me.includes("/") ? me.split("/")[0] : null
+      if (folderOf) for (const t of slugs) if (t.startsWith(folderOf + "/")) near.add(t)
+      if (near.size > 1) {
+        slugs = slugs.filter((t) => near.has(t))
+        local = true
+      }
+    }
+    // phones: the observatory is a ~400px-wide sky — shrink stars (and their
+    // glows, which follow r) so the labels and caption aren't drowned in glow.
+    // A neighbourhood holds a dozen stars in the same box: full size again.
+    const rs = mini || local ? 1 : Math.max(0.55, Math.min(1, wrap.clientWidth / 1100))
     const backlinks = {}
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
@@ -210,6 +247,22 @@
     })
     const bySlug = {}
     nodes.forEach((n) => (bySlug[n.slug] = n))
+    // the note this page is on: lit permanently in side mode, so the map
+    // answers "where am I" before anything is hovered. The observatory opened
+    // from a page's panel keeps it too: the whole vault, with you in it.
+    const fromPage = side || wrap.dataset.vbFrom === "side"
+    const here = fromPage ? bySlug[document.body.dataset.slug || ""] : null
+    if (here) here.you = true
+    // a neighbourhood fills its panel: the page in the middle, everything it
+    // touches on one ring around it, grouped by room so one colour reads as
+    // one arc. Laid out rather than zoomed — a view zoom would scale the
+    // labels and glows with it.
+    if (local) {
+      const ring = nodes
+        .filter((n) => !n.you)
+        .sort((a, b) => chakraSort(a.folder, b.folder) || a.label.localeCompare(b.label))
+      ring.forEach((n, i) => (n.ang = (i / ring.length) * Math.PI * 2 - Math.PI / 2))
+    }
 
     // section stars: one big labeled node per folder, sized by note count;
     // notes are the small dust clustered around it. Click opens the folder page.
@@ -219,7 +272,7 @@
       counts[f] = (counts[f] || 0) + 1
     })
     folders.forEach((f) => {
-      if (f === "~") return
+      if (f === "~" || local) return
       nodes.push({
         slug: f + "/",
         hub: true,
@@ -252,6 +305,10 @@
         if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l]])
       }
     }
+
+    // a neighbourhood small enough to read gets every title drawn; past that
+    // the panel is mush and the hover tip is the only honest way to name a star
+    const showLabels = local && nodes.length <= 16
 
     let W, H, dpr
     // zoom/pan viewport (full mode only): screen = world * s + offset
@@ -293,6 +350,12 @@
     function homeOf(n) {
       // ellipse, not circle: the canvas is wide, use the width.
       // mini: the canvas IS the image's brain — spread wider to fill it
+      if (local) {
+        if (n.you) return [W / 2, H / 2]
+        // 0.36 of the short side leaves room outside the ring for the titles
+        const R = Math.min(W, H) * 0.36
+        return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
+      }
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
       let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
       let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
@@ -384,8 +447,9 @@
     }
 
     let hovered = null
-    // section under highlight (from a hovered star here or a frieze word)
-    let hlFolder = null
+    // section under highlight (from a hovered star here or a frieze word).
+    // side mode opens on the current note's own section, softly lit.
+    let hlFolder = here && !local ? here.folder : null
     // the highlight is a per-section strength, not a switch: each folder chases
     // 1 while it's the hovered one and 0 once it isn't, so crossing from one
     // room to the next fades the old one out under the new one instead of
@@ -393,27 +457,48 @@
     // and nothing should be dimmed.
     const hlW = {}
     // how far the lit section is pushed: 1 for a pointer, SOFT_HL for the tour
-    let hlAmp = 1
+    let hlAmp = here && !local ? SOFT_HL : 1
+    // what the highlight rests on when nothing is hovered
+    const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
+    // a hover lights by section and then by star: the room comes up whole, and
+    // over it the hovered star's own threads are reinforced (n.cw) and the
+    // stars they reach stay lit even from another room (n.lw). A neighbourhood
+    // lights by star alone — lighting a whole room there lit most of the panel.
+    const adj = new Map(nodes.map((n) => [n, new Set([n])]))
+    for (const [a, b] of links) {
+      adj.get(a).add(b)
+      adj.get(b).add(a)
+    }
     function easeHl() {
       // reduced motion asked for no animation: land on the target in one frame.
       // 0.12 (the old rate) crossed a room in a handful of frames — barely a
       // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
       const k = reduceMotion ? 1 : 0.06
       hlMax = 0
+      const near = hovered ? adj.get(hovered) : null
+      for (const n of nodes) {
+        n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
+        n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
+        if (local && n.lw > hlMax) hlMax = n.lw
+      }
+      if (local) return
       for (const f of folders) {
         hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
         if (hlW[f] > hlMax) hlMax = hlW[f]
       }
     }
     const hlOf = (f) => hlW[f] || 0
+    const litOf = (n) => (local ? n.lw || 0 : hlOf(n.folder))
     // how much of the highlight an edge carries: the observatory counts every
     // edge that touches the section — those threads outward are what a section
     // connects to — while the tight rotunda keeps only the ones inside it, so
     // the small brain doesn't fill with lines on a frieze hover.
-    const linkLit = (a, b) =>
-      mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
+    const linkLit = (a, b) => {
+      if (local) return Math.max(a.cw || 0, b.cw || 0)
+      return mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
+    }
     const onHl = (e) => {
       hlFolder = e.detail
       hlAmp = e.soft ? SOFT_HL : 1
@@ -466,7 +551,10 @@
           if (d < (h.areaR || 0) && d < best) { best = d; hf = f }
         }
       }
-      if (hf !== hlFolder) hlEmit(hf)
+      // side mode falls back to the current note's own section rather than to
+      // nothing, so the room you are in stays lit between hovers
+      const target = hf || idleHl
+      if (!local && target !== hlFolder) hlEmit(target, !hf)
       // no animation loop to pick the ring up in reduced motion
       if (reduceMotion && hovered !== prevHover) draw()
       if (hovered) {
@@ -561,6 +649,14 @@
       }
     }
 
+    // a title centred on a star near the panel's edge would run off it: slide
+    // the text back inside, the star stays put. Side mode never zooms, so
+    // world and screen coordinates are the same there.
+    function label(txt, x, y) {
+      const w = ctx.measureText(txt).width
+      ctx.fillText(txt, local ? Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, x)) : x, y)
+    }
+
     let t = 0
     let raf = 0
     // stars drift into place then cool to a faint perpetual drift — never a hard freeze
@@ -576,8 +672,11 @@
       // full strength the numbers are the old on/off values, and in between
       // they are what makes the swap between two rooms a fade
       links.forEach(([a, b]) => {
-        ctx.globalAlpha = 1 - 0.85 * (hlMax - linkLit(a, b))
-        ctx.strokeStyle = sky.link
+        // in a neighbourhood the page's own threads are the point: each one
+        // takes the colour of the room at its far end
+        const mine = local && (a.you || b.you)
+        ctx.globalAlpha = (mine ? 0.6 : 1) * (1 - 0.85 * (hlMax - linkLit(a, b)))
+        ctx.strokeStyle = mine ? (a.you ? b : a).color : sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
@@ -587,15 +686,20 @@
       ctx.globalAlpha = 1
       nodes.forEach((n, i) => {
         // highlighted section burns brighter, the rest of the sky recedes
-        const lit = hlOf(n.folder)
-        const dim = 1 - 0.85 * (hlMax - lit)
+        const lit = litOf(n)
+        // a star linked to the hovered one stands out even from another room
+        const near = n.lw || 0
+        const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * lit)
+        // the room glows at half, so a star the hovered one reaches — glowing
+        // whole — still stands out inside its own room
+        const glow = local ? Math.max(lit, near) : Math.max(0.5 * lit, near)
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * lit))
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
@@ -615,16 +719,62 @@
           ctx.beginPath()
           ctx.arc(n.x, n.y, n.r * pulse + 5 / view.s, 0, 7)
           ctx.stroke()
+        } else if (near > 0.01 && !local) {
+          // what the hovered star touches: a thinner ring in the same ink, and
+          // in the observatory its name, so the group and the links read apart
+          ctx.strokeStyle = sky.label
+          ctx.lineWidth = 1 / view.s
+          ctx.globalAlpha = near
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.r * pulse + 4 / view.s, 0, 7)
+          ctx.stroke()
+          if (!mini && !n.you) {
+            ctx.textAlign = "center"
+            ctx.font = "400 " + 10 / view.s + "px IBM Plex Sans, sans-serif"
+            ctx.fillStyle = sky.label
+            label(short(n.label), n.x, n.y - n.r - 6 / view.s)
+          }
+          ctx.globalAlpha = 1
+        }
+        // you are here: the current note keeps a breathing ring and its title,
+        // the one star in the sky that is never waiting to be found
+        if (n.you) {
+          ctx.strokeStyle = n.color
+          ctx.lineWidth = 2 / view.s
+          ctx.globalAlpha = 0.45 + 0.55 * Math.abs(Math.sin(t * 1.6))
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.r * pulse + 7 / view.s, 0, 7)
+          ctx.stroke()
+          ctx.globalAlpha = 1
+          ctx.textAlign = "center"
+          ctx.font = "600 10px IBM Plex Sans, sans-serif"
+          ctx.fillStyle = sky.label
+          label(short(n.label), n.x, n.y - n.r - 11)
+        }
+        // in a neighbourhood the other stars are the answer to "what is this
+        // note next to" — naming them is the whole point of the panel
+        if (showLabels && !n.you) {
+          ctx.textAlign = "center"
+          ctx.font = "400 9px IBM Plex Sans, sans-serif"
+          ctx.fillStyle = sky.sub
+          ctx.globalAlpha = dim
+          // outward from the ring: above the top half, below the bottom
+          // half, so no title points in at the page's own
+          const below = Math.sin(n.ang || 0) > 0.2
+          label(short(n.label), n.x, below ? n.y + n.r + 12 : n.y - n.r - 6)
+          ctx.globalAlpha = 1
         }
         // only section stars get names; note titles live in the hover tip
         if (n.hub && !mini) {
           ctx.textAlign = "center"
-          ctx.font = "600 13px IBM Plex Sans, sans-serif"
+          ctx.font = (side ? "600 10px" : "600 13px") + " IBM Plex Sans, sans-serif"
           ctx.fillStyle = sky.label
-          ctx.fillText(n.name.toUpperCase(), n.x, n.y - n.r - 16)
-          ctx.font = "400 10px IBM Plex Sans, sans-serif"
-          ctx.fillStyle = sky.sub
-          ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
+          ctx.fillText(n.name.toUpperCase(), n.x, n.y - n.r - (side ? 12 : 16))
+          if (!side) {
+            ctx.font = "400 10px IBM Plex Sans, sans-serif"
+            ctx.fillStyle = sky.sub
+            ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
+          }
         }
       })
       // the highlighted section's own threads, laid over the stars in its hue:
@@ -632,18 +782,38 @@
       // does this room connect to". Each thread carries its own strength and
       // the hue of whichever end is more lit, so the room being left keeps its
       // color on the way out while the room being entered comes up in its own.
-      if (hlMax > 0.01 && !mini) {
-        ctx.lineWidth = 1.4 / view.s
-        links.forEach(([a, b]) => {
-          const w = linkLit(a, b)
-          if (w < 0.01) return
-          const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
-          ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
-          ctx.globalAlpha = 0.8 * w
+      // The rotunda has no room for a section's threads, and a neighbourhood
+      // has no section: both draw only the hovered star's own. Elsewhere the
+      // star's own go over its room's, thicker and at full strength.
+      if (hlMax > 0.01) {
+        const thread = (a, b) => {
           ctx.beginPath()
           ctx.moveTo(a.x, a.y)
           ctx.lineTo(b.x, b.y)
           ctx.stroke()
+        }
+        // two tiers, kept apart by weight: the room's threads stay a tint
+        // over the dust, the hovered star's own are the one bold line
+        ctx.lineWidth = 1 / view.s
+        if (!mini && !local) {
+          links.forEach(([a, b]) => {
+            const w = linkLit(a, b)
+            if (w < 0.01) return
+            const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
+            ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
+            ctx.globalAlpha = 0.4 * w
+            thread(a, b)
+          })
+        }
+        ctx.lineWidth = 2.4 / view.s
+        links.forEach(([a, b]) => {
+          const own = Math.max(a.cw || 0, b.cw || 0)
+          if (own < 0.01) return
+          // in the sky's ink, not the room's hue: over the room's own tinted
+          // threads a same-hue line was only a little thicker
+          ctx.strokeStyle = local ? ((a.cw || 0) >= (b.cw || 0) ? a : b).color : sky.label
+          ctx.globalAlpha = own
+          thread(a, b)
         })
         ctx.globalAlpha = 1
       }
@@ -669,13 +839,13 @@
     function onLeave() {
       hovered = null
       tip.style.opacity = 0
-      if (hlFolder) hlEmit(null)
+      if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
-    if (!mini) {
+    if (!mini && !side) {
       cv.addEventListener("wheel", onWheel, { passive: false })
       cv.addEventListener("pointerdown", onDown)
       cv.addEventListener("pointermove", onDrag)
@@ -700,7 +870,7 @@
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
-      if (!mini) {
+      if (!mini && !side) {
         cv.removeEventListener("wheel", onWheel)
         cv.removeEventListener("pointerdown", onDown)
         cv.removeEventListener("pointermove", onDrag)
@@ -722,14 +892,18 @@
     const opening = !wrap.classList.contains("vb-expanded")
     if (cleanup) cleanup() // tear the running sim down before switching modes
     if (opening) {
+      // remember which brain was expanded — the rotunda's mini or the side
+      // panel's neighbourhood — so closing lands back in the right one
+      wrap.dataset.vbFrom = wrap.dataset.mini ? "mini" : "side"
       wrap.classList.add("vb-expanded")
       document.body.classList.add("vb-open")
       delete wrap.dataset.mini
+      delete wrap.dataset.side
       buildOverlayChrome(wrap, btn)
     } else {
       wrap.classList.remove("vb-expanded")
       document.body.classList.remove("vb-open")
-      wrap.dataset.mini = "1"
+      wrap.dataset[wrap.dataset.vbFrom === "side" ? "side" : "mini"] = "1"
       wrap.querySelectorAll(".brain-caption, #vb-collapse").forEach((el) => el.remove())
     }
     if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
@@ -1689,6 +1863,142 @@
     })
   }
 
+  // ============================================================
+  // THE SIDE BRAIN — the observatory shrunk into the right column, on every
+  // page but home (which already carries the rotunda brain). Injected here
+  // rather than emitted by a plugin: the markup is four elements and the
+  // script already runs on every page. Desktop only — it is a hover surface,
+  // and a phone has no column to spare. It replaces Quartz's own graph.
+  // ============================================================
+  function initSideBrain() {
+    document.getElementById("vb-side")?.remove()
+    const rail = document.querySelector(".sidebar.right")
+    if (!rail || document.body.dataset.slug === "index") return
+    // the panel itself is desktop-only (CSS), but the markup goes in at every
+    // width: on a phone ✦ expands this same wrapper into the observatory
+    if (document.body.classList.contains("brain-off") && wide()) return
+    const slug = document.body.dataset.slug || ""
+    const folder = slug.includes("/") ? slug.split("/")[0] : null
+    const box = document.createElement("div")
+    box.id = "vb-side"
+    box.innerHTML =
+      '<div id="vault-brain" data-side="1">' +
+      '<canvas id="vb-stars" aria-hidden="true"></canvas>' +
+      '<canvas id="vb-graph" role="img" aria-label="The vault as a constellation, with this page lit"></canvas>' +
+      '<div id="vb-tip"></div>' +
+      "</div>" +
+      // same id and handler as the rotunda's: initExpand wires whichever one
+      // the page has, and only one page ever has both
+      '<button id="vb-expand" type="button" aria-label="Open the whole vault" aria-expanded="false">' +
+      '<span class="vb-expand-ico" aria-hidden="true">⤢</span>' +
+      '<span class="vb-expand-txt">the whole vault</span>' +
+      "</button>" +
+      '<p class="vb-side-cap"></p>'
+    const cap = box.querySelector(".vb-side-cap")
+    if (folder) {
+      const a = document.createElement("a")
+      a.href = "/" + folder + "/"
+      a.textContent = folder.replace(/-/g, " ")
+      a.style.color = folderColor(folder)
+      cap.append("you are in ", a)
+    } else {
+      cap.textContent = "you are here"
+    }
+    rail.prepend(box)
+  }
+
+  // folder and tag pages list their contents under the article; on desktop
+  // that list belongs beside it, under the map — the page itself is a note
+  // with a shelf attached, and the shelf is navigation. Moved rather than
+  // re-emitted, so the folder-page plugin's own markup (dates, tags, and the
+  // category guests initFolderAssets adds afterwards) travels with it.
+  function initFolderRail() {
+    const rail = document.querySelector(".sidebar.right")
+    const list = document.querySelector(".page-listing")
+    if (!rail || !list || rail.contains(list) || !wide()) return
+    // moved even while ✦ is off: it then hides with the column (custom.scss)
+    rail.append(list)
+    // the dates alone read as a feed with no name; this one says it is one.
+    // No count: initFolderAssets' bump of the first number finds none here.
+    const cap = list.querySelector(":scope > p")
+    if (cap) cap.textContent = "Latest edits"
+    // the build lists sub-folders ahead of the notes; here the shelf runs by
+    // latest edit alone, and a folder with no text of its own is left out
+    loadIndex()
+      .then((data) => {
+        const ul = list.querySelector("ul.section-ul")
+        if (!ul) return
+        for (const a of ul.querySelectorAll(".section-li h3 > a.vb-folder")) {
+          const slug = decodeURIComponent(new URL(a.href).pathname).slice(1) + "index"
+          if ((data[slug]?.content || "").trim()) continue
+          a.closest("li").remove()
+        }
+        const when = (li) => Date.parse(li.querySelector("time")?.getAttribute("datetime")) || 0
+        ul.append(...[...ul.children].sort((x, y) => when(y) - when(x)))
+      })
+      .catch(() => {})
+    // a folder is a link ending in "/"; it takes its top section's color,
+    // the same --fc the explorer's inline script sets on its folders
+    for (const a of list.querySelectorAll('.section-li h3 > a[href$="/"]')) {
+      const top = decodeURIComponent(new URL(a.href).pathname.split("/")[1] || "")
+      a.classList.add("vb-folder")
+      if (top) a.style.setProperty("--fc", folderColor(top))
+    }
+    document.body.classList.add("has-rail")
+  }
+
+  // the breadcrumbs ride the top bar beside the site title instead of taking
+  // a line above the page title. Moved, not copied: the SPA morph puts them
+  // back in the header on every nav and this moves them again. Phone keeps
+  // the stock stacked header, which has no bar.
+  // ponytail: checked on nav only, so resizing across 800px keeps the old place
+  function initCrumbBar() {
+    const bar = document.querySelector(".sidebar.left")
+    const crumbs = document.querySelector(".page-header .breadcrumb-container")
+    if (!bar || !crumbs || !matchMedia("(min-width: 801px)").matches) return
+    bar.querySelector(":scope > .breadcrumb-container")?.remove()
+    const title = bar.querySelector(":scope > .page-title")
+    if (title) title.after(crumbs)
+    else bar.prepend(crumbs)
+    // Loci is the trail's first step: its "Home" goes, its ❯ stays, so the
+    // title and the crumbs read as one path — Loci ❯ Work ❯ …
+    if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
+  }
+
+  // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
+  // the side brain. Choice persists across pages and visits; default on.
+  function initBrainToggle() {
+    const off = localStorage.getItem("vb-brain-off") === "1"
+    document.body.classList.toggle("brain-off", off)
+    let btn = document.getElementById("vb-brain-btn")
+    if (!btn) {
+      btn = document.createElement("button")
+      btn.id = "vb-brain-btn"
+      btn.type = "button"
+      btn.textContent = "✦"
+      btn.setAttribute("aria-label", "Toggle the vault map")
+      btn.addEventListener("click", () => {
+        // no column to toggle on a phone: ✦ opens the whole vault over the
+        // page, and ✕ or Esc puts you back on the note you were reading
+        if (!wide()) {
+          const wrap = document.getElementById("vault-brain")
+          if (wrap) toggleExpand(wrap, btn)
+          return
+        }
+        const nowOff = document.body.classList.toggle("brain-off")
+        localStorage.setItem("vb-brain-off", nowOff ? "1" : "")
+        btn.classList.toggle("on", !nowOff)
+        if (cleanup) cleanup()
+        initSideBrain()
+        init()
+        initExpand()
+      })
+      const bar = document.querySelector(".sidebar.left")
+      ;(bar || document.body).append(btn)
+    }
+    btn.classList.toggle("on", !off)
+  }
+
   // explorer toggle: ☰ in the top bar hides the fixed explorer panel and
   // the layout reflows into its space (CSS body.nav-off in custom.scss).
   // Choice persists across pages and visits.
@@ -1728,6 +2038,10 @@
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
       initNavToggle()
       initSidebarResize()
+      initBrainToggle()
+      initSideBrain()
+      initFolderRail()
+      initCrumbBar()
       init()
       initExpand()
       initFrieze()
@@ -1744,6 +2058,10 @@
   }
   initNavToggle()
   initSidebarResize()
+  initBrainToggle()
+  initSideBrain()
+  initFolderRail()
+  initCrumbBar()
   init()
   initExpand()
   initFrieze()
