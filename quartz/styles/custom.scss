@@ -1864,3 +1864,67 @@ body.vb-open #quartz-body .sidebar.right {
     display: none;
   }
 }
+
+/* ============================================================
+   READER MODE ON PHONE — the reader-mode plugin (readermode.scss)
+   only fades .sidebar.left/.sidebar.right, which below $desktop are
+   already off-screen (the fixed topbar collapses to the stock stacked
+   header, or is absent entirely), so the toggle had no visible effect
+   there. Below $desktop, html[reader-mode="on"] instead drops the
+   topbar, breadcrumbs, site footer and note meta, and gives their
+   freed space back to the text.
+   The readermode button itself lives inside .sidebar.left (toolbar
+   flex-component), so hiding that ancestor with display:none would
+   take the only way back out with it. visibility:hidden instead —
+   overridable per-descendant, unlike display — collapses the bar
+   (height:0) while the button opts back in as a small fixed control. */
+@media all and not ($desktop) {
+  html[reader-mode="on"] {
+    .page {
+      padding-top: 0.6rem;
+    }
+
+    #quartz-body {
+      padding: 0 0.6rem;
+    }
+
+    #quartz-body .sidebar.left {
+      visibility: hidden;
+      pointer-events: none;
+      height: 0;
+      min-height: 0;
+      padding: 0;
+    }
+
+    .breadcrumb-container,
+    .content-meta,
+    .note-description,
+    .note-aliases,
+    .note-properties,
+    .page-footer,
+    #quartz-body > footer {
+      display: none;
+    }
+
+    /* the one way back: floated top-right, same circular-button
+       language as #vb-brain-btn */
+    #quartz-body .sidebar.left .readermode {
+      visibility: visible;
+      pointer-events: auto;
+      position: fixed;
+      top: 0.6rem;
+      right: 0.6rem;
+      z-index: 20;
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+      background: color-mix(in srgb, var(--light) 92%, transparent);
+
+      & svg {
+        fill: var(--secondary);
+        stroke: var(--secondary);
+      }
+    }
+  }
+}
