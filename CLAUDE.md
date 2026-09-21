@@ -80,7 +80,8 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
 - `initFolderRail()` moves a folder or tag page's `.page-listing` into the right
   column under the map, desktop only. It moves the node rather than re-emitting
   it, so dates, tags and the category guests `initFolderAssets()` appends later
-  travel with it.
+  travel with it. There it re-sorts the shelf by latest edit alone and drops
+  folders whose note has no text (`contentIndex.json` content empty).
 - `initCrumbBar()` moves the breadcrumbs from `.page-header` into the top bar
   above 800px; the header's zeroed forecourt in `custom.scss` assumes they left.
 - The panel is DOM the build never emits, so nothing typechecks it —
