@@ -1,4 +1,101 @@
-// Core page layout
+// LOCI PATCH: static, responsive thumbnail — sits in normal page flow at
+// content-column width (excalidraw-thumb-svg's own child <svg> carries the
+// viewBox; width:100%/height:auto here is what makes it scale-to-fit instead
+// of the SVG's own hardcoded width=100% height=100% forcing a square-ish
+// fixed box). Clicking/tapping opens .excalidraw-dialog for full-screen pan/zoom.
+.excalidraw-thumb {
+  display: block;
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  cursor: zoom-in;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+
+  &:focus-visible {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+  }
+
+  // visible tap affordance — no hover-only cue, this has to work on phones
+  &::after {
+    content: "⤢";
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--light);
+    color: var(--darkgray);
+    border: 1px solid var(--lightgray);
+    font-size: 0.9rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+}
+
+.excalidraw-thumb-svg {
+  display: block;
+  width: 100%;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+// Native <dialog>: shown via showModal(), so it sits in the top layer —
+// sized against the real viewport, independent of any ancestor's height.
+// Esc-to-close and the ::backdrop come for free from the platform.
+.excalidraw-dialog {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  background: var(--excalidraw-bg, var(--light));
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .excalidraw-page {
+    height: 100%;
+  }
+}
+
+.excalidraw-dialog-close {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 11;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--darkgray);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--lightgray);
+  }
+}
+
+// Core page layout — now only reached inside .excalidraw-dialog (the
+// thumbnail above handles the default, in-flow view).
 .excalidraw-page {
   position: relative;
   width: 100%;
@@ -472,35 +569,28 @@
   border: none;
 }
 
-// Transclude embed overrides
-.transclude {
-  .excalidraw-page {
-    height: auto;
-  }
+// LOCI PATCH: .excalidraw-page/-container/-controls now live only inside
+// .excalidraw-dialog (always full-screen, top layer) — the old height:auto
+// overrides here used to target them directly and, by selector specificity
+// ties, would have clobbered the dialog's own full-height sizing the moment
+// this loaded after it. The thumbnail is already responsive on its own
+// (width:100%, height:auto), so these overrides now only tune its cap.
 
-  .excalidraw-container {
-    height: auto;
-    min-height: 400px;
-  }
-
-  .excalidraw-controls {
-    position: absolute;
-  }
+// Transclude embeds — the thumbnail needs a floor so it isn't squashed to 0
+// while its SVG loads.
+.transclude .excalidraw-thumb {
+  min-height: 200px;
 }
 
-// Popover previews
-.popover-inner {
-  .excalidraw-page {
-    height: auto;
-  }
+// Popover previews — small and non-interactive: opening a full-screen
+// dialog out of a hover preview would trap focus somewhere the reader
+// didn't ask for, so the expand affordance is off here.
+.popover-inner .excalidraw-thumb {
+  max-height: 300px;
+  cursor: default;
+  pointer-events: none;
 
-  .excalidraw-container {
-    height: auto;
-    min-height: 200px;
-    max-height: 300px;
-  }
-
-  .excalidraw-controls {
+  &::after {
     display: none;
   }
 }

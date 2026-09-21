@@ -7,14 +7,41 @@ function initExcalidraw() {
   const framePage = document.querySelector(".page[data-frame='excalidraw']");
   if (framePage) {
     initSidebar(framePage);
-    initPanZoom(framePage);
-    return;
   }
 
-  const embeddedPages = document.querySelectorAll(".excalidraw-page");
-  for (const page of embeddedPages) {
-    initPanZoom(page);
+  // LOCI PATCH: pan/zoom now lives inside a <dialog> per drawing (standalone
+  // page or transcluded/popover embed alike) — wire each thumb to its dialog,
+  // and only run positionOverlays() once the dialog is actually visible
+  // (getScreenCTM() on a display:none <dialog> returns null at init time).
+  const dialogs = document.querySelectorAll(".excalidraw-dialog");
+  for (const dialog of dialogs) {
+    const page = dialog.querySelector(".excalidraw-page");
+    if (!page) continue;
+    const pz = initPanZoom(page);
+    initDialog(dialog, pz);
   }
+}
+
+function initDialog(dialog, panZoom) {
+  const thumb = dialog.previousElementSibling;
+  const closeBtn = dialog.querySelector(".excalidraw-dialog-close");
+
+  if (thumb && thumb.classList.contains("excalidraw-thumb")) {
+    thumb.addEventListener("click", () => {
+      dialog.showModal();
+      panZoom?.refresh();
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => dialog.close());
+  }
+
+  // native backdrop click: only the <dialog> itself (not its content) is
+  // the click target when the click lands outside .excalidraw-page
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
 }
 
 function initSidebar(page) {
@@ -198,6 +225,10 @@ function initPanZoom(page) {
     container.removeEventListener("touchmove", handleTouchMove);
     container.removeEventListener("touchend", handleTouchEnd);
   });
+
+  // exposed so initDialog() can reposition overlays once the dialog (and
+  // its getScreenCTM()) actually has layout, right after showModal()
+  return { refresh: positionOverlays };
 }
 
 document.addEventListener("nav", initExcalidraw);

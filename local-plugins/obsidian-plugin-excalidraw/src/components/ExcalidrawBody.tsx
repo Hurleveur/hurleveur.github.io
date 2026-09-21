@@ -52,9 +52,7 @@ function resolveEmbeds(
     const wantedIndex = wanted.endsWith("/index") ? wanted : `${wanted}/index`;
     const page =
       allFiles.find((f) => f.slug === wanted || f.slug === wantedIndex) ??
-      allFiles.find(
-        (f) => f.slug?.endsWith(`/${wanted}`) || f.slug?.endsWith(`/${wantedIndex}`),
-      );
+      allFiles.find((f) => f.slug?.endsWith(`/${wanted}`) || f.slug?.endsWith(`/${wantedIndex}`));
 
     const pageSlug = (page?.slug ?? wanted) as FullSlug;
     const href = resolveRelative(currentSlug, pageSlug);
@@ -171,48 +169,68 @@ export default ((userOpts?: ExcalidrawPageOptions) => {
       resolvedImages: resolvedImageMap,
     };
     const result = renderToSvg(data, options, renderCtx);
+    const label = fileData.frontmatter?.title ?? "Excalidraw drawing";
 
+    // LOCI PATCH: the drawing used to render at full viewBox size directly
+    // in the flow (or, on its own page, forced into a 100vh full-bleed
+    // canvas by ExcalidrawFrame). Neither fits the content column, and the
+    // full-bleed page hijacked scroll-wheel into zoom, making text read as
+    // "too large" the moment a reader scrolled. Now: a static, responsive
+    // thumbnail (width:100%, height:auto via CSS — see excalidraw.scss)
+    // sits in normal flow, and the existing pan/zoom canvas moves into a
+    // native <dialog> opened on click/tap, closed by Esc (native), the
+    // backdrop, or an explicit close button.
     return (
-      <article
-        class="excalidraw-page"
-        role="img"
-        aria-label={fileData.frontmatter?.title ?? "Excalidraw drawing"}
-      >
-        <div class="excalidraw-controls">
-          <button class="excalidraw-zoom-in" type="button" aria-label="Zoom in">
-            +
-          </button>
-          <button class="excalidraw-zoom-out" type="button" aria-label="Zoom out">
-            −
-          </button>
-          <button class="excalidraw-reset" type="button" aria-label="Reset view">
-            ⟲
-          </button>
-        </div>
-        <div class="excalidraw-container" dangerouslySetInnerHTML={{ __html: result.svg }} />
-        <div
-          class="excalidraw-overlays"
-          data-viewbox-w={result.viewBox.width}
-          data-viewbox-h={result.viewBox.height}
-          data-offset-x={result.viewBox.offsetX}
-          data-offset-y={result.viewBox.offsetY}
-        >
-          {result.overlays.map((o) => renderOverlay(o))}
-        </div>
-        {options.enableInteraction !== false && (
-          <script
-            type="application/json"
-            class="excalidraw-data"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                elements: data.elements,
-                appState: data.appState,
-                files: data.files,
-              }),
-            }}
+      <>
+        <button type="button" class="excalidraw-thumb" aria-label={`Open ${label} full screen`}>
+          <span
+            class="excalidraw-thumb-svg"
+            dangerouslySetInnerHTML={{ __html: result.svg }}
+            aria-hidden="true"
           />
-        )}
-      </article>
+        </button>
+        <dialog class="excalidraw-dialog" aria-label={label}>
+          <button class="excalidraw-dialog-close" type="button" aria-label="Close">
+            ✕
+          </button>
+          <article class="excalidraw-page" role="img" aria-label={label}>
+            <div class="excalidraw-controls">
+              <button class="excalidraw-zoom-in" type="button" aria-label="Zoom in">
+                +
+              </button>
+              <button class="excalidraw-zoom-out" type="button" aria-label="Zoom out">
+                −
+              </button>
+              <button class="excalidraw-reset" type="button" aria-label="Reset view">
+                ⟲
+              </button>
+            </div>
+            <div class="excalidraw-container" dangerouslySetInnerHTML={{ __html: result.svg }} />
+            <div
+              class="excalidraw-overlays"
+              data-viewbox-w={result.viewBox.width}
+              data-viewbox-h={result.viewBox.height}
+              data-offset-x={result.viewBox.offsetX}
+              data-offset-y={result.viewBox.offsetY}
+            >
+              {result.overlays.map((o) => renderOverlay(o))}
+            </div>
+            {options.enableInteraction !== false && (
+              <script
+                type="application/json"
+                class="excalidraw-data"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    elements: data.elements,
+                    appState: data.appState,
+                    files: data.files,
+                  }),
+                }}
+              />
+            )}
+          </article>
+        </dialog>
+      </>
     );
   };
 

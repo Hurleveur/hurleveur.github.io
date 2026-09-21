@@ -25,33 +25,18 @@ function u2(e2, t2, n2, o2, i2, u3) {
 // src/frames/ExcalidrawFrame.tsx
 var ExcalidrawFrame = {
   name: "excalidraw",
-  css: `
-.page[data-frame="excalidraw"] {
-  max-width: none;
-  margin: 0;
-  min-height: 100vh;
-}
-
-.page[data-frame="excalidraw"] > #quartz-body {
-  grid-template-columns: auto;
-  grid-template-rows: 1fr;
-  grid-template-areas:
-    "grid-center";
-  height: 100vh;
-  padding: 0;
-}
-
-.page[data-frame="excalidraw"] > #quartz-body > .center.excalidraw-frame {
-  max-width: 100%;
-  min-width: 100%;
-  height: 100%;
-  margin: 0;
-}
-
-.page[data-frame="excalidraw"] > #quartz-body.lock-scroll > * {
-  transform: none;
-}
-`,
+  // LOCI PATCH: this used to force the whole page (.page[data-frame=excalidraw],
+  // #quartz-body, .excalidraw-frame) to a full-bleed 100vh single-column grid so
+  // the drawing filled the viewport on load. That's what made the drawing "not
+  // sized to the page" for a reader who just wanted to read it: the canvas took
+  // over the whole screen, wheel-scroll got hijacked into zoom, and text read at
+  // whatever scale the full viewport happened to produce. The drawing now renders
+  // as a normal, responsive element in the standard content column (ExcalidrawBody's
+  // .excalidraw-thumb), and full-screen pan/zoom lives in a native <dialog> opened
+  // on click — the dialog is promoted to the top layer by showModal(), so it sizes
+  // against the real viewport on its own (see excalidraw.scss's .excalidraw-dialog)
+  // without needing this frame to carve out 100vh. No frame-level CSS override
+  // is needed any more; the sidebar toggle below is already position:fixed.
   render({ componentData, pageBody: Content, left }) {
     const renderSlot = (Component) => Component(componentData);
     return /* @__PURE__ */ u2("div", { class: "center excalidraw-frame", children: [

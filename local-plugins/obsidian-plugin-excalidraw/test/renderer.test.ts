@@ -103,4 +103,18 @@ describe("renderToSvg", () => {
     expect(typeof result.viewBox.offsetX).toBe("number");
     expect(typeof result.viewBox.offsetY).toBe("number");
   });
+
+  // LOCI PATCH: guards the attributes the responsive thumbnail relies on —
+  // ExcalidrawBody's .excalidraw-thumb overrides width/height with CSS
+  // (width:100%, height:auto), but that only scales correctly if the <svg>
+  // still carries a real viewBox matching result.viewBox and
+  // preserveAspectRatio="xMidYMid meet" so the drawing stays fully visible
+  // instead of being cropped or stretched.
+  it("emits a viewBox and preserveAspectRatio that make the SVG scale responsively", () => {
+    const data = parseExcalidrawJson(readFixture("simple.excalidraw"));
+    const result = renderToSvg(data!, {});
+
+    expect(result.svg).toContain(`viewBox="0 0 ${result.viewBox.width} ${result.viewBox.height}"`);
+    expect(result.svg).toContain('preserveAspectRatio="xMidYMid meet"');
+  });
 });
