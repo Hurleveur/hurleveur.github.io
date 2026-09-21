@@ -1663,17 +1663,15 @@ body[data-slug^="books"] {
   #vault-brain:not(.vb-expanded) {
     height: min(46vh, 380px);
     min-height: 0;
-    border-radius: 6px;
+    /* no sky of its own: the neighbourhood is drawn straight on the page, in
+       the theme's ink (skyColors), so it reads as part of the column */
     overflow: hidden;
-    /* same night/day sky as the observatory, and the same palette hand-off:
-       the tip is a child and must read against the sky, not the page */
-    background: #0b0e1f;
-    --light: #0b0e1f;
-    --dark: #dfe3f2;
   }
 
+  /* and no starfield — at this size the dust read as dirt, not stars. The
+     observatory's own rule turns it back on when ⤢ expands this wrapper. */
   #vb-stars {
-    display: block;
+    display: none;
   }
 
   .vb-side-cap {
@@ -1689,12 +1687,6 @@ body[data-slug^="books"] {
       font-weight: 600;
     }
   }
-}
-
-[saved-theme="light"] #vb-side #vault-brain {
-  background: #e9eef8;
-  --light: #e9eef8;
-  --dark: #202741;
 }
 
 /* position: sticky makes the right column its own stacking context, so the

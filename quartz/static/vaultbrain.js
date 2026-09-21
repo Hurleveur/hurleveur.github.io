@@ -251,6 +251,16 @@
     // answers "where am I" before anything is hovered
     const here = side ? bySlug[document.body.dataset.slug || ""] : null
     if (here) here.you = true
+    // a neighbourhood fills its panel: the page in the middle, everything it
+    // touches on one ring around it, grouped by room so one colour reads as
+    // one arc. Laid out rather than zoomed — a view zoom would scale the
+    // labels and glows with it.
+    if (local) {
+      const ring = nodes
+        .filter((n) => !n.you)
+        .sort((a, b) => chakraSort(a.folder, b.folder) || a.label.localeCompare(b.label))
+      ring.forEach((n, i) => (n.ang = (i / ring.length) * Math.PI * 2 - Math.PI / 2))
+    }
 
     // section stars: one big labeled node per folder, sized by note count;
     // notes are the small dust clustered around it. Click opens the folder page.
@@ -338,7 +348,12 @@
     function homeOf(n) {
       // ellipse, not circle: the canvas is wide, use the width.
       // mini: the canvas IS the image's brain — spread wider to fill it
-      if (local && n.you) return [W / 2, H / 2]
+      if (local) {
+        if (n.you) return [W / 2, H / 2]
+        // 0.36 of the short side leaves room outside the ring for the titles
+        const R = Math.min(W, H) * 0.36
+        return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
+      }
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
       let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
       let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
@@ -613,6 +628,14 @@
       }
     }
 
+    // a title centred on a star near the panel's edge would run off it: slide
+    // the text back inside, the star stays put. Side mode never zooms, so
+    // world and screen coordinates are the same there.
+    function label(txt, x, y) {
+      const w = ctx.measureText(txt).width
+      ctx.fillText(txt, local ? Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, x)) : x, y)
+    }
+
     let t = 0
     let raf = 0
     // stars drift into place then cool to a faint perpetual drift — never a hard freeze
@@ -628,8 +651,11 @@
       // full strength the numbers are the old on/off values, and in between
       // they are what makes the swap between two rooms a fade
       links.forEach(([a, b]) => {
-        ctx.globalAlpha = 1 - 0.85 * (hlMax - linkLit(a, b))
-        ctx.strokeStyle = sky.link
+        // in a neighbourhood the page's own threads are the point: each one
+        // takes the colour of the room at its far end
+        const mine = local && (a.you || b.you)
+        ctx.globalAlpha = (mine ? 0.6 : 1) * (1 - 0.85 * (hlMax - linkLit(a, b)))
+        ctx.strokeStyle = mine ? (a.you ? b : a).color : sky.link
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
@@ -681,7 +707,7 @@
           ctx.textAlign = "center"
           ctx.font = "600 10px IBM Plex Sans, sans-serif"
           ctx.fillStyle = sky.label
-          ctx.fillText(short(n.label), n.x, n.y - n.r - 11)
+          label(short(n.label), n.x, n.y - n.r - 11)
         }
         // in a neighbourhood the other stars are the answer to "what is this
         // note next to" — naming them is the whole point of the panel
@@ -690,7 +716,10 @@
           ctx.font = "400 9px IBM Plex Sans, sans-serif"
           ctx.fillStyle = sky.sub
           ctx.globalAlpha = dim
-          ctx.fillText(short(n.label), n.x, n.y - n.r - 6)
+          // outward from the ring: above the top half, below the bottom
+          // half, so no title points in at the page's own
+          const below = Math.sin(n.ang || 0) > 0.2
+          label(short(n.label), n.x, below ? n.y + n.r + 12 : n.y - n.r - 6)
           ctx.globalAlpha = 1
         }
         // only section stars get names; note titles live in the hover tip
