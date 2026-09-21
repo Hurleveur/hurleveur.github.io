@@ -258,6 +258,10 @@ plugins:
     options: {}
     order: 50
   - source: github:quartz-community/note-properties
+    # Keep enabled: this plugin's transformer is what parses frontmatter into
+    # file.data.frontmatter — disabling it filters out every note (the publish gate
+    # reads that). Only its view is off: description and aliases now render as
+    # themselves in content-meta (LOCI PATCH), and nothing else was ever shown.
     enabled: true
     options:
       includeAll: false
@@ -265,7 +269,7 @@ plugins:
         - description
         - aliases
       excludedProperties: []
-      hidePropertiesView: false
+      hidePropertiesView: true
       delimiters: ---
       language: yaml
     order: 5
