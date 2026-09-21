@@ -129,6 +129,15 @@ a {
   }
 }
 
+// A link to an unpublished note (HidePrivateLinks transformer) — no href, so
+// styled to read as deliberately withheld rather than a broken/dead link.
+span.private-page {
+  color: var(--gray);
+  font-style: italic;
+  cursor: default;
+  user-select: none;
+}
+
 .flex-component {
   display: flex;
 }
