@@ -82,6 +82,9 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   it, so dates, tags and the category guests `initFolderAssets()` appends later
   travel with it. There it re-sorts the shelf by latest edit alone and drops
   folders whose note has no text (`contentIndex.json` content empty).
+- `✦` off (`body.brain-off`, desktop) hides the whole right column. The
+  listing goes back under the page through the `#vb-list-home` marker
+  `initFolderRail` leaves; `initFolderRail` never moves it while off.
 - `initCrumbBar()` moves the breadcrumbs from `.page-header` into the top bar
   above 800px; the header's zeroed forecourt in `custom.scss` assumes they left.
 - The panel is DOM the build never emits, so nothing typechecks it —

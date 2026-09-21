@@ -1877,6 +1877,12 @@
     const rail = document.querySelector(".sidebar.right")
     const list = document.querySelector(".page-listing")
     if (!rail || !list || rail.contains(list) || !wide()) return
+    if (document.body.classList.contains("brain-off")) return // the column is hidden
+    // a marker where it stood, so ✦ off can put it back under the page
+    const home = document.createElement("span")
+    home.id = "vb-list-home"
+    home.hidden = true
+    list.before(home)
     rail.append(list)
     // the dates alone read as a feed; say what the list is and how it runs.
     // Keeps the count first: initFolderAssets bumps the first number it finds.
@@ -1923,6 +1929,14 @@
     else bar.prepend(crumbs)
   }
 
+  // ✦ off hides the whole right column, so the listing goes back under the page
+  function unrailFolder() {
+    const home = document.getElementById("vb-list-home")
+    const list = document.querySelector(".sidebar.right > .page-listing")
+    if (home && list) home.replaceWith(list)
+    document.body.classList.remove("has-rail")
+  }
+
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
   // the side brain. Choice persists across pages and visits; default on.
   function initBrainToggle() {
@@ -1947,7 +1961,9 @@
         localStorage.setItem("vb-brain-off", nowOff ? "1" : "")
         btn.classList.toggle("on", !nowOff)
         if (cleanup) cleanup()
+        if (nowOff) unrailFolder()
         initSideBrain()
+        initFolderRail()
         init()
         initExpand()
       })

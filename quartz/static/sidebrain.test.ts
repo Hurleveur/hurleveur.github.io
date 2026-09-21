@@ -38,6 +38,13 @@ test("side brain", async (t) => {
     assert.match(js, /const near = hovered \? adj\.get\(hovered\)/)
   })
 
+  await t.test("✦ off takes the whole column, and the listing back out of it", () => {
+    const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
+    assert.match(scss, /\.brain-off #quartz-body \{[\s\S]*?\.sidebar\.right \{\s*display: none/)
+    // otherwise a folder page loses its listing along with the column
+    assert.match(js, /if \(nowOff\) unrailFolder\(\)/)
+  })
+
   await t.test("the graph plugin it replaces stays off", () => {
     const block = config.slice(config.indexOf("quartz-community/graph"))
     assert.match(block.slice(0, 120), /enabled: false/)

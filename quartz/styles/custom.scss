@@ -1801,8 +1801,19 @@ body.vb-open #quartz-body .sidebar.right {
 
 /* the map and the shelf both want more than the 240px the stock column gives */
 @media all and ($desktop) {
-  body:not([data-slug="index"]):is(:not(.brain-off), .has-rail) #quartz-body {
+  body:not([data-slug="index"]):not(.brain-off) #quartz-body {
     grid-template-columns: auto 320px;
+  }
+
+  /* ✦ off takes the whole column with it — TOC, recent notes, backlinks —
+     and the page gets the width (initFolderRail keeps the listing out) */
+  body:not([data-slug="index"]).brain-off #quartz-body {
+    grid-template-columns: auto 0;
+    column-gap: 0;
+
+    .sidebar.right {
+      display: none;
+    }
   }
 
   body.has-rail #quartz-body .sidebar.right {
