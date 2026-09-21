@@ -46,6 +46,13 @@ test("side brain", async (t) => {
     assert.doesNotMatch(js, /function initFolderRail[\s\S]{0,300}brain-off/)
   })
 
+  await t.test("the observatory opened from a page shows the whole vault, you in it", () => {
+    // local is decided by side alone, which toggleExpand drops; the page's ring
+    // must survive that drop through vbFrom, or the full sky loses "you are here"
+    assert.match(js, /if \(side\) \{\s*\n\s*const near = new Set\(\)/)
+    assert.match(js, /const fromPage = side \|\| wrap\.dataset\.vbFrom === "side"/)
+  })
+
   await t.test("the graph plugin it replaces stays off", () => {
     const block = config.slice(config.indexOf("quartz-community/graph"))
     assert.match(block.slice(0, 120), /enabled: false/)

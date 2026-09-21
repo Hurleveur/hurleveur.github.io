@@ -71,7 +71,10 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   their counts are the whole vault's and would lie inside a neighbourhood.
 - A hover lights in two tiers: the section (`hlW`, set through `hlEmit`, which
   the frieze and tour share) and the star (`n.lw` glow, `n.cw` own threads, from
-  `adj`). The glow follows the star tier only; `local` uses the star tier alone.
+  `adj`). The glow is `max(section, star)`; threads are two weights (room 1px at
+  0.4, the star's own 2.4px full); `local` uses the star tier alone.
+- ⤢ from a page opens the whole vault, never the neighbourhood (`local` needs
+  `side`); `vbFrom === "side"` keeps the page's ring and softly lit room there.
 - `⤢` on the panel and `✦` in the top bar both reach the full vault through the
   same `toggleExpand()` the home rotunda uses; `wrap.dataset.vbFrom` is what
   sends the close back to the right mode.

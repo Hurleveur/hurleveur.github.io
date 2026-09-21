@@ -248,8 +248,10 @@
     const bySlug = {}
     nodes.forEach((n) => (bySlug[n.slug] = n))
     // the note this page is on: lit permanently in side mode, so the map
-    // answers "where am I" before anything is hovered
-    const here = side ? bySlug[document.body.dataset.slug || ""] : null
+    // answers "where am I" before anything is hovered. The observatory opened
+    // from a page's panel keeps it too: the whole vault, with you in it.
+    const fromPage = side || wrap.dataset.vbFrom === "side"
+    const here = fromPage ? bySlug[document.body.dataset.slug || ""] : null
     if (here) here.you = true
     // a neighbourhood fills its panel: the page in the middle, everything it
     // touches on one ring around it, grouped by room so one colour reads as
@@ -772,18 +774,20 @@
           ctx.lineTo(b.x, b.y)
           ctx.stroke()
         }
-        ctx.lineWidth = 1.4 / view.s
+        // two tiers, kept apart by weight: the room's threads stay a tint
+        // over the dust, the hovered star's own are the one bold line
+        ctx.lineWidth = 1 / view.s
         if (!mini && !local) {
           links.forEach(([a, b]) => {
             const w = linkLit(a, b)
             if (w < 0.01) return
             const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
             ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
-            ctx.globalAlpha = 0.8 * w
+            ctx.globalAlpha = 0.4 * w
             thread(a, b)
           })
         }
-        ctx.lineWidth = 2.2 / view.s
+        ctx.lineWidth = 2.4 / view.s
         links.forEach(([a, b]) => {
           const own = Math.max(a.cw || 0, b.cw || 0)
           if (own < 0.01) return
