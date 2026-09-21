@@ -24,6 +24,13 @@ test("side brain", async (t) => {
     assert.match(js, /document\.body\.dataset\.slug === "index"\) return/)
   })
 
+  await t.test("the panel's height rule cannot outrank the overlay", () => {
+    // #vb-side #vault-brain is two ids; .vb-expanded is one id + one class, so
+    // without the :not() the expanded overlay keeps the panel's 380px box
+    const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
+    assert.match(scss, /#vb-side \{[\s\S]*?#vault-brain:not\(\.vb-expanded\)/)
+  })
+
   await t.test("the graph plugin it replaces stays off", () => {
     const block = config.slice(config.indexOf("quartz-community/graph"))
     assert.match(block.slice(0, 120), /enabled: false/)

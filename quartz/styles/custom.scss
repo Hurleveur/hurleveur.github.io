@@ -1654,10 +1654,13 @@ body[data-slug^="books"] {
    ✦ in the top bar hides it (body.brain-off, persisted).
    ============================================================ */
 #vb-side {
+  position: relative; /* the ⤢ sits in the panel's own corner */
   flex: 0 0 auto;
   margin-bottom: 0.4rem;
 
-  #vault-brain {
+  /* :not() so the overlay wins when ⤢ takes this same element full-screen —
+     two ids here would otherwise outrank #vault-brain.vb-expanded */
+  #vault-brain:not(.vb-expanded) {
     height: min(46vh, 380px);
     min-height: 0;
     border-radius: 6px;
@@ -1694,10 +1697,72 @@ body[data-slug^="books"] {
   --dark: #202741;
 }
 
-/* the map wants more than the 240px the stock right column gives it */
+/* position: sticky makes the right column its own stacking context, so the
+   observatory expanded from inside it would paint under the fixed top bar
+   (z-index 6) and the explorer panel (5) however high the overlay's own 50 is.
+   Lift the whole context while it is open. */
+body.vb-open #quartz-body .sidebar.right {
+  z-index: 60;
+}
+
+/* ⤢ the whole vault — the same button and handler as the rotunda's, so it
+   opens the same observatory; only its place on the panel differs */
+#vb-side #vb-expand {
+  top: 0.45rem;
+  right: 0.45rem;
+  min-height: 32px;
+  padding: 0 0.5rem;
+  z-index: 3;
+}
+
+/* folder and tag pages: their listing moves here under the map
+   (vaultbrain.js initFolderRail) and takes the column's leftover height */
+.sidebar.right > .page-listing {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+
+  > p {
+    margin: 0 0 0.4rem;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+
+  .section-li > .section {
+    /* the stock listing is a 3-column grid built for the article width */
+    display: block;
+    padding: 0.35rem 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+
+  .meta {
+    margin: 0;
+    font-size: 0.68rem;
+  }
+
+  .tags {
+    display: none; /* no room for them at this width */
+  }
+}
+
+/* the map and the shelf both want more than the 240px the stock column gives */
 @media all and ($desktop) {
-  body:not(.brain-off):not([data-slug="index"]) #quartz-body {
+  body:not([data-slug="index"]):is(:not(.brain-off), .has-rail) #quartz-body {
     grid-template-columns: auto 320px;
+  }
+
+  body.has-rail #quartz-body .sidebar.right {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 
@@ -1724,8 +1789,20 @@ body[data-slug^="books"] {
     outline-offset: 3px;
   }
 
-  /* no side brain below $desktop, so nothing to toggle */
-  @media all and not ($desktop) {
+}
+
+/* below $desktop the panel has no column to live in: the markup is still
+   injected (vaultbrain.js needs a wrapper to expand) but nothing of it shows,
+   and ✦ in the bar opens the observatory over the page instead. display:
+   contents rather than none — the expanded wrapper is a child of this box. */
+@media all and not ($desktop) {
+  #vb-side {
+    display: contents;
+  }
+
+  #vb-side #vault-brain:not(.vb-expanded),
+  #vb-side #vb-expand,
+  #vb-side .vb-side-cap {
     display: none;
   }
 }

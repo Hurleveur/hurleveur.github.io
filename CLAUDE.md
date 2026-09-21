@@ -61,15 +61,29 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 at runtime on every page but home; it replaces `quartz-community/graph`, which is
 `enabled: false` in the config for that reason.
 
-- Three modes now share `init()`: `data-mini` (rotunda), neither (observatory
-  overlay), `data-side` (right column). Anything gated on `!mini` must say what it
-  means for `side` too — wheel-zoom and pan are off there, or the panel eats the
-  page scroll.
-- The current page is `bySlug[document.body.dataset.slug]`; it gets `n.you` and the
-  idle highlight rests on its folder, so a hover that ends returns to it rather
-  than to nothing.
+- Three modes share `init()`: `data-mini` (rotunda), neither (observatory
+  overlay), `data-side` (right column). Anything gated on `!mini` must say what
+  it means for `side` too — wheel-zoom and pan are off there, or the panel eats
+  the page scroll.
+- The panel shows a neighbourhood, not the vault: the current page, what it
+  links to, what links back (`local`). A folder note, or a note with no links,
+  falls back to its folder's shelf. Only `local` drops the section hub stars —
+  their counts are the whole vault's and would lie inside a neighbourhood.
+- `⤢` on the panel and `✦` in the top bar both reach the full vault through the
+  same `toggleExpand()` the home rotunda uses; `wrap.dataset.vbFrom` is what
+  sends the close back to the right mode.
+- Below `$desktop` the panel's markup is still injected but hidden (the wrapper
+  is what `toggleExpand` expands, so `#vb-side` is `display: contents`, never
+  `none`), and `✦` opens the overlay directly.
+- `init()` bails on a wrapper with no box. That is what keeps the hidden phone
+  panel and the sub-640px rotunda from mounting a zero-size canvas.
+- `initFolderRail()` moves a folder or tag page's `.page-listing` into the right
+  column under the map, desktop only. It moves the node rather than re-emitting
+  it, so dates, tags and the category guests `initFolderAssets()` appends later
+  travel with it.
 - The panel is DOM the build never emits, so nothing typechecks it —
-  `quartz/static/sidebrain.test.ts` guards the two seams that fail silently.
+  `quartz/static/sidebrain.test.ts` guards the seams that fail silently,
+  including the `:not(.vb-expanded)` the overlay needs to outrank two ids.
 
 ## Frontmatter on a page
 

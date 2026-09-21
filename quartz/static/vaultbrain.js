@@ -38,6 +38,10 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // canvas has no ellipsis of its own — a title long enough to collide with
+  // its neighbour is cut here, and the hover tip still carries the whole thing
+  const short = (s) => (s.length > 22 ? s.slice(0, 21) + "…" : s)
+
   // lerp a hex toward white by t (0..1) — lighten while keeping the hue.
   function lighten(hex, t) {
     const n = parseInt(hex.slice(1), 16)
@@ -116,11 +120,18 @@
     ["", "https://soundcloud.com/paolo-nutini/iron-sky"],
   ]
 
+  // $desktop in variables.scss: below it there is no column for a side panel,
+  // so the map is a full-screen overlay opened from the bar instead
+  const wide = () => matchMedia("(min-width: 1200px)").matches
+
   let cleanup = null
 
   async function init() {
     const wrap = document.getElementById("vault-brain")
     if (!wrap || wrap.dataset.vbActive) return
+    // a hidden wrap has no box to draw into — the phone's side panel, and the
+    // rotunda brain under 640px. The expanded overlay is fixed, so it has one.
+    if (!wrap.clientWidth || !wrap.clientHeight) return
     wrap.dataset.vbActive = "1"
     // mini mode (home-page rotunda): no labels, whole canvas is a door to /brain
     const mini = !!wrap.dataset.mini
@@ -132,9 +143,6 @@
     // brain so notes and labels stay legible at the zoomed-out overview
     const spread = mini || side ? 1 : 1.8
     const repelRange = mini || side ? 1600 : 3000
-    // phones: the observatory is a ~400px-wide sky — shrink stars (and their
-    // glows, which follow r) so the labels and caption aren't drowned in glow
-    const rs = mini ? 1 : Math.max(0.55, Math.min(1, wrap.clientWidth / 1100))
 
     const cv = document.getElementById("vb-graph")
     const starsCv = document.getElementById("vb-stars")
@@ -153,7 +161,32 @@
     let sky = skyColors(mini)
 
     // tag pages are generated indexes, not notes — they'd swamp the constellation as fake hubs
-    const slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
+    let slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
+    const me = document.body.dataset.slug || ""
+    // the side panel is a neighbourhood, not the sky: this page, what it links
+    // to, and what links back. The whole vault stays one button away (⤢ opens
+    // the same observatory the home rotunda does).
+    let local = false
+    if (side) {
+      const near = new Set()
+      if (data[me]) {
+        near.add(me)
+        for (const l of data[me].links || []) if (data[l] && l !== me) near.add(l)
+        for (const t of slugs) if ((data[t].links || []).includes(me)) near.add(t)
+      }
+      // a folder note's neighbourhood is its shelf; so is a lone note's, which
+      // would otherwise be a single star in an empty panel
+      const folderOf = me.endsWith("/index") ? me.slice(0, -6) : near.size < 2 && me.includes("/") ? me.split("/")[0] : null
+      if (folderOf) for (const t of slugs) if (t.startsWith(folderOf + "/")) near.add(t)
+      if (near.size > 1) {
+        slugs = slugs.filter((t) => near.has(t))
+        local = true
+      }
+    }
+    // phones: the observatory is a ~400px-wide sky — shrink stars (and their
+    // glows, which follow r) so the labels and caption aren't drowned in glow.
+    // A neighbourhood holds a dozen stars in the same box: full size again.
+    const rs = mini || local ? 1 : Math.max(0.55, Math.min(1, wrap.clientWidth / 1100))
     const backlinks = {}
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
@@ -227,7 +260,7 @@
       counts[f] = (counts[f] || 0) + 1
     })
     folders.forEach((f) => {
-      if (f === "~") return
+      if (f === "~" || local) return
       nodes.push({
         slug: f + "/",
         hub: true,
@@ -260,6 +293,10 @@
         if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l]])
       }
     }
+
+    // a neighbourhood small enough to read gets every title drawn; past that
+    // the panel is mush and the hover tip is the only honest way to name a star
+    const showLabels = local && nodes.length <= 16
 
     let W, H, dpr
     // zoom/pan viewport (full mode only): screen = world * s + offset
@@ -301,6 +338,7 @@
     function homeOf(n) {
       // ellipse, not circle: the canvas is wide, use the width.
       // mini: the canvas IS the image's brain — spread wider to fill it
+      if (local && n.you) return [W / 2, H / 2]
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
       let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
       let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
@@ -394,7 +432,7 @@
     let hovered = null
     // section under highlight (from a hovered star here or a frieze word).
     // side mode opens on the current note's own section, softly lit.
-    let hlFolder = here ? here.folder : null
+    let hlFolder = here && !local ? here.folder : null
     // the highlight is a per-section strength, not a switch: each folder chases
     // 1 while it's the hovered one and 0 once it isn't, so crossing from one
     // room to the next fades the old one out under the new one instead of
@@ -402,9 +440,9 @@
     // and nothing should be dimmed.
     const hlW = {}
     // how far the lit section is pushed: 1 for a pointer, SOFT_HL for the tour
-    let hlAmp = here ? SOFT_HL : 1
+    let hlAmp = here && !local ? SOFT_HL : 1
     // what the highlight rests on when nothing is hovered
-    const idleHl = here ? here.folder : null
+    const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
     function easeHl() {
@@ -643,7 +681,17 @@
           ctx.textAlign = "center"
           ctx.font = "600 10px IBM Plex Sans, sans-serif"
           ctx.fillStyle = sky.label
-          ctx.fillText(n.label, n.x, n.y - n.r - 11)
+          ctx.fillText(short(n.label), n.x, n.y - n.r - 11)
+        }
+        // in a neighbourhood the other stars are the answer to "what is this
+        // note next to" — naming them is the whole point of the panel
+        if (showLabels && !n.you) {
+          ctx.textAlign = "center"
+          ctx.font = "400 9px IBM Plex Sans, sans-serif"
+          ctx.fillStyle = sky.sub
+          ctx.globalAlpha = dim
+          ctx.fillText(short(n.label), n.x, n.y - n.r - 6)
+          ctx.globalAlpha = 1
         }
         // only section stars get names; note titles live in the hover tip
         if (n.hub && !mini) {
@@ -753,14 +801,18 @@
     const opening = !wrap.classList.contains("vb-expanded")
     if (cleanup) cleanup() // tear the running sim down before switching modes
     if (opening) {
+      // remember which brain was expanded — the rotunda's mini or the side
+      // panel's neighbourhood — so closing lands back in the right one
+      wrap.dataset.vbFrom = wrap.dataset.mini ? "mini" : "side"
       wrap.classList.add("vb-expanded")
       document.body.classList.add("vb-open")
       delete wrap.dataset.mini
+      delete wrap.dataset.side
       buildOverlayChrome(wrap, btn)
     } else {
       wrap.classList.remove("vb-expanded")
       document.body.classList.remove("vb-open")
-      wrap.dataset.mini = "1"
+      wrap.dataset[wrap.dataset.vbFrom === "side" ? "side" : "mini"] = "1"
       wrap.querySelectorAll(".brain-caption, #vb-collapse").forEach((el) => el.remove())
     }
     if (btn) btn.setAttribute("aria-expanded", opening ? "true" : "false")
@@ -1731,10 +1783,9 @@
     document.getElementById("vb-side")?.remove()
     const rail = document.querySelector(".sidebar.right")
     if (!rail || document.body.dataset.slug === "index") return
-    if (document.body.classList.contains("brain-off")) return
-    // matched to $desktop in variables.scss: below it the right column is a
-    // full-width row under the article, which is not where a map belongs
-    if (!matchMedia("(min-width: 1200px)").matches) return
+    // the panel itself is desktop-only (CSS), but the markup goes in at every
+    // width: on a phone ✦ expands this same wrapper into the observatory
+    if (document.body.classList.contains("brain-off") && wide()) return
     const slug = document.body.dataset.slug || ""
     const folder = slug.includes("/") ? slug.split("/")[0] : null
     const box = document.createElement("div")
@@ -1745,6 +1796,12 @@
       '<canvas id="vb-graph" role="img" aria-label="The vault as a constellation, with this page lit"></canvas>' +
       '<div id="vb-tip"></div>' +
       "</div>" +
+      // same id and handler as the rotunda's: initExpand wires whichever one
+      // the page has, and only one page ever has both
+      '<button id="vb-expand" type="button" aria-label="Open the whole vault" aria-expanded="false">' +
+      '<span class="vb-expand-ico" aria-hidden="true">⤢</span>' +
+      '<span class="vb-expand-txt">the whole vault</span>' +
+      "</button>" +
       '<p class="vb-side-cap"></p>'
     const cap = box.querySelector(".vb-side-cap")
     if (folder) {
@@ -1757,6 +1814,19 @@
       cap.textContent = "you are here"
     }
     rail.prepend(box)
+  }
+
+  // folder and tag pages list their contents under the article; on desktop
+  // that list belongs beside it, under the map — the page itself is a note
+  // with a shelf attached, and the shelf is navigation. Moved rather than
+  // re-emitted, so the folder-page plugin's own markup (dates, tags, and the
+  // category guests initFolderAssets adds afterwards) travels with it.
+  function initFolderRail() {
+    const rail = document.querySelector(".sidebar.right")
+    const list = document.querySelector(".page-listing")
+    if (!rail || !list || rail.contains(list) || !wide()) return
+    rail.append(list)
+    document.body.classList.add("has-rail")
   }
 
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
@@ -1772,12 +1842,20 @@
       btn.textContent = "✦"
       btn.setAttribute("aria-label", "Toggle the vault map")
       btn.addEventListener("click", () => {
+        // no column to toggle on a phone: ✦ opens the whole vault over the
+        // page, and ✕ or Esc puts you back on the note you were reading
+        if (!wide()) {
+          const wrap = document.getElementById("vault-brain")
+          if (wrap) toggleExpand(wrap, btn)
+          return
+        }
         const nowOff = document.body.classList.toggle("brain-off")
         localStorage.setItem("vb-brain-off", nowOff ? "1" : "")
         btn.classList.toggle("on", !nowOff)
         if (cleanup) cleanup()
         initSideBrain()
         init()
+        initExpand()
       })
       const bar = document.querySelector(".sidebar.left")
       ;(bar || document.body).append(btn)
@@ -1826,6 +1904,7 @@
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
+      initFolderRail()
       init()
       initExpand()
       initFrieze()
@@ -1844,6 +1923,7 @@
   initSidebarResize()
   initBrainToggle()
   initSideBrain()
+  initFolderRail()
   init()
   initExpand()
   initFrieze()
