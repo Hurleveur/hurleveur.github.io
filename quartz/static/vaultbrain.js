@@ -1855,6 +1855,11 @@
     const list = document.querySelector(".page-listing")
     if (!rail || !list || rail.contains(list) || !wide()) return
     rail.append(list)
+    // the dates alone read as a feed; say what the list is and how it runs.
+    // Keeps the count first: initFolderAssets bumps the first number it finds.
+    const cap = list.querySelector(":scope > p")
+    const order = " — sub-folders first, then latest edited"
+    if (cap) cap.textContent = cap.textContent.replace(/\.$/, "") + order
     // a folder is a link ending in "/"; it takes its top section's color,
     // the same --fc the explorer's inline script sets on its folders
     for (const a of list.querySelectorAll('.section-li h3 > a[href$="/"]')) {
