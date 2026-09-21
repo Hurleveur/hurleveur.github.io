@@ -692,7 +692,9 @@
         const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glow = Math.max(lit, near)
+        // the room glows at half, so a star the hovered one reaches — glowing
+        // whole — still stands out inside its own room
+        const glow = local ? Math.max(lit, near) : Math.max(0.5 * lit, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
@@ -717,6 +719,22 @@
           ctx.beginPath()
           ctx.arc(n.x, n.y, n.r * pulse + 5 / view.s, 0, 7)
           ctx.stroke()
+        } else if (near > 0.01 && !local) {
+          // what the hovered star touches: a thinner ring in the same ink, and
+          // in the observatory its name, so the group and the links read apart
+          ctx.strokeStyle = sky.label
+          ctx.lineWidth = 1 / view.s
+          ctx.globalAlpha = near
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, n.r * pulse + 4 / view.s, 0, 7)
+          ctx.stroke()
+          if (!mini && !n.you) {
+            ctx.textAlign = "center"
+            ctx.font = "400 " + 10 / view.s + "px IBM Plex Sans, sans-serif"
+            ctx.fillStyle = sky.label
+            label(short(n.label), n.x, n.y - n.r - 6 / view.s)
+          }
+          ctx.globalAlpha = 1
         }
         // you are here: the current note keeps a breathing ring and its title,
         // the one star in the sky that is never waiting to be found
@@ -791,7 +809,9 @@
         links.forEach(([a, b]) => {
           const own = Math.max(a.cw || 0, b.cw || 0)
           if (own < 0.01) return
-          ctx.strokeStyle = ((a.cw || 0) >= (b.cw || 0) ? a : b).color
+          // in the sky's ink, not the room's hue: over the room's own tinted
+          // threads a same-hue line was only a little thicker
+          ctx.strokeStyle = local ? ((a.cw || 0) >= (b.cw || 0) ? a : b).color : sky.label
           ctx.globalAlpha = own
           thread(a, b)
         })
