@@ -56,6 +56,15 @@ body {
   opacity: 0.55;
 }
 
+/* pages already opened (vaultbrain.js paintSeenLinks, a localStorage slug set
+   — :visited can't be read or matched reliably). Drift toward the page's own
+   ink, not a fixed color, so it reads right in every room and both themes —
+   --light/--secondary already swap per [saved-theme] above, no dark rule needed. */
+a.internal.vb-seen {
+  color: color-mix(in srgb, var(--secondary) 35%, var(--light));
+  background-color: transparent;
+}
+
 /* ============================================================
    PALACE — home page
    ============================================================ */
@@ -1309,6 +1318,14 @@ body.vb-open {
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.15s;
+
+    /* Task 1: on touch the tip is the only thing that opens a page — the star
+       itself just sticks the hover (vaultbrain.js onTipClick). Mouse leaves
+       this alone, so a desktop hover still can't intercept the click through it. */
+    @media (pointer: coarse) {
+      pointer-events: auto;
+      cursor: pointer;
+    }
   }
 }
 

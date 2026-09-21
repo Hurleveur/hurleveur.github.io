@@ -50,6 +50,17 @@
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
+  // lerp a hex toward its own grayscale value by t — real desaturation, not a
+  // wash of white, so a seen star (Task 2) goes near-grey and a colorful
+  // unseen one still pops next to it.
+  function desat(hex, t) {
+    const n = parseInt(hex.slice(1), 16)
+    const r = n >> 16, g = (n >> 8) & 255, b = n & 255
+    const gray = r * 0.3 + g * 0.59 + b * 0.11
+    const f = (v) => Math.round(v + (gray - v) * t)
+    return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
+  }
+
   // note color = its section's chakra hue, tinted lighter by sub-folder so
   // sub-groups read by shade. Section stars/legend keep the base hue (sub=null).
   // Tint step comes from the sub-folder's sorted position within its section
@@ -107,6 +118,53 @@
     return data
   }
 
+  // Task 2 storage key: normalize a URL pathname or a contentIndex slug to the
+  // same string, so "seen" recorded from one shape matches it checked from
+  // the other (a folder note's own slug carries "/index", the link to it and
+  // the pretty URL visiting it don't).
+  function normSlug(pathOrSlug) {
+    let s = decodeURIComponent(pathOrSlug).replace(/^\/|\/$/g, "")
+    if (s.endsWith("/index")) s = s.slice(0, -6)
+    return s === "index" ? "" : s
+  }
+
+  // bounded, local-only: one JSON array of normalized slugs under one key.
+  // Every read/write is wrapped — private mode and blocked site data throw,
+  // and the brain/links must still render with no stored value at all.
+  const SEEN_KEY = "vb-seen"
+  function loadSeen() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || "[]"))
+    } catch (e) {
+      return new Set()
+    }
+  }
+  // called on every pageview, including a soft SPA nav — hooked into the same
+  // "nav" lifecycle every other inline init runs from, at the bottom of the file.
+  function markSeen() {
+    try {
+      const seen = loadSeen()
+      seen.add(normSlug(location.pathname))
+      localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
+    } catch (e) {
+      /* private mode / storage blocked — the page still renders, just unmarked */
+    }
+  }
+  // washes out in-page links to pages already opened. :visited can't be read
+  // (getComputedStyle/querySelector deliberately lie) or even matched
+  // reliably — Chrome 136+ partitions it per top-level site — so this reads
+  // the plain localStorage slug set and toggles a real class instead.
+  function paintSeenLinks() {
+    const seen = loadSeen()
+    document.querySelectorAll("a.internal").forEach((a) => {
+      try {
+        a.classList.toggle("vb-seen", seen.has(normSlug(new URL(a.href, location.href).pathname)))
+      } catch (e) {
+        /* malformed href */
+      }
+    })
+  }
+
   // per-world ambience: slug prefix -> SoundCloud track URL, played through
   // an offscreen widget iframe. First matching prefix wins; "" is the
   // fallback.
@@ -159,6 +217,9 @@
       return
     }
     let sky = skyColors(mini)
+    // Task 2: which stars are pages already opened — read once per init, same
+    // set paintSeenLinks() reads for in-article links.
+    const seenSlugs = loadSeen()
 
     // tag pages are generated indexes, not notes — they'd swamp the constellation as fake hubs
     let slugs = Object.keys(data).filter((s) => !s.startsWith("tags/") && s !== "tags/index")
@@ -242,6 +303,7 @@
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
           : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
         hubWeight: backlinks[slug] || 0,
+        seen: seenSlugs.has(normSlug(slug)),
         x: 0, y: 0, vx: 0, vy: 0,
       }
     })
@@ -282,6 +344,7 @@
         color: folderColor(f),
         r: ((mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2)) * rs,
         hubWeight: 0,
+        seen: seenSlugs.has(normSlug(f + "/")),
         x: 0, y: 0, vx: 0, vy: 0,
       })
     })
@@ -515,31 +578,30 @@
       }
       return null
     }
-    // touch takes its hover from a deliberate drag, never from bare contact: a
-    // finger landing dispatches pointermove before pointerdown, so a plain tap
-    // used to flash a preview nobody asked for. Hover turns on once the contact
-    // has travelled TOUCH_SLOP px, and the click ending such a drag is
-    // swallowed — on touch the tap navigates, the drag only previews.
-    const TOUCH_SLOP = 12
-    let touchDrag = null // { id, x, y, moved }
+    // touch has no hover to miss with, so a touch resolves to whichever star is
+    // closest instead of nodeAt's exact-hit test — a tap always lands on one.
+    function nearestNode(x, y) {
+      let best = null, bestD = Infinity
+      for (const n of nodes) {
+        const d = (n.x - x) ** 2 + (n.y - y) ** 2
+        if (d < bestD) { bestD = d; best = n }
+      }
+      return best
+    }
+    // Task 1: a touch device has no hover to reveal the map, so any contact —
+    // tap or drag — sticks the highlight to the nearest star and it stays put
+    // (onLeave below) until the next touch moves it. Opening a page then can't
+    // happen from a tap on the star itself (the label in the tip does that,
+    // pointer-events flipped on for coarse pointers in custom.scss), so onClick
+    // never navigates on touch either.
     function onTouchDown(e) {
-      touchDrag =
-        e.pointerType === "touch"
-          ? { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }
-          : null
+      if (e.pointerType === "touch") onMove(e)
     }
     function onMove(e) {
-      if (e.pointerType === "touch") {
-        if (!touchDrag || touchDrag.id !== e.pointerId) return
-        if (!touchDrag.moved) {
-          if (Math.hypot(e.clientX - touchDrag.x, e.clientY - touchDrag.y) < TOUCH_SLOP) return
-          touchDrag.moved = true
-        }
-      }
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
-      hovered = nodeAt(e)
+      hovered = e.pointerType === "touch" ? nearestNode(x, y) : nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub
       let hf = hovered ? hovered.folder : null
@@ -569,14 +631,10 @@
       }
     }
     function onClick(e) {
-      // a finger that dragged was previewing, not picking: the click that ends
-      // it must not navigate. Cleared here so the next gesture starts fresh.
-      const wasTouchDrag = touchDrag && touchDrag.moved
-      touchDrag = null
-      if (wasTouchDrag) return
+      // Task 1: a touch never navigates from the canvas — it only sticks the
+      // hover (onMove/onTouchDown above); opening a page is the tip's job.
+      if (e.pointerType === "touch") return
       if (dragged) return // pan release, not a pick
-      // hit-test the click's own coords: on touch, pointerleave fires before
-      // click and clears `hovered`, and a stationary tap never fires pointermove
       const hit = nodeAt(e)
       if (hit) window.location.href = "/" + hit.slug
       else if (mini) document.getElementById("vb-expand")?.click()
@@ -692,12 +750,14 @@
         const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
+        // Task 2: a page already opened reads near-grey so an unseen one pops
+        const col = n.seen ? desat(n.color, 0.78) : n.color
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
         const glow = local ? Math.max(lit, near) : Math.max(0.5 * lit, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
-        g.addColorStop(0, n.color)
+        g.addColorStop(0, col)
         g.addColorStop(1, "transparent")
         ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
@@ -705,7 +765,7 @@
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
         ctx.globalAlpha = dim
-        ctx.fillStyle = n.color
+        ctx.fillStyle = col
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
         ctx.fill()
@@ -836,15 +896,26 @@
     }
     document.addEventListener("themechange", onTheme)
 
-    function onLeave() {
+    function onLeave(e) {
+      // Task 1: a finger lifting fires pointerleave same as a mouse would, but
+      // touch has no hover to fall back to — clearing here would un-stick the
+      // highlight the instant the tap ends, so touch just keeps what it had.
+      if (e && e.pointerType === "touch") return
       hovered = null
       tip.style.opacity = 0
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
+    }
+    // Task 1: the tip is the only thing a touch can open a page from. CSS
+    // turns its pointer-events on for coarse pointers only, so this never
+    // fires from a mouse click passing through it.
+    function onTipClick() {
+      if (hovered) window.location.href = "/" + hovered.slug
     }
     cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
+    tip.addEventListener("click", onTipClick)
     if (!mini && !side) {
       cv.addEventListener("wheel", onWheel, { passive: false })
       cv.addEventListener("pointerdown", onDown)
@@ -870,6 +941,7 @@
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
+      tip.removeEventListener("click", onTipClick)
       if (!mini && !side) {
         cv.removeEventListener("wheel", onWheel)
         cv.removeEventListener("pointerdown", onDown)
@@ -2036,6 +2108,8 @@
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
+      markSeen() // Task 2: record this pageview before init() paints the brain from it
+      paintSeenLinks()
       initNavToggle()
       initSidebarResize()
       initBrainToggle()
@@ -2056,6 +2130,8 @@
       initFolderAssets()
     })
   }
+  markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
+  paintSeenLinks()
   initNavToggle()
   initSidebarResize()
   initBrainToggle()
