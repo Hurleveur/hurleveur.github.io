@@ -163,7 +163,9 @@ a.internal.vb-seen {
   }
 }
 
-/* PauseAI: a standing invitation beside the "why does this exist" paragraph.
+/* PauseAI: the mark alone, beside the "why does this exist" paragraph, linking
+   to the note that says why it matters. It carried a label and a protest date
+   until the protest happened; the logo is what is left, muted until hovered.
    The row exists only to give the badge a right edge to hang off without
    pushing .vault-intro out of the hero's centre — hence relative + absolute.
    Under 60rem there is no room beside the prose, so it stacks under it. */
@@ -179,96 +181,41 @@ a.internal.vb-seen {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: clamp(8rem, 13vw, 10.5rem);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  text-align: center;
+  justify-content: center;
 
   .pauseai-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
+    display: block;
     color: #d93d1a;
+    opacity: 0.5;
     text-decoration: none;
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease;
 
     svg {
       display: block;
-      width: clamp(38px, 4.4vw, 54px);
+      width: clamp(26px, 2.6vw, 34px);
       height: auto;
       border-radius: 50%;
-      /* the halo is what makes it read as a call, not decoration */
-      box-shadow: 0 0 0 0 rgba(217, 61, 26, 0.45);
-      animation: pauseai-pulse 2.8s ease-out infinite;
     }
 
-    /* crawl-links tags external anchors with an icon — not wanted here */
+    /* crawl-links tags internal anchors with nothing, external ones with an
+       icon — neither belongs on a logo */
     svg.external-icon {
       display: none;
     }
-  }
 
-  .pauseai-label {
-    font-family: var(--sans);
-    font-size: 0.72rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #d93d1a;
-  }
-
-  .pauseai-cta {
-    font-family: var(--sans);
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
-    color: #8a5043;
-    border-bottom: 1px solid rgba(217, 61, 26, 0.45);
-  }
-
-  .pauseai-why {
-    font-size: 0.75rem;
-    font-style: italic;
-    line-height: 1.35;
-    color: #6f6857;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(111, 104, 87, 0.35);
-  }
-
-  .pauseai-badge:hover,
-  .pauseai-badge:focus-visible {
-    transform: translateY(-3px);
-  }
-
-  .pauseai-why:hover,
-  .pauseai-why:focus-visible {
-    color: #d93d1a;
-    border-bottom-color: #d93d1a;
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
   }
 }
 
-@keyframes pauseai-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(217, 61, 26, 0.45); }
-  70%  { box-shadow: 0 0 0 14px rgba(217, 61, 26, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(217, 61, 26, 0); }
-}
-
-[saved-theme="dark"] .palace-hero .pauseai {
-  .pauseai-badge,
-  .pauseai-label {
-    color: #ff6a42;
-  }
-
-  .pauseai-cta {
-    color: #c98d7c;
-    border-bottom-color: rgba(255, 106, 66, 0.5);
-  }
-
-  .pauseai-why {
-    color: var(--darkgray);
-    border-bottom-color: rgba(190, 183, 164, 0.35);
-  }
+[saved-theme="dark"] .palace-hero .pauseai .pauseai-badge {
+  color: #ff6a42;
 }
 
 @media all and (max-width: 60rem) {
@@ -280,7 +227,6 @@ a.internal.vb-seen {
   .palace-hero .pauseai {
     position: static;
     transform: none;
-    width: auto;
     margin-top: 1.4rem;
   }
 }
@@ -1677,9 +1623,6 @@ body[data-slug^="books"] {
     transition: none !important;
   }
 
-  .palace-hero .pauseai .pauseai-badge svg {
-    animation: none !important;
-  }
 }
 
 /* ============================================================
