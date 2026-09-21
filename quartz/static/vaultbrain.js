@@ -1855,6 +1855,13 @@
     const list = document.querySelector(".page-listing")
     if (!rail || !list || rail.contains(list) || !wide()) return
     rail.append(list)
+    // a folder is a link ending in "/"; it takes its top section's color,
+    // the same --fc the explorer's inline script sets on its folders
+    for (const a of list.querySelectorAll('.section-li h3 > a[href$="/"]')) {
+      const top = decodeURIComponent(new URL(a.href).pathname.split("/")[1] || "")
+      a.classList.add("vb-folder")
+      if (top) a.style.setProperty("--fc", folderColor(top))
+    }
     document.body.classList.add("has-rail")
   }
 

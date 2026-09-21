@@ -1753,9 +1753,28 @@ body.vb-open #quartz-body .sidebar.right {
     line-height: 1.2;
   }
 
+  /* read like the explorer on the left: notes in its muted ink, folders
+     bold in their section's color (--fc, set by initFolderRail) */
+  h3 > a {
+    color: var(--dark);
+    opacity: 0.75;
+    font-weight: 400;
+  }
+
+  h3 > a.vb-folder {
+    color: color-mix(in srgb, var(--fc, var(--secondary)) 55%, var(--darkgray));
+    opacity: 1;
+    font-family: var(--headerFont);
+    font-weight: 600;
+  }
+
   .tags {
     display: none; /* no room for them at this width */
   }
+}
+
+[saved-theme="dark"] .sidebar.right > .page-listing h3 > a.vb-folder {
+  color: color-mix(in srgb, var(--fc, var(--secondary)) 85%, white);
 }
 
 /* the map and the shelf both want more than the 240px the stock column gives */
