@@ -88,7 +88,8 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
 - `✦` off (`body.brain-off`, desktop) hides the whole right column, a folder
   page's listing with it: `initFolderRail` moves it into the column even while off.
 - `initCrumbBar()` moves the breadcrumbs from `.page-header` into the top bar
-  above 800px; the header's zeroed forecourt in `custom.scss` assumes they left.
+  above 800px and drops their "Home" link, so "Loci ❯ Work" reads as one path;
+  the header's zeroed forecourt in `custom.scss` assumes they left.
 - The panel is DOM the build never emits, so nothing typechecks it —
   `quartz/static/sidebrain.test.ts` guards the seams that fail silently,
   including the `:not(.vb-expanded)` the overlay needs to outrank two ids.

@@ -1567,16 +1567,18 @@ body[data-slug^="books"] {
       font-size: 1.3rem;
     }
 
-    /* the page's breadcrumbs, moved here by vaultbrain.js initCrumbBar */
+    /* the page's breadcrumbs, moved here by vaultbrain.js initCrumbBar and
+       continuing the title: its "Home" is gone, its ❯ follows "Loci" */
     > .breadcrumb-container {
       flex: 0 1 auto;
       min-width: 0;
       flex-wrap: nowrap;
       overflow: hidden;
-      margin: 0 0 0 1.2rem;
+      margin: 0 0 0 -1.1rem; /* cancel the bar's gap: one path, not two items */
       padding: 0;
       white-space: nowrap;
-      font-size: 0.9rem;
+      font-family: var(--titleFont, var(--headerFont));
+      font-size: 1.1rem;
     }
 
     /* search / darkmode / reader-mode / help live on the bar's right end */

@@ -460,10 +460,9 @@
     const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
-    let starMax = 0 // how much a single hovered star holds the sky, eased
-    // a hover lights by star as well as by section: the hovered star and the
-    // stars it links to glow (n.lw) and its own threads take its colour (n.cw).
-    // The main sky keeps the section as the group around them; a neighbourhood
+    // a hover lights by section and then by star: the room comes up whole, and
+    // over it the hovered star's own threads are reinforced (n.cw) and the
+    // stars they reach stay lit even from another room (n.lw). A neighbourhood
     // lights by star alone — lighting a whole room there lit most of the panel.
     const adj = new Map(nodes.map((n) => [n, new Set([n])]))
     for (const [a, b] of links) {
@@ -476,13 +475,11 @@
       // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
       const k = reduceMotion ? 1 : 0.06
       hlMax = 0
-      starMax = 0
       const near = hovered ? adj.get(hovered) : null
       for (const n of nodes) {
         n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
         n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
         if (local && n.lw > hlMax) hlMax = n.lw
-        if (n.cw > starMax) starMax = n.cw
       }
       if (local) return
       for (const f of folders) {
@@ -693,11 +690,12 @@
         const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
-        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * near)
+        const glow = Math.max(lit, near)
+        const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, n.color)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * near))
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
@@ -765,8 +763,8 @@
       // the hue of whichever end is more lit, so the room being left keeps its
       // color on the way out while the room being entered comes up in its own.
       // The rotunda has no room for a section's threads, and a neighbourhood
-      // has no section: both draw only the hovered star's own. A hovered star
-      // pushes its room's threads back so its own, drawn over them, read as its.
+      // has no section: both draw only the hovered star's own. Elsewhere the
+      // star's own go over its room's, thicker and at full strength.
       if (hlMax > 0.01) {
         const thread = (a, b) => {
           ctx.beginPath()
@@ -777,7 +775,7 @@
         ctx.lineWidth = 1.4 / view.s
         if (!mini && !local) {
           links.forEach(([a, b]) => {
-            const w = linkLit(a, b) * (1 - 0.6 * starMax)
+            const w = linkLit(a, b)
             if (w < 0.01) return
             const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
             ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
@@ -785,7 +783,7 @@
             thread(a, b)
           })
         }
-        ctx.lineWidth = 2 / view.s
+        ctx.lineWidth = 2.2 / view.s
         links.forEach(([a, b]) => {
           const own = Math.max(a.cw || 0, b.cw || 0)
           if (own < 0.01) return
@@ -1938,6 +1936,9 @@
     const title = bar.querySelector(":scope > .page-title")
     if (title) title.after(crumbs)
     else bar.prepend(crumbs)
+    // Loci is the trail's first step: its "Home" goes, its ❯ stays, so the
+    // title and the crumbs read as one path — Loci ❯ Work ❯ …
+    if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
 
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
