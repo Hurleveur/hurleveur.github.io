@@ -1881,24 +1881,21 @@
     // the dates alone read as a feed; say what the list is and how it runs.
     // Keeps the count first: initFolderAssets bumps the first number it finds.
     const cap = list.querySelector(":scope > p")
-    if (cap) cap.textContent = cap.textContent.replace(/\.$/, "") + " — latest edited first"
+    // no count: initFolderAssets' bump of the first number finds none here
+    if (cap) cap.textContent = "Latest edits"
     // the build lists sub-folders ahead of the notes; here the shelf runs by
     // latest edit alone, and a folder with no text of its own is left out
     loadIndex()
       .then((data) => {
         const ul = list.querySelector("ul.section-ul")
         if (!ul) return
-        let dropped = 0
         for (const a of ul.querySelectorAll(".section-li h3 > a.vb-folder")) {
           const slug = decodeURIComponent(new URL(a.href).pathname).slice(1) + "index"
           if ((data[slug]?.content || "").trim()) continue
           a.closest("li").remove()
-          dropped++
         }
         const when = (li) => Date.parse(li.querySelector("time")?.getAttribute("datetime")) || 0
         ul.append(...[...ul.children].sort((x, y) => when(y) - when(x)))
-        // relative, like initFolderAssets' bump, so the two can land in any order
-        if (cap && dropped) cap.textContent = cap.textContent.replace(/\d+/, (n) => +n - dropped)
       })
       .catch(() => {})
     // a folder is a link ending in "/"; it takes its top section's color,
