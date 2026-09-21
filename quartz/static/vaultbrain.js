@@ -460,24 +460,44 @@
     const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
+    // a neighbourhood lights by star, not by section — lighting a whole room
+    // there lit most of the panel. The hovered star and the stars it links to
+    // come up (n.lw), its own threads take its colour (n.cw), the rest recede.
+    const adj = new Map(nodes.map((n) => [n, new Set([n])]))
+    for (const [a, b] of local ? links : []) {
+      adj.get(a).add(b)
+      adj.get(b).add(a)
+    }
     function easeHl() {
       // reduced motion asked for no animation: land on the target in one frame.
       // 0.12 (the old rate) crossed a room in a handful of frames — barely a
       // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
       const k = reduceMotion ? 1 : 0.06
       hlMax = 0
+      if (local) {
+        const near = hovered ? adj.get(hovered) : null
+        for (const n of nodes) {
+          n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
+          n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
+          if (n.lw > hlMax) hlMax = n.lw
+        }
+        return
+      }
       for (const f of folders) {
         hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
         if (hlW[f] > hlMax) hlMax = hlW[f]
       }
     }
     const hlOf = (f) => hlW[f] || 0
+    const litOf = (n) => (local ? n.lw || 0 : hlOf(n.folder))
     // how much of the highlight an edge carries: the observatory counts every
     // edge that touches the section — those threads outward are what a section
     // connects to — while the tight rotunda keeps only the ones inside it, so
     // the small brain doesn't fill with lines on a frieze hover.
-    const linkLit = (a, b) =>
-      mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
+    const linkLit = (a, b) => {
+      if (local) return Math.max(a.cw || 0, b.cw || 0)
+      return mini && a.folder !== b.folder ? 0 : Math.max(hlOf(a.folder), hlOf(b.folder))
+    }
     const onHl = (e) => {
       hlFolder = e.detail
       hlAmp = e.soft ? SOFT_HL : 1
@@ -533,7 +553,7 @@
       // side mode falls back to the current note's own section rather than to
       // nothing, so the room you are in stays lit between hovers
       const target = hf || idleHl
-      if (target !== hlFolder) hlEmit(target, !hf)
+      if (!local && target !== hlFolder) hlEmit(target, !hf)
       // no animation loop to pick the ring up in reduced motion
       if (reduceMotion && hovered !== prevHover) draw()
       if (hovered) {
@@ -665,7 +685,7 @@
       ctx.globalAlpha = 1
       nodes.forEach((n, i) => {
         // highlighted section burns brighter, the rest of the sky recedes
-        const lit = hlOf(n.folder)
+        const lit = litOf(n)
         const dim = 1 - 0.85 * (hlMax - lit)
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
@@ -745,8 +765,11 @@
         links.forEach(([a, b]) => {
           const w = linkLit(a, b)
           if (w < 0.01) return
-          const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
-          ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
+          if (local) ctx.strokeStyle = ((a.cw || 0) >= (b.cw || 0) ? a : b).color
+          else {
+            const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
+            ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
+          }
           ctx.globalAlpha = 0.8 * w
           ctx.beginPath()
           ctx.moveTo(a.x, a.y)
@@ -777,7 +800,7 @@
     function onLeave() {
       hovered = null
       tip.style.opacity = 0
-      if (hlFolder !== idleHl) hlEmit(idleHl, true)
+      if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)

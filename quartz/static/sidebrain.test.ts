@@ -31,6 +31,13 @@ test("side brain", async (t) => {
     assert.match(scss, /#vb-side \{[\s\S]*?#vault-brain:not\(\.vb-expanded\)/)
   })
 
+  await t.test("a hover in the neighbourhood lights stars, not a section", () => {
+    // hlEmit lights a whole room; inside a neighbourhood that is most of the
+    // panel, so the hover path must skip it there and light by adjacency
+    assert.match(js, /if \(!local && target !== hlFolder\) hlEmit/)
+    assert.match(js, /const near = hovered \? adj\.get\(hovered\)/)
+  })
+
   await t.test("the graph plugin it replaces stays off", () => {
     const block = config.slice(config.indexOf("quartz-community/graph"))
     assert.match(block.slice(0, 120), /enabled: false/)
