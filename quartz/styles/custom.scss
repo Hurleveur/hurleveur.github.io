@@ -1567,6 +1567,18 @@ body[data-slug^="books"] {
       font-size: 1.3rem;
     }
 
+    /* the page's breadcrumbs, moved here by vaultbrain.js initCrumbBar */
+    > .breadcrumb-container {
+      flex: 0 1 auto;
+      min-width: 0;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      margin: 0 0 0 1.2rem;
+      padding: 0;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+
     /* search / darkmode / reader-mode / help live on the bar's right end */
     > .flex-component {
       margin-left: auto;
@@ -1604,13 +1616,19 @@ body[data-slug^="books"] {
   /* content used to clear the tall sidebar top-padding; with the bar the
      old 6rem forecourt is too much. (.center > keeps this below the
      body[data-slug="index"] 1.2rem override in specificity) */
+  /* the breadcrumbs left for the bar (initCrumbBar), so the title leads the
+     page: the header and the h1 drop their forecourt */
   .center > .page-header {
-    margin-top: 2.5rem;
+    margin-top: 1.2rem;
+
+    h1.article-title {
+      margin-top: 0;
+    }
   }
 
   /* right column: align with the shorter forecourt and stick below the bar */
   #quartz-body .sidebar.right {
-    padding-top: 2.5rem;
+    padding-top: 1.2rem;
     top: var(--topbar-h);
     height: calc(100vh - var(--topbar-h));
   }
@@ -1661,7 +1679,11 @@ body[data-slug^="books"] {
   /* :not() so the overlay wins when ⤢ takes this same element full-screen —
      two ids here would otherwise outrank #vault-brain.vb-expanded */
   #vault-brain:not(.vb-expanded) {
-    height: min(46vh, 380px);
+    /* square: the ring is sized to the short side (homeOf), so any extra
+       height was empty sky above and below it */
+    height: auto;
+    aspect-ratio: 1;
+    max-height: 46vh;
     min-height: 0;
     /* no sky of its own: the neighbourhood is drawn straight on the page, in
        the theme's ink (skyColors), so it reads as part of the column */

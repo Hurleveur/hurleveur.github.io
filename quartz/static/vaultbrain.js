@@ -1865,6 +1865,21 @@
     document.body.classList.add("has-rail")
   }
 
+  // the breadcrumbs ride the top bar beside the site title instead of taking
+  // a line above the page title. Moved, not copied: the SPA morph puts them
+  // back in the header on every nav and this moves them again. Phone keeps
+  // the stock stacked header, which has no bar.
+  // ponytail: checked on nav only, so resizing across 800px keeps the old place
+  function initCrumbBar() {
+    const bar = document.querySelector(".sidebar.left")
+    const crumbs = document.querySelector(".page-header .breadcrumb-container")
+    if (!bar || !crumbs || !matchMedia("(min-width: 801px)").matches) return
+    bar.querySelector(":scope > .breadcrumb-container")?.remove()
+    const title = bar.querySelector(":scope > .page-title")
+    if (title) title.after(crumbs)
+    else bar.prepend(crumbs)
+  }
+
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
   // the side brain. Choice persists across pages and visits; default on.
   function initBrainToggle() {
@@ -1941,6 +1956,7 @@
       initBrainToggle()
       initSideBrain()
       initFolderRail()
+      initCrumbBar()
       init()
       initExpand()
       initFrieze()
@@ -1960,6 +1976,7 @@
   initBrainToggle()
   initSideBrain()
   initFolderRail()
+  initCrumbBar()
   init()
   initExpand()
   initFrieze()
