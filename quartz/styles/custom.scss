@@ -1644,3 +1644,88 @@ body[data-slug^="books"] {
     animation: none !important;
   }
 }
+
+/* ============================================================
+   THE SIDE BRAIN — the same constellation as the rotunda and the
+   observatory, shrunk into the right column of every note page
+   (vaultbrain.js initSideBrain). It replaces Quartz's graph: one
+   map of the whole vault, with the page you are on ringed in its
+   section's color, so the vault is never out of sight.
+   ✦ in the top bar hides it (body.brain-off, persisted).
+   ============================================================ */
+#vb-side {
+  flex: 0 0 auto;
+  margin-bottom: 0.4rem;
+
+  #vault-brain {
+    height: min(46vh, 380px);
+    min-height: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    /* same night/day sky as the observatory, and the same palette hand-off:
+       the tip is a child and must read against the sky, not the page */
+    background: #0b0e1f;
+    --light: #0b0e1f;
+    --dark: #dfe3f2;
+  }
+
+  #vb-stars {
+    display: block;
+  }
+
+  .vb-side-cap {
+    margin: 0.4rem 0 0;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray);
+
+    a {
+      background: none;
+      font-weight: 600;
+    }
+  }
+}
+
+[saved-theme="light"] #vb-side #vault-brain {
+  background: #e9eef8;
+  --light: #e9eef8;
+  --dark: #202741;
+}
+
+/* the map wants more than the 240px the stock right column gives it */
+@media all and ($desktop) {
+  body:not(.brain-off):not([data-slug="index"]) #quartz-body {
+    grid-template-columns: auto 320px;
+  }
+}
+
+/* ✦ map toggle — the explorer's ☰ has the bar's left end, this has the right */
+#vb-brain-btn {
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+  background: color-mix(in srgb, var(--light) 85%, transparent);
+  color: var(--secondary);
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:hover,
+  &.on {
+    background: var(--secondary);
+    color: var(--light);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--secondary);
+    outline-offset: 3px;
+  }
+
+  /* no side brain below $desktop, so nothing to toggle */
+  @media all and not ($desktop) {
+    display: none;
+  }
+}

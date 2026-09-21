@@ -167,8 +167,11 @@ plugins:
     layout:
       position: left
       priority: 60
+  # replaced by the side brain (vaultbrain.js initSideBrain): the same
+  # constellation as the home rotunda, whole-vault rather than 2 hops, with the
+  # current page ringed in its section's color. Injected client-side, no slot.
   - source: github:quartz-community/graph
-    enabled: true
+    enabled: false
     layout:
       position: right
       priority: 10

@@ -55,6 +55,22 @@ Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (
 - `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
 
+## The side brain (right column)
+
+`vaultbrain.js` `initSideBrain()` injects the constellation into `.sidebar.right`
+at runtime on every page but home; it replaces `quartz-community/graph`, which is
+`enabled: false` in the config for that reason.
+
+- Three modes now share `init()`: `data-mini` (rotunda), neither (observatory
+  overlay), `data-side` (right column). Anything gated on `!mini` must say what it
+  means for `side` too — wheel-zoom and pan are off there, or the panel eats the
+  page scroll.
+- The current page is `bySlug[document.body.dataset.slug]`; it gets `n.you` and the
+  idle highlight rests on its folder, so a hover that ends returns to it rather
+  than to nothing.
+- The panel is DOM the build never emits, so nothing typechecks it —
+  `quartz/static/sidebrain.test.ts` guards the two seams that fail silently.
+
 ## Frontmatter on a page
 
 `note-properties` is the frontmatter parser here — its transformer is what sets
