@@ -58,3 +58,36 @@ test("side brain", async (t) => {
     assert.match(block.slice(0, 120), /enabled: false/)
   })
 })
+
+// Task 2: "seen" is a bare localStorage read/write with no server behind it —
+// private mode and blocked site data throw on both, and the brain (this
+// panel included) still has to render with no stored value at all.
+test("seen-page tracking", async (t) => {
+  await t.test("a blocked localStorage read still yields a usable set", () => {
+    const loadSeen = js.slice(
+      js.indexOf("function loadSeen() {"),
+      js.indexOf("function markSeen() {"),
+    )
+    assert.match(loadSeen, /try \{/, "loadSeen no longer guards the localStorage read")
+    assert.match(
+      loadSeen,
+      /catch \(e\) \{\s*\n\s*return new Set\(\)/,
+      "loadSeen's catch no longer falls back to an empty set",
+    )
+  })
+
+  await t.test("a blocked localStorage write is swallowed, not thrown", () => {
+    const markSeen = js.slice(
+      js.indexOf("function markSeen() {"),
+      js.indexOf("function paintSeenLinks() {"),
+    )
+    assert.match(markSeen, /try \{/, "markSeen no longer guards the localStorage write")
+    assert.match(markSeen, /catch \(e\) \{/, "markSeen's write can throw uncaught in private mode")
+  })
+
+  await t.test("a seen star desaturates instead of gaining a second color system", () => {
+    // reuses n.color/desat rather than a parallel "seen palette" — one hue per
+    // note, dimmed, so an unseen star still pops next to it
+    assert.match(js, /const col = n\.seen \? desat\(n\.color, [\d.]+\) : n\.color/)
+  })
+})

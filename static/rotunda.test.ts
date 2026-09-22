@@ -63,29 +63,52 @@ describe("rotunda frieze over the brain canvas", () => {
   })
 })
 
-// Touch hover is a hair-trigger: a finger landing dispatches pointermove before
-// pointerdown, so gating it wrong either flashes a preview on every tap or (the
-// regression this guards) kills the drag preview on phones entirely. Neither
-// shows up in a build, and neither is reachable from a desktop browser.
-describe("touch preview on the canvas", () => {
+// Phones have no hover, so a touch has to fake one: any contact sticks the
+// highlight to the nearest star and it stays stuck until the next touch moves
+// it, because pointerleave fires on finger-lift same as it would for a mouse
+// and would otherwise wipe the highlight the instant the tap ends. None of
+// this shows up in a build, and none of it is reachable from a desktop browser.
+describe("touch sticks the hover instead of navigating", () => {
   const onMove = js.slice(js.indexOf("function onMove(e) {"), js.indexOf("function onClick(e) {"))
   const onClick = js.slice(js.indexOf("function onClick(e) {"), js.indexOf("function onWheel(e) {"))
+  const onLeave = js.slice(
+    js.indexOf("function onLeave(e) {"),
+    js.indexOf('cv.addEventListener("pointerdown", onTouchDown)'),
+  )
+  const onTouchDown = js.slice(
+    js.indexOf("function onTouchDown(e) {"),
+    js.indexOf("function onMove(e) {"),
+  )
 
-  test("a touch previews only once it has travelled past the slop", () => {
-    assert.match(onMove, /touchDrag\.moved/, "onMove no longer tracks whether the finger moved")
-    assert.match(onMove, /TOUCH_SLOP/, "onMove no longer measures the contact's travel")
-    assert.doesNotMatch(
+  test("any contact resolves to the nearest star, not an exact hit", () => {
+    assert.match(
       onMove,
-      /pointerType === "touch"\) return/,
-      "onMove is back to refusing touch hover outright — the phone preview is dead",
+      /hovered = e\.pointerType === "touch" \? nearestNode\(x, y\) : nodeAt\(e\)/,
+      "onMove no longer gives touch the always-resolves nearestNode pick",
     )
   })
 
-  test("the click ending a preview drag does not navigate", () => {
+  test("a bare tap sticks the hover immediately, not only after a drag", () => {
+    assert.match(
+      onTouchDown,
+      /if \(e\.pointerType === "touch"\) onMove\(e\)/,
+      "pointerdown no longer picks a star on contact — a stationary tap would show nothing",
+    )
+  })
+
+  test("lifting the finger does not clear the stuck hover", () => {
+    assert.match(
+      onLeave,
+      /pointerType === "touch"\) return/,
+      "onLeave clears touch's hover on pointerleave — the stick breaks the instant the tap ends",
+    )
+  })
+
+  test("the canvas never navigates from a touch", () => {
     assert.match(
       onClick,
-      /touchDrag && touchDrag\.moved/,
-      "a dragged preview now ends in a navigation the finger never asked for",
+      /if \(e\.pointerType === "touch"\) return/,
+      "onClick can still navigate from a touch — that's the star, not the label, opening the page",
     )
   })
 })
