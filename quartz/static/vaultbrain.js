@@ -30,6 +30,24 @@
     return a.localeCompare(b)
   }
 
+  // widest laid-out line in a run of client rects, used to size the room
+  // description's slab (showDesc below). There is a rect per word, not per
+  // line — the words are inline-block, so they never merge into one line box,
+  // and a word mid-rise sits a few px off its neighbours' top. So group by
+  // top with well under a line of tolerance, and take the widest group.
+  function widestLine(rects) {
+    const lines = []
+    for (const b of rects) {
+      if (!b.width) continue
+      const line = lines.find((l) => Math.abs(l.top - b.top) < 10)
+      if (line) {
+        line.left = Math.min(line.left, b.left)
+        line.right = Math.max(line.right, b.right)
+      } else lines.push({ top: b.top, left: b.left, right: b.right })
+    }
+    return Math.max(0, ...lines.map((l) => l.right - l.left))
+  }
+
   function folderColor(folder) {
     const key = folder.toLowerCase()
     if (COLORS[key]) return COLORS[key]
@@ -1231,6 +1249,7 @@
         descBox.classList.toggle("on", !!desc)
         if (!desc) return
         descBox.style.setProperty("--tint", folderColor(folder))
+        descBox.style.width = "" // back to the cap, so the lines re-break for this sentence
         descBox.replaceChildren(
           ...desc.split(" ").flatMap((word, i) => {
             const s = document.createElement("span")
@@ -1239,6 +1258,16 @@
             return [s, " "]
           }),
         )
+        // one slab, as wide as the longest line. No CSS can ask for that — a
+        // wrapped block is always exactly the width it was given, so every
+        // room rendered the same cap-wide bar. Let it wrap at the cap, then
+        // measure what the wrap actually produced and pin the box to it.
+        const range = document.createRange()
+        range.selectNodeContents(descBox)
+        const widest = widestLine(range.getClientRects())
+        // 0 = nothing was laid out (the band is hidden on a phone): leave the
+        // cap alone rather than collapsing the box to nothing
+        if (widest) descBox.style.width = Math.ceil(widest) + 1 + "px"
       }
       const sides = [folders.slice(0, half), folders.slice(half)].map((list) =>
         list.map((folder) => {

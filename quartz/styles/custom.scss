@@ -919,13 +919,24 @@ body[data-slug="index"] {
     display: none; /* the dome is the backdrop, no starfield here */
   }
 
-  /* the hovered room's description, written across the brain itself — words
-     phase in one after another (vaultbrain.js stamps the per-word delay) */
+  /* the hovered room's description, hanging in the shaft of light between the
+     oculus and the brain's crown — words phase in one after another
+     (vaultbrain.js stamps the per-word delay). One slab for the whole
+     sentence, as wide as its longest line — CSS cannot size a block to that
+     (a wrapped box is always exactly the width it was given, which is why
+     every room used to get the same 28rem bar), so showDesc() measures the
+     laid-out lines and pins the width. The rules here only set the column the
+     lines break in. */
   #vb-desc {
     position: absolute;
     left: -16%;
     right: -16%;
-    top: 50%;
+    /* above the brain box, not across it. The gap is a % of that box so it
+       scales with the painting at every width. The observatory brain is the
+       whole viewport, where "above" is off-screen — it re-centres this box
+       itself (see #vault-brain.vb-expanded). */
+    top: auto;
+    bottom: 107%;
     /* shrink-to-fit inside that inset range: the slab hugs the sentence
        instead of spanning the whole band. Not `fit-content`, in either form —
        the bare keyword clamps against the available -16%/+16% span, so any
@@ -942,13 +953,16 @@ body[data-slug="index"] {
        it. */
     width: max-content;
     max-width: min(28rem, calc(100vw - 4rem));
+    /* showDesc() writes a px width measured off the laid-out lines — that
+       measurement is a content width, so the padding and border must not be
+       counted into it */
+    box-sizing: content-box;
     margin-inline: auto;
-    transform: translateY(-50%);
     z-index: 2;
     pointer-events: none; /* the brain underneath stays the door to /brain */
-    padding: 0.5rem 0.85rem;
+    padding: 0.45rem 0.8rem;
     border-radius: 5px;
-    /* the brain glows white underneath — the text needs its own night */
+    /* the beam is white behind it — the text needs its own night */
     background: rgba(7, 10, 24, 0.86);
     border: 1px solid color-mix(in srgb, var(--tint) 35%, transparent);
     box-shadow: 0 2px 14px rgba(6, 9, 22, 0.55);
@@ -957,7 +971,7 @@ body[data-slug="index"] {
     text-wrap: balance;
     font-family: var(--sans);
     font-size: 0.74rem;
-    line-height: 1.55;
+    line-height: 1.62;
     color: color-mix(in srgb, var(--tint) 40%, #f1f4ff);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -1105,6 +1119,14 @@ body[data-slug="index"] {
   }
   canvas {
     touch-action: none; /* pan + pinch own the gestures, no page scroll */
+  }
+  /* the rotunda hangs the description above the brain; here the brain is the
+     whole viewport, so above it is off the top of the screen — back to the
+     middle, where it reads over the constellation */
+  #vb-desc {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
   }
 }
 
