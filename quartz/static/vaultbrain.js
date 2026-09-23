@@ -652,6 +652,16 @@
         tip.style.opacity = 0
         cv.style.cursor = mini ? "pointer" : "default"
       }
+      // a star in the side brain previews its page like a link would; the
+      // rotunda and the observatory are for wandering the map, not reading
+      if (side && hovered !== prevHover && e.pointerType !== "touch") {
+        if (hovered) {
+          const r = hovered.r * view.s
+          const sx = rect.left + hovered.x * view.s + view.x
+          const sy = rect.top + hovered.y * view.s + view.y
+          window.quartzPopover?.open(new DOMRect(sx - r, sy - r, 2 * r, 2 * r), "/" + hovered.slug)
+        } else window.quartzPopover?.close()
+      }
     }
     function onClick(e) {
       // Task 1: a touch never navigates from the canvas — it only sticks the
@@ -930,6 +940,7 @@
       if (e && e.pointerType === "touch") return
       hovered = null
       tip.style.opacity = 0
+      if (side) window.quartzPopover?.close()
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS
@@ -1403,9 +1414,6 @@
       a.style.setProperty("--cloth", CLOTHS[clothHash(topic || slug)])
       shelf.appendChild(a)
     }
-    // spines built after popover.inline's setupPopovers already scanned the DOM;
-    // re-fire render so it binds hover-preview handlers to the new a.internal links
-    document.dispatchEvent(new CustomEvent("render"))
   }
 
   // palace quote slab: rotate through quotes.json (built by the Quotes emitter

@@ -3,19 +3,18 @@ import { normalizeRelativeURLs } from "../../util/path"
 import { fetchCanonical } from "./util"
 
 const p = new DOMParser()
-let activeAnchor: HTMLAnchorElement | null = null
+// what the pending popover belongs to: a link, or a virtual element standing in
+// for a star in the side brain. A fetch that resolves after the pointer moved
+// on to something else must not open.
+let activeRef: object | null = null
 
-async function mouseEnterHandler(
-  this: HTMLAnchorElement,
-  { clientX, clientY }: { clientX: number; clientY: number },
-) {
-  const link = (activeAnchor = this)
-  if (link.dataset.noPopover === "true") {
-    return
-  }
+type Ref = Element | { getBoundingClientRect(): DOMRect; getClientRects(): DOMRect[] }
+
+async function openPopover(ref: Ref, targetUrl: URL, clientX: number, clientY: number) {
+  activeRef = ref
 
   async function setPosition(popoverElement: HTMLElement) {
-    const { x, y } = await computePosition(link, popoverElement, {
+    const { x, y } = await computePosition(ref, popoverElement, {
       strategy: "fixed",
       middleware: [inline({ x: clientX, y: clientY }), shift(), flip()],
     })
@@ -42,11 +41,10 @@ async function mouseEnterHandler(
     }
   }
 
-  const targetUrl = new URL(link.href)
   const hash = decodeURIComponent(targetUrl.hash)
   targetUrl.hash = ""
   targetUrl.search = ""
-  const popoverId = `popover-${link.pathname}`
+  const popoverId = `popover-${targetUrl.pathname}`
   const prevPopoverElement = document.getElementById(popoverId)
 
   // dont refetch if there's already a popover
@@ -112,7 +110,7 @@ async function mouseEnterHandler(
   }
 
   document.body.appendChild(popoverElement)
-  if (activeAnchor !== this) {
+  if (activeRef !== ref) {
     return
   }
 
@@ -120,22 +118,39 @@ async function mouseEnterHandler(
 }
 
 function clearActivePopover() {
-  activeAnchor = null
+  activeRef = null
   const allPopoverElements = document.querySelectorAll(".popover")
   allPopoverElements.forEach((popoverElement) => popoverElement.classList.remove("active-popover"))
 }
 
-function setupPopovers() {
-  const links = [...document.querySelectorAll("a.internal")] as HTMLAnchorElement[]
-  for (const link of links) {
-    link.addEventListener("mouseenter", mouseEnterHandler)
-    link.addEventListener("mouseleave", clearActivePopover)
-    window.addCleanup(() => {
-      link.removeEventListener("mouseenter", mouseEnterHandler)
-      link.removeEventListener("mouseleave", clearActivePopover)
-    })
-  }
+// One listener on the document instead of one per link: the explorer and
+// vaultbrain.js build their links after "nav", so a scan of the page at nav
+// time missed them. A frieze word is an SVG <a>, whose href is not a string,
+// hence getAttribute. Links inside an open popover don't open another one.
+const POPOVER_LINKS = "a.internal, a.frieze-word, .explorer a"
+function linkOf(t: EventTarget | null): HTMLElement | SVGElement | null {
+  if (!(t instanceof Element) || t.closest(".popover")) return null
+  return t.closest<HTMLElement | SVGElement>(POPOVER_LINKS)
 }
 
-document.addEventListener("nav", setupPopovers)
-document.addEventListener("render", setupPopovers)
+document.addEventListener("mouseover", (e: MouseEvent) => {
+  const link = linkOf(e.target)
+  if (!link || link === linkOf(e.relatedTarget)) return
+  const href = link.getAttribute("href")
+  if (!href || link.dataset.noPopover === "true") return
+  openPopover(link, new URL(href, location.href), e.clientX, e.clientY)
+})
+document.addEventListener("mouseout", (e: MouseEvent) => {
+  const link = linkOf(e.target)
+  if (link && link !== linkOf(e.relatedTarget)) clearActivePopover()
+})
+
+// the side brain's stars are canvas, not links: vaultbrain.js opens their
+// preview through this, anchored on a box around the star
+window.quartzPopover = {
+  open: (rect: DOMRect, href: string) => {
+    const ref = { getBoundingClientRect: () => rect, getClientRects: () => [rect] }
+    openPopover(ref, new URL(href, location.href), rect.x, rect.y)
+  },
+  close: clearActivePopover,
+}

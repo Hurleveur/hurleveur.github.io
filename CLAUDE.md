@@ -93,6 +93,8 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
 - `initCrumbBar()` moves the breadcrumbs from `.page-header` into the top bar
   above 800px and drops their "Home" link, so "Loci ❯ Work" reads as one path;
   the header's zeroed forecourt in `custom.scss` assumes they left.
+- Hover previews are one document-level listener in `popover.inline.ts`: a new
+  kind of link previews by joining `POPOVER_LINKS`; a canvas star calls `window.quartzPopover`.
 - The panel is DOM the build never emits, so nothing typechecks it —
   `quartz/static/sidebrain.test.ts` guards the seams that fail silently,
   including the `:not(.vb-expanded)` the overlay needs to outrank two ids.
