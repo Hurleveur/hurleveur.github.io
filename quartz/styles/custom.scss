@@ -20,6 +20,14 @@
   --sans: "IBM Plex Sans", system-ui, sans-serif;
 }
 
+/* reading size: 18px from tablet up, after LessWrong's large body text; every
+   rem on the site scales with it. Phones keep the browser's 16px. */
+@media (min-width: 801px) {
+  html {
+    font-size: 112.5%;
+  }
+}
+
 /* ---------- default identity: palace-adjacent light ---------- */
 /* body-level so it beats Quartz's :root theme vars; the dark variant below
    must therefore also live on body, or the theme toggle does nothing.
@@ -168,7 +176,7 @@ a.internal.vb-seen {
    until the protest happened; the logo is what is left, muted until hovered.
    The row exists only to give the badge a right edge to hang off without
    pushing .vault-intro out of the hero's centre — hence relative + absolute.
-   Under 60rem there is no room beside the prose, so it stacks under it. */
+   Under 68rem there is no room beside the prose, so it stacks under it. */
 .palace-hero .intro-row {
   position: relative;
   width: 100%;
@@ -218,7 +226,7 @@ a.internal.vb-seen {
   color: #ff6a42;
 }
 
-@media all and (max-width: 60rem) {
+@media all and (max-width: 68rem) {
   .palace-hero .intro-row {
     flex-direction: column;
     align-items: center;
@@ -244,7 +252,7 @@ a.internal.vb-seen {
      top of the 100% and push the whole column off centre. */
   box-sizing: border-box;
   width: 100%;
-  max-width: 44rem;
+  max-width: 48rem;
   padding: 0 1rem;
   text-align: center;
 
@@ -337,7 +345,7 @@ a.internal.vb-seen {
   /* same flex-item shrink as .vault-intro — quotes differ in length */
   box-sizing: border-box;
   width: 100%;
-  max-width: 44rem;
+  max-width: 48rem;
   padding: 0 1rem;
   min-height: 5.2rem;
 
@@ -415,7 +423,7 @@ a.internal.vb-seen {
 
 
 .whoami-card {
-  max-width: 44rem;
+  max-width: 48rem;
   margin: 3rem auto 0;
   padding: 0 1.5rem;
   display: flex;
