@@ -318,4 +318,8 @@ layout:
       positions:
         right: []
     canvas: {}
+    # the excalidraw frame is a full-bleed page with its own fixed ☰ toggle; the
+    # drawing now sits in the normal column, so the site's own layout frames it
+    excalidraw:
+      template: default
     bases: {}

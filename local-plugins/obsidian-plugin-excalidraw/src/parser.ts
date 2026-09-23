@@ -48,6 +48,15 @@ export function parseExcalidrawMd(content: string): ExcalidrawData | null {
     normalized.embeddedFiles = embeddedFiles;
   }
 
+  // LOCI PATCH: Obsidian keeps "## Element Links" current when a linked note
+  // is renamed, but the element's link inside the drawing JSON stays stale
+  // (overview.excalidraw pointed at [[focus]] while Obsidian showed [[Tasks]]).
+  // The section is what Obsidian renders, so it wins.
+  const links = parseElementLinksSection(content);
+  for (const el of normalized.elements) {
+    if (links[el.id]) el.link = links[el.id];
+  }
+
   return normalized;
 }
 
@@ -117,6 +126,21 @@ function extractRawJson(block: string): string | null {
     return jsonContent;
   }
   return null;
+}
+
+function parseElementLinksSection(content: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  const sectionMatch = content.match(/^##\s+Element\s+Links\s*$/im);
+  if (!sectionMatch) return result;
+
+  const afterSection = content.slice(sectionMatch.index! + sectionMatch[0].length);
+  const end = afterSection.search(/^(#|%%)/m);
+  const section = end === -1 ? afterSection : afterSection.slice(0, end);
+
+  for (const match of section.matchAll(/^(\S+):\s+(.+?)\s*$/gm)) {
+    result[match[1]!] = match[2]!;
+  }
+  return result;
 }
 
 function parseEmbeddedFilesSection(content: string): Record<string, string> {

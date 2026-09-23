@@ -82,6 +82,18 @@ describe("parseExcalidrawMd", () => {
     );
   });
 
+  // LOCI PATCH: Obsidian rewrites "## Element Links" when a linked note is
+  // renamed but leaves the element's link in the drawing JSON stale.
+  it("takes element links from the Element Links section over the JSON", () => {
+    const content = readFixture("simple.excalidraw.md").replace(
+      "%%\n",
+      "## Element Links\nrect1: [[Tasks]]\n\n%%\n",
+    );
+    const result = parseExcalidrawMd(content);
+
+    expect(result!.elements.find((el) => el.id === "rect1")!.link).toBe("[[Tasks]]");
+  });
+
   it("includes image data from files field", () => {
     const content = readFixture("with-images.excalidraw.md");
     const result = parseExcalidrawMd(content);

@@ -638,6 +638,10 @@ function parseExcalidrawMd(content) {
   if (Object.keys(embeddedFiles).length > 0) {
     normalized.embeddedFiles = embeddedFiles;
   }
+  const links = parseElementLinksSection(content);
+  for (const el of normalized.elements) {
+    if (links[el.id]) el.link = links[el.id];
+  }
   return normalized;
 }
 function extractJsonFromMd(content) {
@@ -692,6 +696,18 @@ function extractRawJson(block) {
     return jsonContent;
   }
   return null;
+}
+function parseElementLinksSection(content) {
+  const result = {};
+  const sectionMatch = content.match(/^##\s+Element\s+Links\s*$/im);
+  if (!sectionMatch) return result;
+  const afterSection = content.slice(sectionMatch.index + sectionMatch[0].length);
+  const end = afterSection.search(/^(#|%%)/m);
+  const section = end === -1 ? afterSection : afterSection.slice(0, end);
+  for (const match of section.matchAll(/^(\S+):\s+(.+?)\s*$/gm)) {
+    result[match[1]] = match[2];
+  }
+  return result;
 }
 function parseEmbeddedFilesSection(content) {
   const result = {};
