@@ -237,9 +237,13 @@ plugins:
   - source: github:quartz-community/footer
     enabled: true
     options:
+      # The Quartz credit is hardcoded in the footer's own sentence ("Created
+      # with Quartz vX ©", linking quartz.jzhao.xyz), so these links are free
+      # for this site's own — upstream stays credited either way.
       links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
+        How this site is built: /work/how-this-site-is-built
+        Source: https://github.com/Hurleveur/hurleveur.github.io
+        GitHub: https://github.com/Hurleveur
   - source: github:quartz-community/recent-notes
     enabled: true
     options:
