@@ -1,6 +1,6 @@
 // @ts-nocheck
 const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 5;
+const MAX_ZOOM = 10;
 const ZOOM_STEP = 0.15;
 
 function initExcalidraw() {
@@ -46,6 +46,7 @@ function closeOnBackdrop(dialog) {
 function initFullScreen(view, canvas, dialog, panZoom) {
   const container = dialog.querySelector(".excalidraw-container");
   view.querySelector(".excalidraw-expand")?.addEventListener("click", () => {
+    panZoom?.reset();
     container.append(canvas);
     dialog.showModal();
   });
@@ -100,135 +101,125 @@ function initSidebar(page) {
 }
 
 function initPanZoom(page, canvas) {
-  // LOCI PATCH: pans and zooms the whole canvas rather than the bare <svg>,
-  // so the note boxes ride the same transform and need no repositioning.
-  // The canvas only lives in this container while the dialog is open.
-  const container = page?.querySelector(".excalidraw-container");
-  if (!container) return;
-
-  container.style.backgroundColor = "var(--excalidraw-bg, var(--light))";
+  // LOCI PATCH: Obsidian-style pan/zoom on the canvas itself, so it works in
+  // the column and full screen alike and the note boxes ride the same
+  // transform. The listeners sit on the canvas and travel with it into the
+  // dialog; full() tells the two places apart.
+  //   column:      drag pans; ctrl+wheel / trackpad pinch zooms; a plain
+  //                wheel and a one-finger swipe still scroll the page;
+  //                two fingers pinch and pan the drawing.
+  //   full screen: wheel pans, ctrl+wheel zooms, one finger pans.
+  // Zoom holds the point under the cursor or pinch still. Double-click resets.
+  if (!page) return;
+  const full = () => canvas.parentElement?.classList.contains("excalidraw-container");
 
   let zoom = 1;
   let panX = 0;
   let panY = 0;
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
   let travel = 0;
+  let drag = null; // last pointer position while one pointer pans
+  let pinch = null; // last {dist, x, y} while two fingers are down
 
   function applyTransform() {
     canvas.style.transform = "translate(" + panX + "px, " + panY + "px) scale(" + zoom + ")";
   }
 
-  function handleWheel(e) {
-    e.preventDefault();
-    var delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
-    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom + delta));
+  // with transform-origin 0 0 the canvas box's left edge is its untransformed
+  // origin plus panX, which is what lets the point under (cx, cy) stay put
+  function zoomAt(cx, cy, next) {
+    next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next));
+    const r = canvas.getBoundingClientRect();
+    const ux = (cx - r.left) / zoom;
+    const uy = (cy - r.top) / zoom;
+    panX += cx - r.left - next * ux;
+    panY += cy - r.top - next * uy;
+    zoom = next;
     applyTransform();
+  }
+
+  function zoomAtCentre(next) {
+    const r = canvas.parentElement.getBoundingClientRect();
+    zoomAt(r.left + r.width / 2, r.top + r.height / 2, next);
+  }
+
+  function panBy(dx, dy) {
+    travel += Math.abs(dx) + Math.abs(dy);
+    panX += dx;
+    panY += dy;
+    applyTransform();
+  }
+
+  function handleWheel(e) {
+    const unit = e.deltaMode === 1 ? 16 : 1;
+    if (e.ctrlKey) {
+      e.preventDefault();
+      const d = Math.max(-50, Math.min(50, e.deltaY * unit));
+      zoomAt(e.clientX, e.clientY, zoom * Math.exp(-d * 0.005));
+    } else if (full()) {
+      e.preventDefault();
+      panBy(-e.deltaX * unit, -e.deltaY * unit);
+    }
   }
 
   function handleMouseDown(e) {
     if (e.button !== 0) return;
-    isDragging = true;
+    e.preventDefault();
     travel = 0;
-    startX = e.clientX - panX;
-    startY = e.clientY - panY;
-    container.style.cursor = "grabbing";
+    drag = { x: e.clientX, y: e.clientY };
+    canvas.classList.add("is-panning");
   }
 
   function handleMouseMove(e) {
-    if (!isDragging) return;
-    travel += Math.abs(e.clientX - startX - panX) + Math.abs(e.clientY - startY - panY);
-    panX = e.clientX - startX;
-    panY = e.clientY - startY;
-    applyTransform();
+    if (!drag) return;
+    panBy(e.clientX - drag.x, e.clientY - drag.y);
+    drag = { x: e.clientX, y: e.clientY };
   }
 
   function handleMouseUp() {
-    isDragging = false;
-    container.style.cursor = "grab";
+    drag = null;
+    canvas.classList.remove("is-panning");
   }
 
-  var zoomInBtn = page.querySelector(".excalidraw-zoom-in");
-  var zoomOutBtn = page.querySelector(".excalidraw-zoom-out");
-  var resetBtn = page.querySelector(".excalidraw-reset");
-
-  if (zoomInBtn) {
-    zoomInBtn.addEventListener("click", function () {
-      zoom = Math.min(MAX_ZOOM, zoom + ZOOM_STEP);
-      applyTransform();
-    });
+  function pinchOf(touches) {
+    const [a, b] = touches;
+    return {
+      dist: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+      x: (a.clientX + b.clientX) / 2,
+      y: (a.clientY + b.clientY) / 2,
+    };
   }
 
-  if (zoomOutBtn) {
-    zoomOutBtn.addEventListener("click", function () {
-      zoom = Math.max(MIN_ZOOM, zoom - ZOOM_STEP);
-      applyTransform();
-    });
+  function startTouches(touches) {
+    drag = null;
+    pinch = null;
+    if (touches.length >= 2) pinch = pinchOf(touches);
+    else if (touches.length === 1 && full())
+      drag = { x: touches[0].clientX, y: touches[0].clientY };
   }
-
-  if (resetBtn) {
-    resetBtn.addEventListener("click", reset);
-  }
-
-  var lastTouchDist = 0;
 
   function handleTouchStart(e) {
-    if (e.touches.length === 1) {
-      isDragging = true;
-      travel = 0;
-      startX = e.touches[0].clientX - panX;
-      startY = e.touches[0].clientY - panY;
-    } else if (e.touches.length === 2) {
-      isDragging = false;
-      var dx = e.touches[0].clientX - e.touches[1].clientX;
-      var dy = e.touches[0].clientY - e.touches[1].clientY;
-      lastTouchDist = Math.sqrt(dx * dx + dy * dy);
-    }
+    if (e.touches.length === 1) travel = 0;
+    startTouches(e.touches);
   }
 
   function handleTouchMove(e) {
-    e.preventDefault();
-    if (e.touches.length === 1 && isDragging) {
-      travel +=
-        Math.abs(e.touches[0].clientX - startX - panX) +
-        Math.abs(e.touches[0].clientY - startY - panY);
-      panX = e.touches[0].clientX - startX;
-      panY = e.touches[0].clientY - startY;
-      applyTransform();
-    } else if (e.touches.length === 2 && lastTouchDist > 0) {
-      var dx = e.touches[0].clientX - e.touches[1].clientX;
-      var dy = e.touches[0].clientY - e.touches[1].clientY;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      var scale = dist / lastTouchDist;
-      zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom * scale));
-      lastTouchDist = dist;
-      applyTransform();
+    if (pinch && e.touches.length >= 2) {
+      e.preventDefault();
+      const now = pinchOf(e.touches);
+      panBy(now.x - pinch.x, now.y - pinch.y);
+      zoomAt(now.x, now.y, zoom * (now.dist / pinch.dist));
+      pinch = now;
+    } else if (drag && e.touches.length === 1) {
+      e.preventDefault();
+      panBy(e.touches[0].clientX - drag.x, e.touches[0].clientY - drag.y);
+      drag = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   }
 
-  function handleTouchEnd() {
-    isDragging = false;
-    lastTouchDist = 0;
+  // a finger lifted mid-pinch hands over to a one-finger pan, not a jump
+  function handleTouchEnd(e) {
+    startTouches(e.touches);
   }
-
-  container.addEventListener("wheel", handleWheel, { passive: false });
-  container.addEventListener("mousedown", handleMouseDown);
-  document.addEventListener("mousemove", handleMouseMove);
-  document.addEventListener("mouseup", handleMouseUp);
-  container.addEventListener("touchstart", handleTouchStart, { passive: true });
-  container.addEventListener("touchmove", handleTouchMove, { passive: false });
-  container.addEventListener("touchend", handleTouchEnd);
-
-  window.addCleanup(function () {
-    container.removeEventListener("wheel", handleWheel);
-    container.removeEventListener("mousedown", handleMouseDown);
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-    container.removeEventListener("touchstart", handleTouchStart);
-    container.removeEventListener("touchmove", handleTouchMove);
-    container.removeEventListener("touchend", handleTouchEnd);
-  });
 
   function reset() {
     travel = 0;
@@ -237,6 +228,29 @@ function initPanZoom(page, canvas) {
     panY = 0;
     applyTransform();
   }
+
+  page.querySelector(".excalidraw-zoom-in")?.addEventListener("click", () => {
+    zoomAtCentre(zoom * (1 + ZOOM_STEP));
+  });
+  page.querySelector(".excalidraw-zoom-out")?.addEventListener("click", () => {
+    zoomAtCentre(zoom / (1 + ZOOM_STEP));
+  });
+  page.querySelector(".excalidraw-reset")?.addEventListener("click", reset);
+
+  canvas.addEventListener("wheel", handleWheel, { passive: false });
+  canvas.addEventListener("mousedown", handleMouseDown);
+  canvas.addEventListener("dblclick", reset);
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseup", handleMouseUp);
+  canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
+  canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+  canvas.addEventListener("touchend", handleTouchEnd);
+  canvas.addEventListener("touchcancel", handleTouchEnd);
+
+  window.addCleanup(function () {
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  });
 
   // dragged(): the last press moved more than a few px — initNotes() reads it
   // so releasing a pan over a note box does not open that note.
