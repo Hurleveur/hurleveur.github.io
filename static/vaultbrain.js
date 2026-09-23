@@ -656,11 +656,10 @@
         tip.style.opacity = 0
         cv.style.cursor = mini ? "pointer" : "default"
       }
-      // a star in the side brain previews its page like a link would; the
-      // rotunda and the observatory are for wandering the map, not reading
-      // it waits PREVIEW_DELAY on the star, so sweeping across the map to
-      // light threads doesn't flash a card at every star it crosses
-      if (side && hovered !== prevHover && e.pointerType !== "touch") {
+      // a star previews its page like a link would, in every mode. It waits
+      // PREVIEW_DELAY on the star, so sweeping across the map to light
+      // threads doesn't flash a card at every star it crosses
+      if (hovered !== prevHover && e.pointerType !== "touch") {
         clearTimeout(previewTimer)
         window.quartzPopover?.close()
         if (hovered) {
@@ -951,10 +950,8 @@
       if (e && e.pointerType === "touch") return
       hovered = null
       tip.style.opacity = 0
-      if (side) {
-        clearTimeout(previewTimer)
-        window.quartzPopover?.close()
-      }
+      clearTimeout(previewTimer)
+      window.quartzPopover?.close()
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS
