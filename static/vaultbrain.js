@@ -30,6 +30,24 @@
     return a.localeCompare(b)
   }
 
+  // widest laid-out line in a run of client rects, used to size the room
+  // description's slab (showDesc below). There is a rect per word, not per
+  // line — the words are inline-block, so they never merge into one line box,
+  // and a word mid-rise sits a few px off its neighbours' top. So group by
+  // top with well under a line of tolerance, and take the widest group.
+  function widestLine(rects) {
+    const lines = []
+    for (const b of rects) {
+      if (!b.width) continue
+      const line = lines.find((l) => Math.abs(l.top - b.top) < 10)
+      if (line) {
+        line.left = Math.min(line.left, b.left)
+        line.right = Math.max(line.right, b.right)
+      } else lines.push({ top: b.top, left: b.left, right: b.right })
+    }
+    return Math.max(0, ...lines.map((l) => l.right - l.left))
+  }
+
   function folderColor(folder) {
     const key = folder.toLowerCase()
     if (COLORS[key]) return COLORS[key]
@@ -579,14 +597,17 @@
       return null
     }
     // touch has no hover to miss with, so a touch resolves to whichever star is
-    // closest instead of nodeAt's exact-hit test — a tap always lands on one.
+    // closest instead of nodeAt's exact-hit test. Only near the stars, though:
+    // a finger on empty sky is the one way a phone has to let go of a stuck
+    // star, so past TOUCH_REACH screen px from every star it resolves to none.
+    const TOUCH_REACH = 40
     function nearestNode(x, y) {
       let best = null, bestD = Infinity
       for (const n of nodes) {
-        const d = (n.x - x) ** 2 + (n.y - y) ** 2
+        const d = Math.hypot(n.x - x, n.y - y) - n.r
         if (d < bestD) { bestD = d; best = n }
       }
-      return best
+      return bestD * view.s <= TOUCH_REACH ? best : null
     }
     // Task 1: a touch device has no hover to reveal the map, so any contact —
     // tap or drag — sticks the highlight to the nearest star and it stays put
@@ -594,6 +615,10 @@
     // happen from a tap on the star itself (the label in the tip does that,
     // pointer-events flipped on for coarse pointers in custom.scss), so onClick
     // never navigates on touch either.
+    // links preview after popover.scss's 0.2s animation-delay; a star waits
+    // this on top, so its card comes up about 3.5x later
+    const PREVIEW_DELAY = 500
+    let previewTimer = 0
     function onTouchDown(e) {
       if (e.pointerType === "touch") onMove(e)
     }
@@ -603,9 +628,11 @@
       const prevHover = hovered
       hovered = e.pointerType === "touch" ? nearestNode(x, y) : nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
-      // circle; overlapping areas (incl. the centre) resolve to the nearest hub
+      // circle; overlapping areas (incl. the centre) resolve to the nearest hub.
+      // Not for touch: nothing un-hovers a finger, so a room lit from empty sky
+      // would stick exactly where the touch meant to clear it.
       let hf = hovered ? hovered.folder : null
-      if (!hf) {
+      if (!hf && e.pointerType !== "touch") {
         let best = Infinity
         for (const f in hubByFolder) {
           const h = hubByFolder[f]
@@ -628,6 +655,23 @@
       } else {
         tip.style.opacity = 0
         cv.style.cursor = mini ? "pointer" : "default"
+      }
+      // a star in the side brain previews its page like a link would; the
+      // rotunda and the observatory are for wandering the map, not reading
+      // it waits PREVIEW_DELAY on the star, so sweeping across the map to
+      // light threads doesn't flash a card at every star it crosses
+      if (side && hovered !== prevHover && e.pointerType !== "touch") {
+        clearTimeout(previewTimer)
+        window.quartzPopover?.close()
+        if (hovered) {
+          const r = hovered.r * view.s
+          const sx = rect.left + hovered.x * view.s + view.x
+          const sy = rect.top + hovered.y * view.s + view.y
+          const box = new DOMRect(sx - r, sy - r, 2 * r, 2 * r)
+          const href = "/" + hovered.slug
+          const open = () => window.quartzPopover?.open(box, href)
+          previewTimer = setTimeout(open, PREVIEW_DELAY)
+        }
       }
     }
     function onClick(e) {
@@ -754,7 +798,11 @@
         const col = n.seen ? desat(n.color, 0.78) : n.color
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
-        const glow = local ? Math.max(lit, near) : Math.max(0.5 * lit, near)
+        // On the rotunda the tour's room glows as bright as a hovered one:
+        // SOFT_HL only spares the other rooms from dimming, it no longer
+        // halves the toured room's own light.
+        const litG = mini ? Math.min(1, lit / hlAmp) : lit
+        const glow = local ? Math.max(lit, near) : Math.max(0.5 * litG, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, col)
@@ -903,6 +951,10 @@
       if (e && e.pointerType === "touch") return
       hovered = null
       tip.style.opacity = 0
+      if (side) {
+        clearTimeout(previewTimer)
+        window.quartzPopover?.close()
+      }
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS
@@ -1231,6 +1283,7 @@
         descBox.classList.toggle("on", !!desc)
         if (!desc) return
         descBox.style.setProperty("--tint", folderColor(folder))
+        descBox.style.width = "" // back to the cap, so the lines re-break for this sentence
         descBox.replaceChildren(
           ...desc.split(" ").flatMap((word, i) => {
             const s = document.createElement("span")
@@ -1239,6 +1292,16 @@
             return [s, " "]
           }),
         )
+        // one slab, as wide as the longest line. No CSS can ask for that — a
+        // wrapped block is always exactly the width it was given, so every
+        // room rendered the same cap-wide bar. Let it wrap at the cap, then
+        // measure what the wrap actually produced and pin the box to it.
+        const range = document.createRange()
+        range.selectNodeContents(descBox)
+        const widest = widestLine(range.getClientRects())
+        // 0 = nothing was laid out (the band is hidden on a phone): leave the
+        // cap alone rather than collapsing the box to nothing
+        if (widest) descBox.style.width = Math.ceil(widest) + 1 + "px"
       }
       const sides = [folders.slice(0, half), folders.slice(half)].map((list) =>
         list.map((folder) => {
@@ -1365,9 +1428,6 @@
       a.style.setProperty("--cloth", CLOTHS[clothHash(topic || slug)])
       shelf.appendChild(a)
     }
-    // spines built after popover.inline's setupPopovers already scanned the DOM;
-    // re-fire render so it binds hover-preview handlers to the new a.internal links
-    document.dispatchEvent(new CustomEvent("render"))
   }
 
   // palace quote slab: rotate through quotes.json (built by the Quotes emitter
@@ -2009,14 +2069,18 @@
         ul.append(...[...ul.children].sort((x, y) => when(y) - when(x)))
       })
       .catch(() => {})
-    // a folder is a link ending in "/"; it takes its top section's color,
-    // the same --fc the explorer's inline script sets on its folders
-    for (const a of list.querySelectorAll('.section-li h3 > a[href$="/"]')) {
+    tagFolderLinks(list)
+    document.body.classList.add("has-rail")
+  }
+
+  // a folder is a link ending in "/"; it takes its top section's color,
+  // the same --fc the explorer's inline script sets on its folders
+  function tagFolderLinks(root) {
+    for (const a of root.querySelectorAll('h3 > a[href$="/"]')) {
       const top = decodeURIComponent(new URL(a.href).pathname.split("/")[1] || "")
       a.classList.add("vb-folder")
       if (top) a.style.setProperty("--fc", folderColor(top))
     }
-    document.body.classList.add("has-rail")
   }
 
   // the breadcrumbs ride the top bar beside the site title instead of taking
@@ -2115,6 +2179,7 @@
       initBrainToggle()
       initSideBrain()
       initFolderRail()
+      document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
       init()
       initExpand()
@@ -2137,6 +2202,7 @@
   initBrainToggle()
   initSideBrain()
   initFolderRail()
+  document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
   init()
   initExpand()

@@ -104,6 +104,35 @@ describe("touch sticks the hover instead of navigating", () => {
     )
   })
 
+  test("a finger on empty sky lets go of the stuck star", () => {
+    const src = js.slice(js.indexOf("const TOUCH_REACH"), js.indexOf("// Task 1: a touch device"))
+    const make = (s: number) =>
+      new Function("nodes", "view", `${src}; return nearestNode`)(
+        [
+          { x: 0, y: 0, r: 5 },
+          { x: 100, y: 0, r: 5 },
+        ],
+        { s },
+      ) as (x: number, y: number) => { x: number } | null
+    assert.equal(make(1)(60, 0)?.x, 100, "a touch between stars picks the closer one")
+    assert.equal(make(1)(0, 44)?.x, 0, "a touch just off a star's edge still picks it")
+    assert.equal(make(1)(0, 60), null, "a touch far from every star still sticks one")
+    // reach is in screen px: zoomed in 2x, 30 world px off the edge is 60 on screen
+    assert.equal(
+      make(2)(0, 35),
+      null,
+      "reach ignores zoom — a zoomed-in finger reaches further than it looks",
+    )
+  })
+
+  test("empty sky does not light a room for touch", () => {
+    assert.match(
+      onMove,
+      /if \(!hf && e\.pointerType !== "touch"\)/,
+      "touch falls back to the area circles — a room lit from empty sky never clears",
+    )
+  })
+
   test("the canvas never navigates from a touch", () => {
     assert.match(
       onClick,
@@ -130,5 +159,47 @@ describe("the room description fits the screen", () => {
       /100vw/,
       "the cap dropped its viewport term — on a phone the slab is wider than the screen again",
     )
+  })
+})
+
+// One slab for the whole sentence, as wide as its longest line. CSS cannot
+// size a block to that — a wrapped box is exactly the width it was given, so
+// every room used to render the same cap-wide bar. showDesc() measures the
+// wrap instead, over a rect per word (inline-block words never merge into one
+// line box, and a word mid-rise sits a few px off its neighbours' top).
+describe("the description slab is as wide as its longest line", () => {
+  // run the real function out of the source, the way the explorer's
+  // data-fns are rebuilt — nothing in this file is a module
+  const src = js.slice(js.indexOf("function widestLine"), js.indexOf("function folderColor"))
+  const widestLine = new Function(`${src}; return widestLine`)() as (
+    rects: { top: number; left: number; right: number; width: number }[],
+  ) => number
+  const rect = (top: number, left: number, right: number) => ({
+    top,
+    left,
+    right,
+    width: right - left,
+  })
+
+  test("takes the widest line, not the sum of the words", () => {
+    const widest = widestLine([
+      rect(0, 100, 180), // line 1: 100 -> 300
+      rect(0, 186, 300),
+      rect(24, 120, 280), // line 2: 120 -> 280, the shorter one
+    ])
+    assert.equal(widest, 200)
+  })
+
+  test("a word mid-rise still counts as part of its line", () => {
+    // the per-word animation lifts a word 5px; grouping by exact top would
+    // read it as a line of its own and size the slab to that one word
+    const widest = widestLine([rect(0, 100, 180), rect(5, 186, 300), rect(24, 120, 280)])
+    assert.equal(widest, 200)
+  })
+
+  test("nothing laid out measures 0, so the cap is left alone", () => {
+    // the band is display:none on a phone: every rect is empty
+    assert.equal(widestLine([]), 0)
+    assert.equal(widestLine([rect(0, 0, 0)]), 0)
   })
 })
