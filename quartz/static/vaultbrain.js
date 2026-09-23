@@ -777,7 +777,11 @@
         const col = n.seen ? desat(n.color, 0.78) : n.color
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
-        const glow = local ? Math.max(lit, near) : Math.max(0.5 * lit, near)
+        // On the rotunda the tour's room glows as bright as a hovered one:
+        // SOFT_HL only spares the other rooms from dimming, it no longer
+        // halves the toured room's own light.
+        const litG = mini ? Math.min(1, lit / hlAmp) : lit
+        const glow = local ? Math.max(lit, near) : Math.max(0.5 * litG, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, col)
