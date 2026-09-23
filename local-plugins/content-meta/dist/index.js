@@ -620,7 +620,7 @@ var ContentMeta_default = ((opts) => {
           /* @__PURE__ */ u2("span", { children: [
             "source:",
             " ",
-            /* @__PURE__ */ u2("a", { href, target: "_blank", rel: "noopener noreferrer", children: href })
+            /* @__PURE__ */ u2("a", { href, target: "_blank", rel: "noopener noreferrer", children: href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") })
           ] })
         );
       }
