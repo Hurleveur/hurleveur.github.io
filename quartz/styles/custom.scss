@@ -981,6 +981,10 @@ body[data-slug="index"] {
     font-size: 0.74rem;
     line-height: 1.62;
     color: color-mix(in srgb, var(--tint) 40%, #f1f4ff);
+    /* the 18px root alone left it at 13px, still a footnote beside the prose */
+    @media (min-width: 801px) {
+      font-size: 0.85rem;
+    }
     opacity: 0;
     transition: opacity 0.3s ease;
 
