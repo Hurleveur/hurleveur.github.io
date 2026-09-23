@@ -540,6 +540,23 @@ a.internal.vb-seen {
   }
 }
 
+/* phones: the hero's own insets are a third of their desktop selves. The card
+   already carries #quartz-body's 1rem gutter, so hero + child padding on top of
+   it wastes ~40px of a 393px screen on nothing. */
+@media (max-width: 640px) {
+  .palace-hero {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .vault-intro,
+  .quote-slab,
+  .whoami-card {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+}
+
 /* the rooms — one arched door per top-level folder, built by initRooms().
    A <details name="rooms"> each, so the accordion is the browser's: opening
    one closes the rest, keyboard and screen readers come free, no JS.
