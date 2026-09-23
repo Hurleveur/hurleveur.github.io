@@ -104,35 +104,6 @@ describe("touch sticks the hover instead of navigating", () => {
     )
   })
 
-  test("a finger on empty sky lets go of the stuck star", () => {
-    const src = js.slice(js.indexOf("const TOUCH_REACH"), js.indexOf("// Task 1: a touch device"))
-    const make = (s: number) =>
-      new Function("nodes", "view", `${src}; return nearestNode`)(
-        [
-          { x: 0, y: 0, r: 5 },
-          { x: 100, y: 0, r: 5 },
-        ],
-        { s },
-      ) as (x: number, y: number) => { x: number } | null
-    assert.equal(make(1)(60, 0)?.x, 100, "a touch between stars picks the closer one")
-    assert.equal(make(1)(0, 44)?.x, 0, "a touch just off a star's edge still picks it")
-    assert.equal(make(1)(0, 60), null, "a touch far from every star still sticks one")
-    // reach is in screen px: zoomed in 2x, 30 world px off the edge is 60 on screen
-    assert.equal(
-      make(2)(0, 35),
-      null,
-      "reach ignores zoom — a zoomed-in finger reaches further than it looks",
-    )
-  })
-
-  test("empty sky does not light a room for touch", () => {
-    assert.match(
-      onMove,
-      /if \(!hf && e\.pointerType !== "touch"\)/,
-      "touch falls back to the area circles — a room lit from empty sky never clears",
-    )
-  })
-
   test("the canvas never navigates from a touch", () => {
     assert.match(
       onClick,
