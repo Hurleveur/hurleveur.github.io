@@ -597,14 +597,17 @@
       return null
     }
     // touch has no hover to miss with, so a touch resolves to whichever star is
-    // closest instead of nodeAt's exact-hit test — a tap always lands on one.
+    // closest instead of nodeAt's exact-hit test. Only near the stars, though:
+    // a finger on empty sky is the one way a phone has to let go of a stuck
+    // star, so past TOUCH_REACH screen px from every star it resolves to none.
+    const TOUCH_REACH = 40
     function nearestNode(x, y) {
       let best = null, bestD = Infinity
       for (const n of nodes) {
-        const d = (n.x - x) ** 2 + (n.y - y) ** 2
+        const d = Math.hypot(n.x - x, n.y - y) - n.r
         if (d < bestD) { bestD = d; best = n }
       }
-      return best
+      return bestD * view.s <= TOUCH_REACH ? best : null
     }
     // Task 1: a touch device has no hover to reveal the map, so any contact —
     // tap or drag — sticks the highlight to the nearest star and it stays put
@@ -621,9 +624,11 @@
       const prevHover = hovered
       hovered = e.pointerType === "touch" ? nearestNode(x, y) : nodeAt(e)
       // select an area when the pointer is on a star OR anywhere inside its
-      // circle; overlapping areas (incl. the centre) resolve to the nearest hub
+      // circle; overlapping areas (incl. the centre) resolve to the nearest hub.
+      // Not for touch: nothing un-hovers a finger, so a room lit from empty sky
+      // would stick exactly where the touch meant to clear it.
       let hf = hovered ? hovered.folder : null
-      if (!hf) {
+      if (!hf && e.pointerType !== "touch") {
         let best = Infinity
         for (const f in hubByFolder) {
           const h = hubByFolder[f]
