@@ -2055,14 +2055,18 @@
         ul.append(...[...ul.children].sort((x, y) => when(y) - when(x)))
       })
       .catch(() => {})
-    // a folder is a link ending in "/"; it takes its top section's color,
-    // the same --fc the explorer's inline script sets on its folders
-    for (const a of list.querySelectorAll('.section-li h3 > a[href$="/"]')) {
+    tagFolderLinks(list)
+    document.body.classList.add("has-rail")
+  }
+
+  // a folder is a link ending in "/"; it takes its top section's color,
+  // the same --fc the explorer's inline script sets on its folders
+  function tagFolderLinks(root) {
+    for (const a of root.querySelectorAll('h3 > a[href$="/"]')) {
       const top = decodeURIComponent(new URL(a.href).pathname.split("/")[1] || "")
       a.classList.add("vb-folder")
       if (top) a.style.setProperty("--fc", folderColor(top))
     }
-    document.body.classList.add("has-rail")
   }
 
   // the breadcrumbs ride the top bar beside the site title instead of taking
@@ -2161,6 +2165,7 @@
       initBrainToggle()
       initSideBrain()
       initFolderRail()
+      document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
       init()
       initExpand()
@@ -2183,6 +2188,7 @@
   initBrainToggle()
   initSideBrain()
   initFolderRail()
+  document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
   init()
   initExpand()
