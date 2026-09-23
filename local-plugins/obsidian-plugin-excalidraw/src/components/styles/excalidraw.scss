@@ -1,54 +1,47 @@
-// LOCI PATCH: static, responsive thumbnail — sits in normal page flow at
-// content-column width (excalidraw-thumb-svg's own child <svg> carries the
-// viewBox; width:100%/height:auto here is what makes it scale-to-fit instead
-// of the SVG's own hardcoded width=100% height=100% forcing a square-ish
-// fixed box). Clicking/tapping opens .excalidraw-dialog for full-screen pan/zoom.
-.excalidraw-thumb {
-  display: block;
-  width: 100%;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  background: none;
-  cursor: zoom-in;
+// LOCI PATCH: the drawing sits in the content column as one canvas — the SVG
+// plus the note boxes drawn on it — at the drawing's own aspect ratio, so it
+// scales with the column the way Obsidian scales it with the pane. ⤢ in the
+// corner takes the same canvas full screen; a note box opens on click.
+.excalidraw-view {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
+}
 
-  &:focus-visible {
-    outline: 2px solid var(--secondary);
-    outline-offset: 2px;
-  }
+.excalidraw-canvas {
+  position: relative;
+  width: 100%;
+  transform-origin: center;
 
-  // visible tap affordance — no hover-only cue, this has to work on phones
-  &::after {
-    content: "⤢";
-    position: absolute;
-    right: 0.5rem;
-    bottom: 0.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background: var(--light);
-    color: var(--darkgray);
-    border: 1px solid var(--lightgray);
-    font-size: 0.9rem;
-    line-height: 1;
-    pointer-events: none;
+  .excalidraw-svg,
+  .excalidraw-svg svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 }
 
-.excalidraw-thumb-svg {
-  display: block;
-  width: 100%;
+// no hover-only cue: this has to work on phones
+.excalidraw-expand {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--darkgray);
+  border: 1px solid var(--lightgray);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: zoom-in;
 
-  svg {
-    display: block;
-    width: 100%;
-    height: auto;
+  &:hover {
+    background: var(--lightgray);
   }
 }
 
@@ -95,7 +88,7 @@
 }
 
 // Core page layout — now only reached inside .excalidraw-dialog (the
-// thumbnail above handles the default, in-flow view).
+// canvas in .excalidraw-view handles the default, in-flow view).
 .excalidraw-page {
   position: relative;
   width: 100%;
@@ -123,11 +116,9 @@
     cursor: grabbing;
   }
 
-  svg {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transform-origin: 0 0;
+  // fit the viewport on whichever side runs out first
+  .excalidraw-canvas {
+    width: min(100%, calc(100vh * var(--ratio, 1)));
   }
 }
 
@@ -457,13 +448,27 @@
   pointer-events: none;
 }
 
+// placed by inline left/top %, sized at native px, scaled by --k
 .excalidraw-overlay {
   position: absolute;
-  display: none;
+  display: flex;
   flex-direction: column;
   pointer-events: auto;
-  cursor: default;
-  user-select: text;
+  transform-origin: 0 0;
+  transform: scale(var(--k, 0));
+}
+
+.excalidraw-embed-note {
+  cursor: zoom-in;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--secondary);
+  }
+
+  .excalidraw-embed-content {
+    overflow: hidden;
+  }
 }
 
 .excalidraw-embed-note,
@@ -505,15 +510,6 @@
   line-height: 1.5;
   color: var(--darkgray);
   background: var(--light);
-}
-
-.excalidraw-embed-open-link {
-  display: block;
-  padding: 4px 0;
-  color: var(--secondary);
-  font-size: 12px;
-  text-decoration: none;
-  font-family: var(--bodyFont, sans-serif);
 }
 
 .excalidraw-embed-body {
@@ -569,28 +565,47 @@
   border: none;
 }
 
-// LOCI PATCH: .excalidraw-page/-container/-controls now live only inside
-// .excalidraw-dialog (always full-screen, top layer) — the old height:auto
-// overrides here used to target them directly and, by selector specificity
-// ties, would have clobbered the dialog's own full-height sizing the moment
-// this loaded after it. The thumbnail is already responsive on its own
-// (width:100%, height:auto), so these overrides now only tune its cap.
+// A note box maximised: the note's own text at reading size, its title the
+// link to the note.
+.excalidraw-note-dialog {
+  width: min(46rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  background: var(--light);
+  color: var(--darkgray);
 
-// Transclude embeds — the thumbnail needs a floor so it isn't squashed to 0
-// while its SVG loads.
-.transclude .excalidraw-thumb {
-  min-height: 200px;
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .excalidraw-dialog-close {
+    position: sticky;
+    float: right;
+    top: 0;
+  }
+
+  .excalidraw-note-title {
+    margin: 0 0 0.75rem;
+
+    a {
+      color: var(--dark);
+    }
+  }
+
+  .excalidraw-note-body .excalidraw-embed-body {
+    font-size: 1rem;
+  }
 }
 
-// Popover previews — small and non-interactive: opening a full-screen
-// dialog out of a hover preview would trap focus somewhere the reader
-// didn't ask for, so the expand affordance is off here.
-.popover-inner .excalidraw-thumb {
+// Popover previews are small and non-interactive: opening a dialog out of a
+// hover preview would trap focus somewhere the reader didn't ask for.
+.popover-inner .excalidraw-view {
   max-height: 300px;
-  cursor: default;
   pointer-events: none;
 
-  &::after {
+  .excalidraw-expand {
     display: none;
   }
 }

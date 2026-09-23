@@ -14,7 +14,7 @@ import {
 import { toHtml } from "hast-util-to-html";
 import type { ExcalidrawData, ExcalidrawPageOptions } from "../types";
 import { renderToSvg } from "../renderer";
-import type { ResolvedEmbed, RenderContext, EmbedOverlay } from "../renderer";
+import type { ResolvedEmbed, RenderContext, EmbedOverlay, RenderResult } from "../renderer";
 import style from "./styles/excalidraw.scss";
 // @ts-expect-error inline script import handled by bundler
 import script from "./scripts/excalidraw.inline.ts";
@@ -102,42 +102,52 @@ function resolveImages(
   return result;
 }
 
-function renderOverlay(overlay: EmbedOverlay): unknown {
+// LOCI PATCH: overlays sit in the drawing's own coordinates — left/top as a
+// percentage of the viewBox, width/height at the element's native px — and
+// the stylesheet scales each one by --k (canvas width / viewBox width, set
+// by the inline script). Text inside a note box then shrinks and grows with
+// the drawing, as it does in Obsidian, in the column and full screen alike.
+// The "📄 name" header and "Open note →" link are gone: a note box opens
+// maximised on click, and that view's title is the link to the note.
+function renderOverlay(overlay: EmbedOverlay, vb: RenderResult["viewBox"]): unknown {
   const label = overlay.link
     .replace(/^\[\[/, "")
     .replace(/\]\]$/, "")
     .replace(/^https?:\/\//, "");
   const truncatedLabel = label.length > 50 ? label.slice(0, 47) + "..." : label;
+  const box =
+    `left:${((overlay.x + vb.offsetX) / vb.width) * 100}%;` +
+    `top:${((overlay.y + vb.offsetY) / vb.height) * 100}%;` +
+    `width:${overlay.width}px;height:${overlay.height}px`;
 
   if (overlay.isWikilink) {
-    const noteContent = overlay.resolved
-      ? `<a href="${overlay.resolved.href}" class="excalidraw-embed-open-link">Open note →</a><div class="excalidraw-embed-body">${overlay.resolved.html}</div>`
-      : `<span class="excalidraw-embed-missing">Note not found</span>`;
-
+    const [target = "", alias] = label.split("|");
+    const title = (alias ?? target.split("#")[0]!.split("/").pop()!).trim();
     return (
       <div
         class="excalidraw-overlay excalidraw-embed-note"
+        style={box}
         data-overlay-id={overlay.id}
-        data-x={overlay.x}
-        data-y={overlay.y}
-        data-w={overlay.width}
-        data-h={overlay.height}
+        data-title={title}
+        data-href={overlay.resolved?.href}
+        role="button"
+        tabindex={0}
+        aria-label={`Read ${title}`}
       >
-        <div class="excalidraw-embed-header">{"📄 " + truncatedLabel}</div>
-        <div class="excalidraw-embed-content" dangerouslySetInnerHTML={{ __html: noteContent }} />
+        <div
+          class="excalidraw-embed-content"
+          dangerouslySetInnerHTML={{
+            __html: overlay.resolved
+              ? `<div class="excalidraw-embed-body">${overlay.resolved.html}</div>`
+              : `<span class="excalidraw-embed-missing">Note not found</span>`,
+          }}
+        />
       </div>
     );
   }
 
   return (
-    <div
-      class="excalidraw-overlay excalidraw-embed-url"
-      data-overlay-id={overlay.id}
-      data-x={overlay.x}
-      data-y={overlay.y}
-      data-w={overlay.width}
-      data-h={overlay.height}
-    >
+    <div class="excalidraw-overlay excalidraw-embed-url" style={box} data-overlay-id={overlay.id}>
       <div class="excalidraw-embed-header">
         <a href={overlay.link} target="_blank" rel="noopener noreferrer">
           {"🔗 " + truncatedLabel}
@@ -171,29 +181,36 @@ export default ((userOpts?: ExcalidrawPageOptions) => {
     const result = renderToSvg(data, options, renderCtx);
     const label = fileData.frontmatter?.title ?? "Excalidraw drawing";
 
-    // LOCI PATCH: the drawing used to render at full viewBox size directly
-    // in the flow (or, on its own page, forced into a 100vh full-bleed
-    // canvas by ExcalidrawFrame). Neither fits the content column, and the
-    // full-bleed page hijacked scroll-wheel into zoom, making text read as
-    // "too large" the moment a reader scrolled. Now: a static, responsive
-    // thumbnail (width:100%, height:auto via CSS — see excalidraw.scss)
-    // sits in normal flow, and the existing pan/zoom canvas moves into a
-    // native <dialog> opened on click/tap, closed by Esc (native), the
-    // backdrop, or an explicit close button.
+    // LOCI PATCH: one canvas — the SVG plus its note boxes — sits in the
+    // column, drawn like Obsidian draws it. A click on a note box opens that
+    // note maximised in .excalidraw-note-dialog without leaving the page; ⤢
+    // moves the same canvas into .excalidraw-dialog for full-screen pan/zoom
+    // and moves it back on close, so nothing is rendered twice.
+    const vb = result.viewBox;
     return (
       <>
-        <button type="button" class="excalidraw-thumb" aria-label={`Open ${label} full screen`}>
-          <span
-            class="excalidraw-thumb-svg"
-            dangerouslySetInnerHTML={{ __html: result.svg }}
-            aria-hidden="true"
-          />
-        </button>
+        <div class="excalidraw-view">
+          <div
+            class="excalidraw-canvas"
+            style={`aspect-ratio:${vb.width}/${vb.height};--ratio:${vb.width / vb.height}`}
+            data-viewbox-w={vb.width}
+            role="img"
+            aria-label={label}
+          >
+            <div class="excalidraw-svg" dangerouslySetInnerHTML={{ __html: result.svg }} />
+            <div class="excalidraw-overlays">
+              {result.overlays.map((o) => renderOverlay(o, vb))}
+            </div>
+          </div>
+          <button type="button" class="excalidraw-expand" aria-label={`Open ${label} full screen`}>
+            ⤢
+          </button>
+        </div>
         <dialog class="excalidraw-dialog" aria-label={label}>
           <button class="excalidraw-dialog-close" type="button" aria-label="Close">
             ✕
           </button>
-          <article class="excalidraw-page" role="img" aria-label={label}>
+          <article class="excalidraw-page">
             <div class="excalidraw-controls">
               <button class="excalidraw-zoom-in" type="button" aria-label="Zoom in">
                 +
@@ -205,31 +222,29 @@ export default ((userOpts?: ExcalidrawPageOptions) => {
                 ⟲
               </button>
             </div>
-            <div class="excalidraw-container" dangerouslySetInnerHTML={{ __html: result.svg }} />
-            <div
-              class="excalidraw-overlays"
-              data-viewbox-w={result.viewBox.width}
-              data-viewbox-h={result.viewBox.height}
-              data-offset-x={result.viewBox.offsetX}
-              data-offset-y={result.viewBox.offsetY}
-            >
-              {result.overlays.map((o) => renderOverlay(o))}
-            </div>
-            {options.enableInteraction !== false && (
-              <script
-                type="application/json"
-                class="excalidraw-data"
-                dangerouslySetInnerHTML={{
-                  __html: JSON.stringify({
-                    elements: data.elements,
-                    appState: data.appState,
-                    files: data.files,
-                  }),
-                }}
-              />
-            )}
+            <div class="excalidraw-container" />
           </article>
         </dialog>
+        <dialog class="excalidraw-note-dialog">
+          <button class="excalidraw-dialog-close" type="button" aria-label="Close">
+            ✕
+          </button>
+          <h2 class="excalidraw-note-title" />
+          <div class="excalidraw-note-body" />
+        </dialog>
+        {options.enableInteraction !== false && (
+          <script
+            type="application/json"
+            class="excalidraw-data"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                elements: data.elements,
+                appState: data.appState,
+                files: data.files,
+              }),
+            }}
+          />
+        )}
       </>
     );
   };

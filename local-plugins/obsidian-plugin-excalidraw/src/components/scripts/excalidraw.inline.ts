@@ -9,39 +9,81 @@ function initExcalidraw() {
     initSidebar(framePage);
   }
 
-  // LOCI PATCH: pan/zoom now lives inside a <dialog> per drawing (standalone
-  // page or transcluded/popover embed alike) — wire each thumb to its dialog,
-  // and only run positionOverlays() once the dialog is actually visible
-  // (getScreenCTM() on a display:none <dialog> returns null at init time).
-  const dialogs = document.querySelectorAll(".excalidraw-dialog");
-  for (const dialog of dialogs) {
-    const page = dialog.querySelector(".excalidraw-page");
-    if (!page) continue;
-    const pz = initPanZoom(page);
-    initDialog(dialog, pz);
+  // LOCI PATCH: each drawing is one .excalidraw-canvas (SVG + note boxes)
+  // shown in the column. Note boxes open maximised in the note dialog; ⤢
+  // moves the canvas into the full-screen dialog, where pan/zoom applies,
+  // and back out on close.
+  for (const view of document.querySelectorAll(".excalidraw-view")) {
+    const canvas = view.querySelector(".excalidraw-canvas");
+    const full = view.nextElementSibling;
+    const note = full?.nextElementSibling;
+    if (!canvas || !full?.matches(".excalidraw-dialog")) continue;
+    trackScale(canvas);
+    const pz = initPanZoom(full.querySelector(".excalidraw-page"), canvas);
+    initFullScreen(view, canvas, full, pz);
+    if (note?.matches(".excalidraw-note-dialog")) initNotes(canvas, note, pz);
   }
 }
 
-function initDialog(dialog, panZoom) {
-  const thumb = dialog.previousElementSibling;
-  const closeBtn = dialog.querySelector(".excalidraw-dialog-close");
+// --k is the canvas's rendered width over its viewBox width: the one number
+// that maps a note box's native px onto the drawing as it is laid out now.
+function trackScale(canvas) {
+  const vbW = parseFloat(canvas.dataset.viewboxW) || 1;
+  const ro = new ResizeObserver(() => {
+    canvas.style.setProperty("--k", String(canvas.clientWidth / vbW));
+  });
+  ro.observe(canvas);
+  window.addCleanup(() => ro.disconnect());
+}
 
-  if (thumb && thumb.classList.contains("excalidraw-thumb")) {
-    thumb.addEventListener("click", () => {
-      dialog.showModal();
-      panZoom?.refresh();
-    });
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => dialog.close());
-  }
-
-  // native backdrop click: only the <dialog> itself (not its content) is
-  // the click target when the click lands outside .excalidraw-page
+function closeOnBackdrop(dialog) {
+  dialog.querySelector(".excalidraw-dialog-close")?.addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });
+}
+
+function initFullScreen(view, canvas, dialog, panZoom) {
+  const container = dialog.querySelector(".excalidraw-container");
+  view.querySelector(".excalidraw-expand")?.addEventListener("click", () => {
+    container.append(canvas);
+    dialog.showModal();
+  });
+  dialog.addEventListener("close", () => {
+    panZoom?.reset();
+    view.prepend(canvas);
+  });
+  closeOnBackdrop(dialog);
+}
+
+function initNotes(canvas, dialog, panZoom) {
+  const title = dialog.querySelector(".excalidraw-note-title");
+  const body = dialog.querySelector(".excalidraw-note-body");
+
+  function open(box) {
+    // a pan that ends on a box is a drag, not a request to read it
+    if (panZoom?.dragged()) return;
+    const href = box.dataset.href;
+    title.replaceChildren();
+    const heading = href ? document.createElement("a") : document.createElement("span");
+    if (href) heading.href = href;
+    heading.textContent = box.dataset.title ?? "";
+    title.append(heading);
+    body.innerHTML = box.querySelector(".excalidraw-embed-content")?.innerHTML ?? "";
+    dialog.showModal();
+    body.scrollTop = 0;
+  }
+
+  for (const box of canvas.querySelectorAll(".excalidraw-embed-note")) {
+    box.addEventListener("click", () => open(box));
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        open(box);
+      }
+    });
+  }
+  closeOnBackdrop(dialog);
 }
 
 function initSidebar(page) {
@@ -57,16 +99,14 @@ function initSidebar(page) {
   });
 }
 
-function initPanZoom(page) {
-  const container = page.querySelector(".excalidraw-container");
+function initPanZoom(page, canvas) {
+  // LOCI PATCH: pans and zooms the whole canvas rather than the bare <svg>,
+  // so the note boxes ride the same transform and need no repositioning.
+  // The canvas only lives in this container while the dialog is open.
+  const container = page?.querySelector(".excalidraw-container");
   if (!container) return;
 
-  const svg = container.querySelector("svg");
-  if (!svg) return;
-
   container.style.backgroundColor = "var(--excalidraw-bg, var(--light))";
-
-  var overlaysContainer = page.querySelector(".excalidraw-overlays");
 
   let zoom = 1;
   let panX = 0;
@@ -74,47 +114,10 @@ function initPanZoom(page) {
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-
-  function positionOverlays() {
-    if (!overlaysContainer) return;
-    var overlays = overlaysContainer.querySelectorAll(".excalidraw-overlay");
-    if (overlays.length === 0) return;
-
-    var offX = parseFloat(overlaysContainer.getAttribute("data-offset-x")) || 0;
-    var offY = parseFloat(overlaysContainer.getAttribute("data-offset-y")) || 0;
-
-    var ctm = svg.getScreenCTM();
-    var containerRect = container.getBoundingClientRect();
-    if (!ctm) return;
-
-    for (var i = 0; i < overlays.length; i++) {
-      var el = overlays[i];
-      var ex = parseFloat(el.getAttribute("data-x")) || 0;
-      var ey = parseFloat(el.getAttribute("data-y")) || 0;
-      var ew = parseFloat(el.getAttribute("data-w")) || 0;
-      var eh = parseFloat(el.getAttribute("data-h")) || 0;
-
-      var svgX = ex + offX;
-      var svgY = ey + offY;
-
-      var screenLeft = svgX * ctm.a + ctm.e - containerRect.left;
-      var screenTop = svgY * ctm.d + ctm.f - containerRect.top;
-      var screenWidth = ew * ctm.a;
-      var screenHeight = eh * ctm.d;
-
-      el.style.left = screenLeft + "px";
-      el.style.top = screenTop + "px";
-      el.style.width = screenWidth + "px";
-      el.style.height = screenHeight + "px";
-      el.style.display = "flex";
-    }
-  }
-
-  positionOverlays();
+  let travel = 0;
 
   function applyTransform() {
-    svg.style.transform = "translate(" + panX + "px, " + panY + "px) scale(" + zoom + ")";
-    positionOverlays();
+    canvas.style.transform = "translate(" + panX + "px, " + panY + "px) scale(" + zoom + ")";
   }
 
   function handleWheel(e) {
@@ -127,6 +130,7 @@ function initPanZoom(page) {
   function handleMouseDown(e) {
     if (e.button !== 0) return;
     isDragging = true;
+    travel = 0;
     startX = e.clientX - panX;
     startY = e.clientY - panY;
     container.style.cursor = "grabbing";
@@ -134,6 +138,7 @@ function initPanZoom(page) {
 
   function handleMouseMove(e) {
     if (!isDragging) return;
+    travel += Math.abs(e.clientX - startX - panX) + Math.abs(e.clientY - startY - panY);
     panX = e.clientX - startX;
     panY = e.clientY - startY;
     applyTransform();
@@ -163,12 +168,7 @@ function initPanZoom(page) {
   }
 
   if (resetBtn) {
-    resetBtn.addEventListener("click", function () {
-      zoom = 1;
-      panX = 0;
-      panY = 0;
-      applyTransform();
-    });
+    resetBtn.addEventListener("click", reset);
   }
 
   var lastTouchDist = 0;
@@ -176,6 +176,7 @@ function initPanZoom(page) {
   function handleTouchStart(e) {
     if (e.touches.length === 1) {
       isDragging = true;
+      travel = 0;
       startX = e.touches[0].clientX - panX;
       startY = e.touches[0].clientY - panY;
     } else if (e.touches.length === 2) {
@@ -189,6 +190,9 @@ function initPanZoom(page) {
   function handleTouchMove(e) {
     e.preventDefault();
     if (e.touches.length === 1 && isDragging) {
+      travel +=
+        Math.abs(e.touches[0].clientX - startX - panX) +
+        Math.abs(e.touches[0].clientY - startY - panY);
       panX = e.touches[0].clientX - startX;
       panY = e.touches[0].clientY - startY;
       applyTransform();
@@ -226,9 +230,17 @@ function initPanZoom(page) {
     container.removeEventListener("touchend", handleTouchEnd);
   });
 
-  // exposed so initDialog() can reposition overlays once the dialog (and
-  // its getScreenCTM()) actually has layout, right after showModal()
-  return { refresh: positionOverlays };
+  function reset() {
+    travel = 0;
+    zoom = 1;
+    panX = 0;
+    panY = 0;
+    applyTransform();
+  }
+
+  // dragged(): the last press moved more than a few px — initNotes() reads it
+  // so releasing a pan over a note box does not open that note.
+  return { reset, dragged: () => travel > 6 };
 }
 
 document.addEventListener("nav", initExcalidraw);
