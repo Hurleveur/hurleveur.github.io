@@ -133,16 +133,27 @@ function linkOf(t: EventTarget | null): HTMLElement | SVGElement | null {
   return t.closest<HTMLElement | SVGElement>(POPOVER_LINKS)
 }
 
+// the explorer is a column of links the pointer crosses on its way anywhere,
+// so it waits a further 500ms (0.7s with the CSS animation-delay) before
+// opening, like the side brain's stars
+const EXPLORER_DELAY = 500
+let explorerTimer: ReturnType<typeof setTimeout> | undefined
+
 document.addEventListener("mouseover", (e: MouseEvent) => {
   const link = linkOf(e.target)
   if (!link || link === linkOf(e.relatedTarget)) return
   const href = link.getAttribute("href")
   if (!href || link.dataset.noPopover === "true") return
-  openPopover(link, new URL(href, location.href), e.clientX, e.clientY)
+  const open = () => openPopover(link, new URL(href, location.href), e.clientX, e.clientY)
+  clearTimeout(explorerTimer)
+  if (link.closest(".explorer")) explorerTimer = setTimeout(open, EXPLORER_DELAY)
+  else open()
 })
 document.addEventListener("mouseout", (e: MouseEvent) => {
   const link = linkOf(e.target)
-  if (link && link !== linkOf(e.relatedTarget)) clearActivePopover()
+  if (!link || link === linkOf(e.relatedTarget)) return
+  clearTimeout(explorerTimer)
+  clearActivePopover()
 })
 
 // the side brain's stars are canvas, not links: vaultbrain.js opens their
