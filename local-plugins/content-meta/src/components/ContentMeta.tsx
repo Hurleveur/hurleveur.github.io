@@ -65,20 +65,15 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
 
       // LOCI PATCH: a clipping's `url:` is its source — show it instead of hiding it with the
       // rest of the frontmatter. Empty strings are common in the vault and must render nothing.
+      // The whole link is shown, not just its hostname: a repo or a page path is the point.
       const sourceUrl = fileData.frontmatter?.url;
       if (typeof sourceUrl === "string" && sourceUrl.trim() !== "") {
         const href = sourceUrl.trim();
-        let label = href;
-        try {
-          label = new URL(href).hostname.replace(/^www\./, "") || href;
-        } catch {
-          // not a parseable URL — show it verbatim rather than breaking the build
-        }
         segments.push(
           <span>
             source:{" "}
             <a href={href} target="_blank" rel="noopener noreferrer">
-              {label}
+              {href}
             </a>
           </span>,
         );

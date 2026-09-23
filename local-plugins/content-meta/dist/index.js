@@ -577,7 +577,7 @@ function DateComponent({ date, locale }) {
 }
 
 // src/components/styles/contentMeta.scss
-var contentMeta_default = '@charset "UTF-8";\n.content-meta {\n  margin-top: 0;\n  color: var(--darkgray);\n}\n.content-meta[show-comma=true] > *:not(:last-child) {\n  margin-right: 8px;\n}\n.content-meta[show-comma=true] > *:not(:last-child)::after {\n  content: ",";\n}\n\n/* LOCI PATCH: the note\'s standfirst \u2014 the `description` frontmatter, set as the\n   line a reader takes the page\'s subject from, not as a table row. */\n.note-description {\n  margin: 0 0 0.3rem;\n  font-size: 1.15rem;\n  line-height: 1.45;\n  color: var(--darkgray);\n}\n\n.note-aliases {\n  margin: 0 0 0.3rem;\n  font-size: 0.9rem;\n  font-style: italic;\n  color: var(--gray);\n}';
+var contentMeta_default = '@charset "UTF-8";\n.content-meta {\n  margin-top: 0;\n  color: var(--darkgray);\n  /* LOCI PATCH: the source line shows the full URL, which has no spaces to break at */\n}\n.content-meta a {\n  overflow-wrap: anywhere;\n}\n.content-meta[show-comma=true] > *:not(:last-child) {\n  margin-right: 8px;\n}\n.content-meta[show-comma=true] > *:not(:last-child)::after {\n  content: ",";\n}\n\n/* LOCI PATCH: the note\'s standfirst \u2014 the `description` frontmatter, set as the\n   line a reader takes the page\'s subject from, not as a table row. */\n.note-description {\n  margin: 0 0 0.3rem;\n  font-size: 1.15rem;\n  line-height: 1.45;\n  color: var(--darkgray);\n}\n\n.note-aliases {\n  margin: 0 0 0.3rem;\n  font-size: 0.9rem;\n  font-style: italic;\n  color: var(--gray);\n}';
 
 // src/components/ContentMeta.tsx
 var defaultOptions = {
@@ -616,16 +616,11 @@ var ContentMeta_default = ((opts) => {
       const sourceUrl = fileData.frontmatter?.url;
       if (typeof sourceUrl === "string" && sourceUrl.trim() !== "") {
         const href = sourceUrl.trim();
-        let label = href;
-        try {
-          label = new URL(href).hostname.replace(/^www\./, "") || href;
-        } catch {
-        }
         segments.push(
           /* @__PURE__ */ u2("span", { children: [
             "source:",
             " ",
-            /* @__PURE__ */ u2("a", { href, target: "_blank", rel: "noopener noreferrer", children: label })
+            /* @__PURE__ */ u2("a", { href, target: "_blank", rel: "noopener noreferrer", children: href })
           ] })
         );
       }
