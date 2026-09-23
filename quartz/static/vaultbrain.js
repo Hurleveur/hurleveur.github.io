@@ -615,6 +615,10 @@
     // happen from a tap on the star itself (the label in the tip does that,
     // pointer-events flipped on for coarse pointers in custom.scss), so onClick
     // never navigates on touch either.
+    // links preview after popover.scss's 0.2s animation-delay; a star waits
+    // this on top, so its card comes up about 3.5x later
+    const PREVIEW_DELAY = 500
+    let previewTimer = 0
     function onTouchDown(e) {
       if (e.pointerType === "touch") onMove(e)
     }
@@ -654,13 +658,20 @@
       }
       // a star in the side brain previews its page like a link would; the
       // rotunda and the observatory are for wandering the map, not reading
+      // it waits PREVIEW_DELAY on the star, so sweeping across the map to
+      // light threads doesn't flash a card at every star it crosses
       if (side && hovered !== prevHover && e.pointerType !== "touch") {
+        clearTimeout(previewTimer)
+        window.quartzPopover?.close()
         if (hovered) {
           const r = hovered.r * view.s
           const sx = rect.left + hovered.x * view.s + view.x
           const sy = rect.top + hovered.y * view.s + view.y
-          window.quartzPopover?.open(new DOMRect(sx - r, sy - r, 2 * r, 2 * r), "/" + hovered.slug)
-        } else window.quartzPopover?.close()
+          const box = new DOMRect(sx - r, sy - r, 2 * r, 2 * r)
+          const href = "/" + hovered.slug
+          const open = () => window.quartzPopover?.open(box, href)
+          previewTimer = setTimeout(open, PREVIEW_DELAY)
+        }
       }
     }
     function onClick(e) {
@@ -940,7 +951,10 @@
       if (e && e.pointerType === "touch") return
       hovered = null
       tip.style.opacity = 0
-      if (side) window.quartzPopover?.close()
+      if (side) {
+        clearTimeout(previewTimer)
+        window.quartzPopover?.close()
+      }
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS

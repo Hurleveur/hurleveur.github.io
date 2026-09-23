@@ -125,9 +125,9 @@ function clearActivePopover() {
 
 // One listener on the document instead of one per link: the explorer and
 // vaultbrain.js build their links after "nav", so a scan of the page at nav
-// time missed them. A frieze word is an SVG <a>, whose href is not a string,
-// hence getAttribute. Links inside an open popover don't open another one.
-const POPOVER_LINKS = "a.internal, a.frieze-word, .explorer a"
+// time missed them. The frieze's room names are left out on purpose: they are
+// doors, not references. Links inside an open popover don't open another one.
+const POPOVER_LINKS = "a.internal, .explorer a"
 function linkOf(t: EventTarget | null): HTMLElement | SVGElement | null {
   if (!(t instanceof Element) || t.closest(".popover")) return null
   return t.closest<HTMLElement | SVGElement>(POPOVER_LINKS)
