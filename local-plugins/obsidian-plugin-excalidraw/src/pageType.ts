@@ -7,11 +7,13 @@ import type {
   BuildCtx,
 } from "@quartz-community/types";
 import { slugifyFilePath } from "@quartz-community/utils/path";
+import type { QuartzPluginData } from "@quartz-community/types";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { loadPublishAllowlist } from "./publishAllowlist";
 import { parseExcalidraw } from "./parser";
 import ExcalidrawBody from "./components/ExcalidrawBody";
+import { drawingLinks } from "./links";
 import type { ExcalidrawPageOptions } from "./types";
 
 const excalidrawMatcher: PageMatcher = ({ fileData }) => {
@@ -24,7 +26,8 @@ export const ExcalidrawPage: QuartzPageTypePlugin<ExcalidrawPageOptions> = (opts
   fileExtensions: [".excalidraw.md", ".excalidraw"],
   match: excalidrawMatcher,
 
-  generate({ ctx }) {
+  generate({ ctx, content }) {
+    const published = content.map((c) => c[1].data as QuartzPluginData);
     const allowlist = loadPublishAllowlist();
     const excalidrawFiles = ctx.allFiles.filter(
       (fp: string) =>
@@ -78,6 +81,7 @@ export const ExcalidrawPage: QuartzPageTypePlugin<ExcalidrawPageOptions> = (opts
         data: {
           frontmatter: { title: baseName, tags: ["excalidraw"] },
           excalidrawData: data,
+          links: drawingLinks(data, published),
           excalidrawOptions: opts,
           excalidrawImagePaths: resolvedImagePaths,
         },
