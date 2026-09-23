@@ -30,7 +30,7 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 
 `.quartz/plugins/` holds clones of the community plugins. It is **gitignored and regenerated** by `prebuild` (`npm run install-plugins`), so edits there get wiped. To change a community plugin: copy it to `local-plugins/<name>/`, point `source:` at that path in `quartz.config.yaml` with a `# patched:` comment saying why, and mark every changed hunk with a `LOCI PATCH` comment so the diff against upstream stays findable.
 
-Six forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`, `explorer`, `content-meta`, `darkmode`.
+Seven forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`, `explorer`, `content-meta`, `darkmode`, `toc-rail`.
 
 - `dist/` must be committed — the loader's entry is `dist/index.js`, not `src/`.
 - Delete the copied `.git` before `git add`, or the fork commits as an empty gitlink instead of its files.
