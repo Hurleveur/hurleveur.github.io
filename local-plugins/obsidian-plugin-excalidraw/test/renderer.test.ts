@@ -117,4 +117,22 @@ describe("renderToSvg", () => {
     expect(result.svg).toContain(`viewBox="0 0 ${result.viewBox.width} ${result.viewBox.height}"`);
     expect(result.svg).toContain('preserveAspectRatio="xMidYMid meet"');
   });
+
+  // LOCI PATCH: an element carrying a link is clickable, as in Obsidian.
+  it("wraps a linked element in an anchor, external links in a new tab", () => {
+    const data = parseExcalidrawJson(readFixture("simple.excalidraw"))!;
+    const [first, second] = data.elements;
+    const result = renderToSvg(
+      data,
+      {},
+      {
+        resolvedLinks: { [first!.id]: "../tasks", [second!.id]: "https://example.com/" },
+      },
+    );
+
+    expect(result.svg).toContain('<a href="../tasks" class="excalidraw-link">');
+    expect(result.svg).toContain(
+      '<a href="https://example.com/" class="excalidraw-link" target="_blank" rel="noopener noreferrer">',
+    );
+  });
 });

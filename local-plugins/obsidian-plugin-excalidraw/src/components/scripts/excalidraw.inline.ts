@@ -105,10 +105,11 @@ function initPanZoom(page, canvas) {
   // the column and full screen alike and the note boxes ride the same
   // transform. The listeners sit on the canvas and travel with it into the
   // dialog; full() tells the two places apart.
-  //   column:      drag pans; ctrl+wheel / trackpad pinch zooms; a plain
-  //                wheel and a one-finger swipe still scroll the page;
-  //                two fingers pinch and pan the drawing.
-  //   full screen: wheel pans, ctrl+wheel zooms, one finger pans.
+  //   column:      a click selects the drawing; once selected the wheel
+  //                zooms it, until a click elsewhere lets it go. Unselected,
+  //                the wheel and a one-finger swipe scroll the page. Drag
+  //                pans; ctrl+wheel / trackpad pinch and two fingers zoom.
+  //   full screen: always selected; wheel zooms, drag or one finger pans.
   // Zoom holds the point under the cursor or pinch still. Double-click resets.
   if (!page) return;
   const full = () => canvas.parentElement?.classList.contains("excalidraw-container");
@@ -151,14 +152,10 @@ function initPanZoom(page, canvas) {
 
   function handleWheel(e) {
     const unit = e.deltaMode === 1 ? 16 : 1;
-    if (e.ctrlKey) {
-      e.preventDefault();
-      const d = Math.max(-50, Math.min(50, e.deltaY * unit));
-      zoomAt(e.clientX, e.clientY, zoom * Math.exp(-d * 0.005));
-    } else if (full()) {
-      e.preventDefault();
-      panBy(-e.deltaX * unit, -e.deltaY * unit);
-    }
+    if (!e.ctrlKey && !full() && !canvas.classList.contains("is-selected")) return;
+    e.preventDefault();
+    const d = Math.max(-50, Math.min(50, e.deltaY * unit));
+    zoomAt(e.clientX, e.clientY, zoom * Math.exp(-d * 0.005));
   }
 
   function handleMouseDown(e) {
@@ -166,13 +163,17 @@ function initPanZoom(page, canvas) {
     e.preventDefault();
     travel = 0;
     drag = { x: e.clientX, y: e.clientY };
-    canvas.classList.add("is-panning");
+    canvas.classList.add("is-panning", "is-selected");
   }
 
   function handleMouseMove(e) {
     if (!drag) return;
     panBy(e.clientX - drag.x, e.clientY - drag.y);
     drag = { x: e.clientX, y: e.clientY };
+  }
+
+  function handleOutside(e) {
+    if (!canvas.contains(e.target)) canvas.classList.remove("is-selected");
   }
 
   function handleMouseUp() {
@@ -240,8 +241,17 @@ function initPanZoom(page, canvas) {
   canvas.addEventListener("wheel", handleWheel, { passive: false });
   canvas.addEventListener("mousedown", handleMouseDown);
   canvas.addEventListener("dblclick", reset);
+  // a pan that ends on a linked element is a drag, not a click through
+  canvas.addEventListener(
+    "click",
+    (e) => {
+      if (travel > 6 && e.target.closest?.(".excalidraw-link")) e.preventDefault();
+    },
+    true,
+  );
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);
+  document.addEventListener("mousedown", handleOutside);
   canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
   canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
   canvas.addEventListener("touchend", handleTouchEnd);
@@ -250,6 +260,7 @@ function initPanZoom(page, canvas) {
   window.addCleanup(function () {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("mousedown", handleOutside);
   });
 
   // dragged(): the last press moved more than a few px — initNotes() reads it

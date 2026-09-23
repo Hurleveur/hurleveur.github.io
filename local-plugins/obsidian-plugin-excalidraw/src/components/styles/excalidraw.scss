@@ -22,12 +22,27 @@
     cursor: grabbing;
   }
 
+  .excalidraw-link {
+    cursor: pointer;
+  }
+
   .excalidraw-svg,
   .excalidraw-svg svg {
     display: block;
     width: 100%;
     height: 100%;
   }
+}
+
+// selected: the wheel zooms the drawing instead of scrolling the page
+// (a ring on the view, above the SVG, so it does not pan with the canvas)
+.excalidraw-view:has(.excalidraw-canvas.is-selected)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--secondary);
+  pointer-events: none;
 }
 
 // no hover-only cue: this has to work on phones

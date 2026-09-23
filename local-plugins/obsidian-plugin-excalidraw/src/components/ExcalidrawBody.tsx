@@ -25,6 +25,48 @@ function stripTranscludes(html: string): string {
     .replace(/<div[^>]*class="[^"]*transclude[^"]*"[^>]*>[\s\S]*?<\/div>/gi, "");
 }
 
+// LOCI PATCH: match on the SLUGIFIED wikilink, not its lowercased raw text.
+// "[[information inputs]]" lowercases to "information inputs", which never
+// equals the slug "information-inputs", so every multi-word link fell to the
+// "Note not found" fallback and a root-relative href. Folder notes slug to
+// "<folder>/index", so "[[Life structure]]" has to be accepted in that
+// spelling too. Exact slug wins over a trailing-segment match.
+function findPage(target: string, allFiles: QuartzPluginData[]) {
+  const name = (target.split(/[#|]/)[0] ?? "").trim();
+  const wanted = slugifyFilePath(name as FilePath) as string;
+  const wantedIndex = wanted.endsWith("/index") ? wanted : `${wanted}/index`;
+  const page =
+    allFiles.find((f) => f.slug === wanted || f.slug === wantedIndex) ??
+    allFiles.find((f) => f.slug?.endsWith(`/${wanted}`) || f.slug?.endsWith(`/${wantedIndex}`));
+  return { page, wanted };
+}
+
+// LOCI PATCH: an element links through its `link` field, or — for text —
+// through the markdown link in its rawText ("[[AGENTS]]", "[x](https://…)"),
+// which is where Obsidian keeps it. A wikilink only becomes a link when its
+// page is published (allFiles is the gated list), so an unpublished note
+// stays plain text instead of turning into a 404 that names it.
+function resolveLinks(
+  data: ExcalidrawData,
+  currentSlug: FullSlug,
+  allFiles: QuartzPluginData[],
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const el of data.elements) {
+    if (el.type === "embeddable" || el.type === "iframe") continue;
+    const source = `${(el.link as string) ?? ""} ${(el.rawText as string) ?? ""}`;
+    const wiki = source.match(/\[\[([^\]]+)\]\]/);
+    const url = source.match(/https?:\/\/[^\s)\]]+/);
+    if (wiki) {
+      const { page } = findPage(wiki[1]!, allFiles);
+      if (page?.slug) result[el.id] = resolveRelative(currentSlug, page.slug as FullSlug);
+    } else if (url) {
+      result[el.id] = url[0];
+    }
+  }
+  return result;
+}
+
 function resolveEmbeds(
   data: ExcalidrawData,
   currentSlug: FullSlug,
@@ -41,19 +83,7 @@ function resolveEmbeds(
 
     const target = link.replace(/^\[\[/, "").replace(/\]\]$/, "");
 
-    // LOCI PATCH: match on the SLUGIFIED wikilink, not its lowercased raw text.
-    // "[[information inputs]]" lowercases to "information inputs", which never
-    // equals the slug "information-inputs", so every multi-word link fell to the
-    // "Note not found" fallback and a root-relative href. Folder notes slug to
-    // "<folder>/index", so "[[Life structure]]" has to be accepted in that
-    // spelling too. Exact slug wins over a trailing-segment match.
-    const name = (target.split(/[#|]/)[0] ?? "").trim();
-    const wanted = slugifyFilePath(name as FilePath) as string;
-    const wantedIndex = wanted.endsWith("/index") ? wanted : `${wanted}/index`;
-    const page =
-      allFiles.find((f) => f.slug === wanted || f.slug === wantedIndex) ??
-      allFiles.find((f) => f.slug?.endsWith(`/${wanted}`) || f.slug?.endsWith(`/${wantedIndex}`));
-
+    const { page, wanted } = findPage(target, allFiles);
     const pageSlug = (page?.slug ?? wanted) as FullSlug;
     const href = resolveRelative(currentSlug, pageSlug);
 
@@ -177,6 +207,7 @@ export default ((userOpts?: ExcalidrawPageOptions) => {
     const renderCtx: RenderContext = {
       resolvedEmbeds: resolvedEmbedMap,
       resolvedImages: resolvedImageMap,
+      resolvedLinks: allFiles ? resolveLinks(data, currentSlug, allFiles) : undefined,
     };
     const result = renderToSvg(data, options, renderCtx);
     const label = fileData.frontmatter?.title ?? "Excalidraw drawing";

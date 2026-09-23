@@ -45,6 +45,8 @@ export interface RenderResult {
 export interface RenderContext {
   resolvedEmbeds?: Record<string, ResolvedEmbed>;
   resolvedImages?: Record<string, string>;
+  // LOCI PATCH: element id → href for elements that link somewhere
+  resolvedLinks?: Record<string, string>;
 }
 
 export function renderToSvg(
@@ -87,7 +89,9 @@ export function renderToSvg(
     });
   }
 
-  const renderedElements = elements.map((el) => renderElement(el, data, ctx)).filter(Boolean);
+  const renderedElements = elements
+    .map((el) => linkElement(renderElement(el, data, ctx), ctx?.resolvedLinks?.[el.id]))
+    .filter(Boolean);
 
   const parts = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" data-bg-color="${escapeAttr(bgColor ?? "#ffffff")}">`,
@@ -624,6 +628,14 @@ function escapeXml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+// LOCI PATCH: a linked element clicks through, as in Obsidian; a link off
+// the site opens in a new tab so the drawing stays where the reader left it.
+function linkElement(svg: string, href: string | undefined): string {
+  if (!svg || !href) return svg;
+  const external = /^https?:\/\//.test(href) ? ' target="_blank" rel="noopener noreferrer"' : "";
+  return `<a href="${escapeAttr(href)}" class="excalidraw-link"${external}>${svg}</a>`;
 }
 
 function escapeAttr(str: string): string {
