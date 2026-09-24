@@ -1367,21 +1367,28 @@
 
       // idle tour: with nothing hovered, the rooms light one after another so
       // the brain reads as alive and every room name gets its turn with its
-      // description. A pointer anywhere on the bus wins and stops the tour;
-      // it picks back up a few seconds after the pointer leaves. Paused while
+      // description. A pointer anywhere on the bus wins and stops the tour for
+      // as long as it rests on a room (hover emits only on change, so a timer
+      // alone would resume under a still pointer); it picks back up a few
+      // seconds after the pointer leaves. A null clears the hold: the frieze
+      // sends it hard on leave, the brain soft (idleHl). Paused while
       // the observatory is open (the frieze is hidden under it) and while the
       // tab is in the background, where the animation is only burning battery.
       if (!matchMedia("(prefers-reduced-motion: reduce)").matches && folders.length > 1) {
         let at = -1
         let quietUntil = 0
+        let held = false
         const tour = setInterval(() => {
-          if (Date.now() < quietUntil || document.hidden) return
+          if (held || Date.now() < quietUntil || document.hidden) return
           if (document.body.classList.contains("vb-open")) return
           at = (at + 1) % folders.length
           hlEmit(folders[at], true)
         }, 5000)
         const onPointerBus = (e) => {
-          if (!e.soft) quietUntil = Date.now() + 6000
+          if (!e.soft) {
+            held = e.detail != null
+            quietUntil = Date.now() + 6000
+          } else if (e.detail == null) held = false
         }
         window.addEventListener("vb-folder-hl", onPointerBus)
         if (window.addCleanup) {
