@@ -1816,6 +1816,29 @@ body.vb-open #quartz-body .sidebar.right {
   color: color-mix(in srgb, var(--fc, var(--secondary)) 85%, white);
 }
 
+/* Recent Notes rows at the folder rail's size; stock h3 inherits the 18px
+   reading size and spaces every row 1rem apart */
+.sidebar.right .recent-notes > ul.recent-ul {
+  margin-top: 0.4rem;
+
+  > li {
+    margin: 0 0 0.3rem;
+    line-height: 1.2;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+
+  .section > .meta {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+}
+
 /* the map and the shelf both want more than the 240px the stock column gives */
 @media all and ($desktop) {
   body:not([data-slug="index"]):not(.brain-off) #quartz-body {
