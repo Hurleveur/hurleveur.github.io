@@ -744,15 +744,11 @@ a.internal.vb-seen {
   }
 
   .door {
-    /* the arch turns onto its side. A fixed radius, half the closed height, not
-       999px: that clamps to half the box, so an opened door became one tall
-       semicircle whose curve (overflow: hidden) sheared the name and the Enter
-       link off at the left */
-    border-radius: 1.75rem 6px 6px 1.75rem;
+    border-radius: 999px 6px 6px 999px; /* the arch turns onto its side */
 
     &::before {
       inset: 12% 55% 12% 4%;
-      border-radius: 1.75rem 0 0 1.75rem;
+      border-radius: 999px 0 0 999px;
       background: radial-gradient(ellipse at 25% 50%, var(--tint) 0%, transparent 75%);
     }
 
@@ -775,6 +771,15 @@ a.internal.vb-seen {
     &[open] > summary {
       min-height: 3.4rem;
       padding-bottom: 1rem;
+    }
+
+    /* 999px clamps to half the box, so an opened door is one tall semicircle
+       whose curve (overflow: hidden) would shear the name and the Enter link at
+       the corners; the text steps right to clear it. 3rem clears the tallest
+       door today (~150-char description); a longer one needs more */
+    &[open] > summary,
+    &[open] .door-body {
+      padding-left: 3rem;
     }
 
     .count {
