@@ -738,11 +738,15 @@ a.internal.vb-seen {
   }
 
   .door {
-    border-radius: 999px 6px 6px 999px; /* the arch turns onto its side */
+    /* the arch turns onto its side. A fixed radius, half the closed height, not
+       999px: that clamps to half the box, so an opened door became one tall
+       semicircle whose curve (overflow: hidden) sheared the name and the Enter
+       link off at the left */
+    border-radius: 1.75rem 6px 6px 1.75rem;
 
     &::before {
       inset: 12% 55% 12% 4%;
-      border-radius: 999px 0 0 999px;
+      border-radius: 1.75rem 0 0 1.75rem;
       background: radial-gradient(ellipse at 25% 50%, var(--tint) 0%, transparent 75%);
     }
 
