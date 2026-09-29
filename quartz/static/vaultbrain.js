@@ -1835,7 +1835,20 @@
     btn._track = HEY_YOU_TRACK
     btn._resume = 0
     sessionStorage.setItem("vb-audio-on", "1")
-    btn._widget.load(HEY_YOU_TRACK, { auto_play: true, show_artwork: false })
+    loadTrack(btn._widget, HEY_YOU_TRACK, true)
+  }
+
+  // the widget ignores auto_play on mobile, so a swapped track loads paused;
+  // an explicit play() once it is ready is what starts it there
+  function loadTrack(w, url, play, then) {
+    w.load(url, {
+      auto_play: play,
+      show_artwork: false,
+      callback: () => {
+        then?.()
+        if (play) w.play()
+      },
+    })
   }
 
   function initAudio() {
@@ -1903,12 +1916,8 @@
     }
     if (btn._track !== track && btn._widget) {
       btn._track = track
-      btn._widget.load(track, {
-        auto_play: !!sessionStorage.getItem("vb-audio-on"),
-        show_artwork: false,
-        callback: () => {
-          btn._resume = +sessionStorage.getItem("vb-audio-t:" + track) || 0
-        },
+      loadTrack(btn._widget, track, !!sessionStorage.getItem("vb-audio-on"), () => {
+        btn._resume = +sessionStorage.getItem("vb-audio-t:" + track) || 0
       })
     }
     setAudioLabel(btn)
