@@ -479,6 +479,12 @@ a.internal.vb-seen {
     border-bottom: 1px dotted var(--secondary);
   }
 
+  .whoami-secret {
+    font-style: italic;
+    color: var(--tertiary);
+    animation: vb-desc-in 0.8s ease forwards;
+  }
+
   .whoami-random-row {
     margin: 0;
     display: flex;

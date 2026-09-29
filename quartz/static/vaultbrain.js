@@ -1522,7 +1522,16 @@
       }
     }
     body.addEventListener("click", (e) => {
-      if (e.target.closest(".whoami-hey")) playHeyYou()
+      const hey = e.target.closest(".whoami-hey")
+      if (!hey) return
+      playHeyYou()
+      // and a door only this click opens, right after the words that hid it
+      if (hey.nextElementSibling?.classList.contains("whoami-secret")) return
+      const a = document.createElement("a")
+      a.className = "whoami-secret internal"
+      a.href = "/shared/thoughts/catalyst"
+      a.textContent = "✦ catalyst"
+      hey.after(" ", a)
     })
 
     // easter egg: each click feeds the black hole (avatar grows + accretion
