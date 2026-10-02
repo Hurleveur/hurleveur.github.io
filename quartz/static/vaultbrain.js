@@ -1383,7 +1383,7 @@
           if (document.body.classList.contains("vb-open")) return
           at = (at + 1) % folders.length
           hlEmit(folders[at], true)
-        }, 5000)
+        }, 7500)
         const onPointerBus = (e) => {
           if (!e.soft) {
             held = e.detail != null
