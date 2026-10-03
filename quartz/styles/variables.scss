@@ -18,6 +18,7 @@ $desktop: "(min-width: #{map.get($breakpoints, desktop)})";
 
 $pageWidth: #{map.get($breakpoints, mobile)};
 $sidePanelWidth: 240px; //380px;
+$readWidth: 760px; // desktop text column, LessWrong-like line length; position set in custom.scss
 $topSpacing: 6rem;
 $boldWeight: 700;
 $semiBoldWeight: 600;

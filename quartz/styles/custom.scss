@@ -858,9 +858,6 @@ body[data-slug="index"] {
   /* the whole screen; the top bar floats over it, translucent */
   height: 100svh;
   overflow: hidden;
-  /* how far past "just covers the screen" the hall is zoomed. Above ~1.25 the
-     outer room names leave a 16:10 screen. */
-  --band-zoom: 1.1;
 
   /* the image itself, sized like background-size: cover (times the zoom) and
      centred, so the band crops it at any screen shape. Everything laid over the
@@ -1084,6 +1081,56 @@ body[data-slug="index"] {
   /* the oculus wash would lie over the painted dome */
   &::before {
     display: none;
+  }
+}
+
+/* desktop only: a small painted figure stands at the pool, image y ~82-92%
+   of rotunda.png (1376x768) — right where the flexed hero used to open with
+   eyebrow+h1. Lifting those two out of flow and pinning them to the stage's
+   own coordinates (not svh) keeps them clear of him at every aspect ratio:
+   .rotunda-stage covers width *or* height depending on screen shape (its own
+   comment above), so a flat svh percentage drifts off the image as the crop
+   changes — --stage-h/-top repeat its cover-fit math, sharing --band-zoom
+   from :root; change the stage's formula and this one must follow.
+   Phone and tablet are untouched — they keep the original padding-top
+   below, in flow, over the frosted glass. */
+@media all and ($desktop) {
+  .rotunda-band + .palace-hero {
+    --stage-h: calc(max(100vw, 100svh * 1376 / 768) * var(--band-zoom) * 768 / 1376);
+    --stage-top: calc(50svh - var(--stage-h) / 2);
+    /* the join line between the eyebrow and h1 — between the brain box's
+       foot (~63%, #vault-brain's bottom inset) and the figure's head (~82%) */
+    --title-y: calc(var(--stage-top) + var(--stage-h) * 0.69);
+
+    .eyebrow,
+    h1 {
+      position: absolute;
+      left: 0;
+      right: 0;
+      margin: 0;
+      text-align: center;
+      /* this sits on the raw painted sky now, not the hero's frosted glass
+         (that starts at 80%) — the daylight hex needs help standing out. A
+         fixed dark shadow, not a [saved-theme="dark"] colour: the backdrop
+         is the painting, which doesn't flip with the site theme, so there is
+         no night variant for this one to answer to. */
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+    }
+
+    .eyebrow {
+      top: var(--title-y);
+      /* bottom-aligned to the join line by its own rendered height, so this
+         never has to guess the eyebrow's line-height to clear h1 */
+      transform: translateY(-100%);
+    }
+
+    h1 {
+      top: calc(var(--title-y) + 0.3rem);
+    }
+
+    /* .latin onward starts clear of the figure's feet (~93%); the eyebrow/h1
+       are pulled out of flow above, so this is the only padding left */
+    padding-top: calc(var(--stage-top) + var(--stage-h) * 0.93);
   }
 }
 
@@ -1604,6 +1651,13 @@ body[data-slug^="books"] {
   --topbar-h: 2.7rem;
 }
 
+/* how far past "just covers the screen" the rotunda hall is zoomed. Above
+   ~1.25 the outer room names leave a 16:10 screen. On :root because both the
+   band's stage and the hero's title placement (a sibling) do the cover math. */
+:root {
+  --band-zoom: 1.1;
+}
+
 @media all and not ($mobile) {
   .page {
     padding-top: var(--topbar-h); /* clear the fixed bar */
@@ -1679,9 +1733,14 @@ body[data-slug^="books"] {
     padding: 0 2rem;
   }
 
-  /* explorer open: content gives the panel its width; closed: full width */
-  body:not(.nav-off) #quartz-body {
-    padding-left: calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem);
+  /* tablet only: no spare width to reserve a permanent gutter, so the
+     explorer still pushes content when open. Desktop reserves (or overlays)
+     that space unconditionally below, regardless of nav-off — see
+     $explorerFitsAt — so ☰ never shifts the page there. */
+  @media ($tablet) {
+    body:not(.nav-off) #quartz-body {
+      padding-left: calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem);
+    }
   }
 
   body.nav-off .sidebar.left > .explorer {
@@ -1706,6 +1765,49 @@ body[data-slug^="books"] {
     padding-top: 1.2rem;
     top: var(--topbar-h);
     height: calc(100vh - var(--topbar-h));
+  }
+}
+
+/* phone top bar — base.scss leaves .sidebar.left static here (the stock
+   stacked layout, grid-sidebar-left above grid-header); sticky is what makes
+   "hide on scroll down, show on scroll up" (vaultbrain.js initTopbarScroll)
+   mean anything, since a static bar has nothing to reappear into. Frosted
+   like the desktop bar above, and for the same reason it's on a pseudo
+   rather than the bar itself: a backdrop-filter there would make the bar the
+   containing block for the explorer drawer's fixed overlay and pin that
+   overlay inside a sub-3rem strip. */
+@media all and ($mobile) {
+  #quartz-body .sidebar.left {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    // was padding: 0; padding-top: 2rem — half the bar was empty air above
+    // the row; even padding on both axes keeps the same ~40px+ tap height
+    padding: 0.6rem 1rem;
+    min-height: 40px;
+    transition: transform 0.2s ease;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: color-mix(in srgb, var(--light) 40%, transparent);
+      backdrop-filter: blur(8px) saturate(1.2);
+    }
+  }
+
+  /* vaultbrain.js toggles this on scroll direction; its own "blocked" guard
+     keeps it off while the explorer drawer, search or observatory is open,
+     so the bar never vanishes out from under a drawer anchored to its top */
+  body.topbar-hidden #quartz-body .sidebar.left {
+    transform: translateY(-100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #quartz-body .sidebar.left {
+      transition: none;
+    }
   }
 }
 
@@ -1918,6 +2020,61 @@ body.vb-open #quartz-body .sidebar.right {
   body.has-rail #quartz-body .sidebar.right {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+}
+
+/* LessWrong-style layout: the right column hugs the real viewport edge (the
+   old 1500px .page cap left empty space before it on wide screens), and the
+   text column's position is a function of viewport width and brain-on/off
+   only — never body.nav-off, so ☰ no longer shifts it.
+   $explorerFitsAt is the viewport width at which centering the text below
+   already clears the explorer's default width on its own (both gutters +
+   right column + gap + read width + default --sidebar-w + 1rem). Below it
+   the explorer has nowhere to go but over the text, so it overlays instead. */
+$explorerFitsAt: calc(2rem + 1.2rem + 320px + 5px + #{$readWidth} + #{$sidePanelWidth} + 1rem);
+
+@media all and ($desktop) {
+  body:not([data-slug="index"]) {
+    .page {
+      max-width: none; // let #quartz-body's grid reach the real edge, not .page's old cap
+    }
+
+    #quartz-body {
+      padding-right: 1.2rem; // the top bar's gutter, not the generic 2rem above
+    }
+
+    .page-header,
+    .center,
+    footer {
+      max-width: $readWidth; // reading line length, not the grid's leftover width
+      margin-right: auto;
+      margin-left: calc(50% - #{$readWidth} / 2); // centered left of the right column
+    }
+  }
+
+  /* wide enough that centering alone already clears the explorer's default
+     width — push the text right by exactly that much instead, so ☰ opens
+     into the now-empty margin rather than onto the page */
+  @media (min-width: $explorerFitsAt) {
+    body:not([data-slug="index"]) {
+      .page-header,
+      .center,
+      footer {
+        margin-left: max(
+          calc(50% - #{$readWidth} / 2),
+          calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem)
+        );
+      }
+    }
+  }
+
+  /* below $explorerFitsAt the text doesn't move for ☰ (above) — shadow the
+     explorer so the open drawer reads as a layer over the page, not a panel
+     that silently stopped doing anything */
+  @media (max-width: calc(#{$explorerFitsAt} - 1px)) {
+    body:not([data-slug="index"]) #quartz-body .sidebar.left > .explorer {
+      box-shadow: 6px 0 24px rgba(0, 0, 0, 0.2);
+    }
   }
 }
 

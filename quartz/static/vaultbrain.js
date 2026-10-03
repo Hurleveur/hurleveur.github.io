@@ -2095,8 +2095,10 @@
     btn.classList.toggle("on", !off)
   }
 
-  // explorer toggle: ☰ in the top bar hides the fixed explorer panel and
-  // the layout reflows into its space (CSS body.nav-off in custom.scss).
+  // explorer toggle: ☰ in the top bar hides the fixed explorer panel (CSS
+  // body.nav-off in custom.scss). On tablet the text reflows into its
+  // space; on desktop the text never moves — the panel's space is already
+  // reserved or it overlays, so this toggle only shows/hides it there.
   // Choice persists across pages and visits.
   function initNavToggle() {
     // home is a hall, not a document: explorer always starts closed there.
@@ -2125,6 +2127,61 @@
     btn.classList.toggle("on", !off)
   }
 
+  // phone top bar, LessWrong's header pattern — hides on scroll down,
+  // reappears on scroll up. Pulled out pure so topbar.test.ts can break it on
+  // its own, no DOM involved; the glue below just feeds it scrollY and reads
+  // the result back onto body.topbar-hidden (custom.scss's transform).
+  function topbarScrollDecision(prevY, y, hidden, barH) {
+    if (y < barH) return false // top of the page: the bar always shows here
+    const dy = y - prevY
+    if (dy > 8) return true // scrolling down past the threshold
+    if (dy < -8) return false // scrolling up past the threshold
+    return hidden // inside the dead zone: keep whatever it already was
+  }
+
+  let tbPrevY = 0
+  let tbHidden = false
+
+  function initTopbarScroll() {
+    // every nav resets the state (a swapped page can land anywhere), but the
+    // listener itself binds once — it reads live DOM each tick, so it never
+    // goes stale across a page swap the way a cached element reference would
+    tbPrevY = window.scrollY
+    tbHidden = false
+    document.body.classList.remove("topbar-hidden")
+    if (window.__vbTopbarWired) return
+    window.__vbTopbarWired = true
+    let queued = false
+    const apply = () => {
+      queued = false
+      const bar = document.querySelector(".sidebar.left")
+      const y = window.scrollY
+      // never hide while a drawer anchored to the bar's top is open under
+      // it — the explorer, search, or the observatory overlay — and only on
+      // the phone width custom.scss actually makes the bar sticky
+      const blocked =
+        !bar ||
+        !matchMedia("(max-width: 800px)").matches ||
+        document.body.classList.contains("vb-open") ||
+        document.querySelector(".explorer:not(.collapsed)") ||
+        document.querySelector(".search-container.active")
+      tbHidden = blocked
+        ? false
+        : topbarScrollDecision(tbPrevY, y, tbHidden, bar.getBoundingClientRect().height)
+      document.body.classList.toggle("topbar-hidden", tbHidden)
+      tbPrevY = y
+    }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (queued) return
+        queued = true
+        requestAnimationFrame(apply)
+      },
+      { passive: true },
+    )
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     // home's track depends on day/night, so a toggle mid-visit must re-pick it
@@ -2135,6 +2192,7 @@
       markSeen() // Task 2: record this pageview before init() paints the brain from it
       paintSeenLinks()
       initNavToggle()
+      initTopbarScroll()
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
@@ -2158,6 +2216,7 @@
   markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
   paintSeenLinks()
   initNavToggle()
+  initTopbarScroll()
   initSidebarResize()
   initBrainToggle()
   initSideBrain()
