@@ -10,7 +10,32 @@ VAULT="/home/alexandertg/Documents/private"
 SITE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WT="$HOME/.cache/loci-gh-pages"   # throwaway worktree, outside the repo
 BUILD="$HOME/.cache/loci-build"   # deploy build output, isolated from the live `--serve` public/
+# Outside content/ and outside the repo's tracked files, next to $BUILD — a
+# resync or a git checkout can't touch it, and it never gets published.
+STAMP="$HOME/.cache/loci-deploy.stamp"
+
+FORCE="${FORCE:-}"
+for arg in "$@"; do
+  [ "$arg" = "--force" ] && FORCE=1
+done
+
 cd "$SITE"
+
+# Fingerprint of everything that decides the build's output, so a night with
+# zero vault/source change skips the build and the ~275-file no-op commit that
+# build nondeterminism produces even then. Covers: content/ (paths+bytes, hashed
+# directly since content/ is gitignored), this clone's commit, and its uncommitted
+# tracked changes (deploy.sh builds the working tree, not HEAD) — the last two
+# together already cover every tracked input (publish-exceptions.txt,
+# quartz.config.yaml, package-lock.json, local-plugins/) since they're all
+# tracked files in this same clone.
+compute_fingerprint() {
+  local content_hash head_sha diff_hash
+  content_hash=$(find content -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+  head_sha=$(git rev-parse HEAD)
+  diff_hash=$(git diff HEAD | sha256sum | cut -d' ' -f1)
+  printf '%s %s %s\n' "$content_hash" "$head_sha" "$diff_hash" | sha256sum | cut -d' ' -f1
+}
 
 # 1. Snapshot publishable vault -> content/ (strips .obsidian/caches/dotfiles; carves Website/).
 #    Nothing here decides what publishes — ExplicitPublish (publish: true) + publish-exceptions.txt do.
@@ -26,6 +51,14 @@ rsync -a --delete \
   --exclude '/Website/*' \
   --exclude '/index.md' --exclude '/brain.md' \
   "$VAULT/" "$SITE/content/"
+
+# 1b. Skip the build+push entirely if nothing that determines the output has
+#     changed since the last successful push. --force / FORCE=1 bypasses this.
+FINGERPRINT="$(compute_fingerprint)"
+if [ -z "$FORCE" ] && [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$FINGERPRINT" ]; then
+  echo "Unchanged since last successful deploy ($FINGERPRINT); skipping build. Use --force to override."
+  exit 0
+fi
 
 # 2. Build the static site into an isolated dir (NOT public/).
 #    `npx quartz build` is production mode (hashed asset names). A running
@@ -71,6 +104,13 @@ else
   done
   [ -n "$pushed" ] || { echo "push failed after 5 attempts" >&2; exit 1; }
 fi
+
+# Live site now matches this fingerprint (pushed, or already identical). Written
+# atomically — a crash mid-write must never leave a half-written stamp read back
+# as a false "unchanged" next run.
+stamp_tmp="$(mktemp "$STAMP.XXXXXX")"
+printf '%s\n' "$FINGERPRINT" > "$stamp_tmp"
+mv "$stamp_tmp" "$STAMP"
 
 git worktree remove -f "$WT"
 echo "Done. gh-pages updated (push it to your repo's origin if not already)."
