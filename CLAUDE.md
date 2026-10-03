@@ -1,5 +1,7 @@
 When we implement a feature, make sure the local server is running but don't test it with playwright yourself, I'll handle manual verifications.
 
+- The dev server always runs on port 8050: `npm run serve` (or `npm run tune` for `/?tune`), never Quartz's default 8080.
+
 ## content/ is a snapshot, not the source
 
 The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes **only** when `deploy.sh` runs its step-1 rsync.
@@ -49,7 +51,7 @@ Seven forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`
 Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (1252x428 image px, the SVG viewBox and the band's own aspect ratio, so % insets map 1:1 at every width) and live in two different files: the mini-brain box (`#vault-brain` insets in `custom.scss`) and the frieze band ellipse the room names ride (`BAND` + `SIDES` in `vaultbrain.js`).
 
 - Run `npm run tune` and open `/?tune`: drag the brain box, slide the band, paste the panel's numbers back into the source. Nothing else is a reliable way to set these.
-- **Start the dev server with `dangerouslyDisableSandbox: true`.** The Bash sandbox unshares the network namespace, so a server started inside it prints "listening at 8080" while nothing is bound on the host — the browser gets nothing. Confirm with `ss -ltn | grep :8080`, never with `curl` from inside the sandbox (always `000`).
+- **Start the dev server with `dangerouslyDisableSandbox: true`.** The Bash sandbox unshares the network namespace, so a server started inside it prints "listening at 8050" while nothing is bound on the host — the browser gets nothing. Confirm with `ss -ltn | grep :8050`, never with `curl` from inside the sandbox (always `000`).
 - The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
 - `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
 - `#vb-desc` is one element in two places — the mini brain and the full-screen observatory — so any rem-only size cap on it overflows a phone screen; keep a `100vw` term in the cap.

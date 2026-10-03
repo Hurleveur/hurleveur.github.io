@@ -11,10 +11,10 @@ Quartz is a set of tools that helps you publish your [digital garden](https://jz
 ## Local dev server
 
 ```
-npx quartz build --serve
+npm run serve
 ```
 
-Serves at http://localhost:8080. Rebuilds content on change.
+Serves at http://localhost:8050. Rebuilds content on change.
 
 ## Sponsors
 
