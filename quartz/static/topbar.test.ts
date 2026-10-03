@@ -48,6 +48,23 @@ describe("topbarScrollDecision", () => {
   })
 })
 
+describe("topbar scroll anchor", () => {
+  const anchorSrc = js.slice(js.indexOf("function topbarScrollDecision"), js.indexOf("let tbPrevY"))
+  const [decideA, anchor] = new Function(
+    `${anchorSrc}; return [topbarScrollDecision, topbarScrollAnchor]`,
+  )() as [typeof decide, (prevY: number, y: number, barH: number) => number]
+
+  test("a slow drag up (3px a frame) still brings the bar back", () => {
+    let prev = 500
+    let hidden = true
+    for (let y = 497; y >= 470; y -= 3) {
+      hidden = decideA(prev, y, hidden, 48)
+      prev = anchor(prev, y, 48)
+    }
+    assert.equal(hidden, false, "per-frame deltas under the threshold must accumulate")
+  })
+})
+
 describe("phone top bar CSS seams", () => {
   const mobileBlock = scss.slice(
     scss.indexOf("@media all and ($mobile) {\n  #quartz-body .sidebar.left {"),

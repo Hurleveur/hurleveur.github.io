@@ -2159,6 +2159,13 @@
     return hidden // inside the dead zone: keep whatever it already was
   }
 
+  // where the next scroll delta is measured from. It moves only once a
+  // delta clears the threshold, so a slow drag (a few px per frame) still
+  // adds up to a direction instead of resetting every frame in the dead zone
+  function topbarScrollAnchor(prevY, y, barH) {
+    return y < barH || Math.abs(y - prevY) > 8 ? y : prevY
+  }
+
   let tbPrevY = 0
   let tbHidden = false
 
@@ -2189,7 +2196,7 @@
         ? false
         : topbarScrollDecision(tbPrevY, y, tbHidden, bar.getBoundingClientRect().height)
       document.body.classList.toggle("topbar-hidden", tbHidden)
-      tbPrevY = y
+      tbPrevY = topbarScrollAnchor(tbPrevY, y, bar ? bar.getBoundingClientRect().height : 0)
     }
     window.addEventListener(
       "scroll",
