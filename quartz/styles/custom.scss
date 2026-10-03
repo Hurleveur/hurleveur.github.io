@@ -2043,10 +2043,19 @@ $explorerFitsAt: calc(2rem + 1.2rem + 320px + 5px + #{$readWidth} + #{$sidePanel
       padding-right: 1.2rem; // the top bar's gutter, not the generic 2rem above
     }
 
-    .page-header,
+    // the map ends where ✦ does, at the top bar's gutter: base.scss's 2rem
+    // .sidebar padding on top of it was empty strip nobody could use
+    #quartz-body .sidebar.right {
+      padding-left: 1rem;
+      padding-right: 0;
+    }
+
+    // .page-header lives inside .center, so it rides along; naming it here
+    // offset it twice
     .center,
     footer {
       max-width: $readWidth; // reading line length, not the grid's leftover width
+      min-width: 0; // base.scss sets 100%, and min-width beats max-width
       margin-right: auto;
       margin-left: calc(50% - #{$readWidth} / 2); // centered left of the right column
     }
@@ -2057,7 +2066,6 @@ $explorerFitsAt: calc(2rem + 1.2rem + 320px + 5px + #{$readWidth} + #{$sidePanel
      into the now-empty margin rather than onto the page */
   @media (min-width: $explorerFitsAt) {
     body:not([data-slug="index"]) {
-      .page-header,
       .center,
       footer {
         margin-left: max(
