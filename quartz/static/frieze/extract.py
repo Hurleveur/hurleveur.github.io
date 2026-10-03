@@ -27,7 +27,8 @@ SCALE = 3  # masks are written at 3x the image, so the gilding stays crisp on a
 # screen that shows the rotunda larger than its 1376px
 CRACK = 2  # px at SCALE: widest vein gap closed inside a letter
 SOLID = 3  # alpha gain: a groove a third as dark as the rest still gilds fully
-SPECK = 400  # px at SCALE: islands smaller than this are noise, not glyphs
+SPECK = 70  # px at SCALE (counted after SOLID): the dot beside LIBRARY is 32+54,
+# the smallest real letter piece (SHARED's A, split by a vein) is 82
 
 
 def disk(r):
