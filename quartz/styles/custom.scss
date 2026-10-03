@@ -1829,11 +1829,19 @@ body[data-slug^="books"] {
     &::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: 0 -1rem; // over #quartz-body's 1rem side padding, edge to edge
       z-index: -1;
       background: color-mix(in srgb, var(--light) 40%, transparent);
       backdrop-filter: blur(8px) saturate(1.2);
     }
+  }
+
+  // the explorer fork paints the bar solid and pads it 1rem 0 on phones, from
+  // a more specific selector (.page > #quartz-body .sidebar.left:has(.explorer))
+  // that hid the frosting above; outrank it
+  body .page > #quartz-body .sidebar.left:has(.explorer) {
+    background-color: transparent;
+    padding: 0.6rem 1rem;
   }
 
   /* vaultbrain.js toggles this on scroll direction; its own "blocked" guard
