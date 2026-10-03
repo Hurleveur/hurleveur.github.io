@@ -59,6 +59,16 @@ The home hero is `quartz/static/rotunda.png` (1376x768), drawn full-screen and c
 - `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
 
+## Desktop page layout
+
+The text column's position depends on viewport width and ✦ only, never on ☰ — the explorer opens into the left margin or overlays the text with a shadow (block after `$explorerFitsAt` in `custom.scss`).
+
+- `.center` needs `min-width: 0` beside its `max-width: $readWidth`: `base.scss` gives it `min-width: 100%`, which beats max-width and silently spreads the text under the side brain.
+- `.page-header` lives inside `.center`; give it no centring of its own or it is offset twice.
+- The right column is `$rightCol` (`clamp(320px, 24vw, 480px)`); `$explorerFitsAt` is solved by hand for that clamp, so change one and re-solve the other.
+- The home hero title is placed in the rotunda stage's own cover-crop coordinates and shares `--band-zoom` (on `:root`) with `.rotunda-stage`; change the stage's sizing formula and the hero's must follow.
+- The `toc-rail` fork measures `.center`'s left edge in JS (`--toc-rail-right`) to sit beside the text.
+
 ## The side brain (right column)
 
 `vaultbrain.js` `initSideBrain()` injects the constellation into `.sidebar.right`
