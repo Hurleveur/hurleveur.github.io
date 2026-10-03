@@ -2028,16 +2028,14 @@ body.vb-open #quartz-body .sidebar.right {
 $rightCol: clamp(320px, 24vw, 480px);
 
 @media all and ($desktop) {
-  body:not([data-slug="index"]):not(.brain-off) #quartz-body {
+  body:not([data-slug="index"]) #quartz-body {
     grid-template-columns: auto $rightCol;
   }
 
   /* ✦ off takes the whole column with it — TOC, recent notes, backlinks,
-     a folder page's listing — and the page gets the width */
+     a folder page's listing — but keeps its track, so the text below
+     doesn't move: ✦ behaves like ☰ */
   body:not([data-slug="index"]).brain-off #quartz-body {
-    grid-template-columns: auto 0;
-    column-gap: 0;
-
     .sidebar.right {
       display: none;
     }
@@ -2051,8 +2049,8 @@ $rightCol: clamp(320px, 24vw, 480px);
 
 /* LessWrong-style layout: the right column hugs the real viewport edge (the
    old 1500px .page cap left empty space before it on wide screens), and the
-   text column's position is a function of viewport width and brain-on/off
-   only — never body.nav-off, so ☰ no longer shifts it.
+   text column's position is a function of viewport width only — never
+   body.nav-off or body.brain-off, so neither ☰ nor ✦ shifts it.
    $explorerFitsAt is the viewport width at which centering the text below
    already clears the explorer's default width on its own. Below it the
    explorer has nowhere to go but over the text, so it overlays instead.
@@ -2085,7 +2083,9 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
       max-width: $readWidth; // reading line length, not the grid's leftover width
       min-width: 0; // base.scss sets 100%, and min-width beats max-width
       margin-right: auto;
-      margin-left: calc(50% - #{$readWidth} / 2); // centered left of the right column
+      // centered on the viewport (2rem: #quartz-body's left padding), but
+      // never under the right column, whose track stays even with ✦ off
+      margin-left: min(calc(50vw - #{$readWidth} / 2 - 2rem), calc(100% - #{$readWidth}));
     }
   }
 
@@ -2097,7 +2097,7 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
       .center,
       footer {
         margin-left: max(
-          calc(50% - #{$readWidth} / 2),
+          min(calc(50vw - #{$readWidth} / 2 - 2rem), calc(100% - #{$readWidth})),
           calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem)
         );
       }

@@ -61,7 +61,7 @@ The home hero is `quartz/static/rotunda.png` (1376x768), drawn full-screen and c
 
 ## Desktop page layout
 
-The text column's position depends on viewport width and ✦ only, never on ☰ — the explorer opens into the left margin or overlays the text with a shadow (block after `$explorerFitsAt` in `custom.scss`).
+The text column's position depends on viewport width only, never on ☰ or ✦ (✦ off hides the right column but keeps its track) — the explorer opens into the left margin or overlays the text with a shadow (block after `$explorerFitsAt` in `custom.scss`).
 
 - `.center` needs `min-width: 0` beside its `max-width: $readWidth`: `base.scss` gives it `min-width: 100%`, which beats max-width and silently spreads the text under the side brain.
 - `.page-header` lives inside `.center`; give it no centring of its own or it is offset twice.
