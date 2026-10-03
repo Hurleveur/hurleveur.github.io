@@ -1538,12 +1538,20 @@
   // the home page carries Vault Map itself, section by section, in the note's
   // own order: heading and body render plainly, the rooms section is dropped
   // because the doors below already render it, and whatever follows the rooms
-  // lands in #vault-outro underneath them. Every section renders whole — the
-  // note decides what the home page says, not a cut here.
+  // lands in #vault-outro underneath them.
   //
-  // One exception the note has no syntax for: a collapsible callout becomes a
-  // <details>. That is also the only thing that works: the callout script
-  // binds on nav, so a callout injected after it would render but never toggle.
+  // Two exceptions, neither of which the note has syntax for:
+  //   - a section named here shows only its first N blocks, the rest behind a
+  //     "Read more" — the Palace prose opens the page, but anything past the
+  //     teaser is detail nobody needs before they have walked in. The cut is
+  //     by block position, not node type: a collapsible callout (below) is
+  //     turned into a <details> in place, as one more node of the running
+  //     section, so it still lands in the same teaser's "rest" rather than
+  //     escaping into its own, separately-collapsed fold.
+  //   - a collapsible callout becomes a <details>. That is also the only thing
+  //     that works: the callout script binds on nav, so a callout injected
+  //     after it would render but never toggle.
+  const INTRO_TEASER = { palace: 2 }
 
   async function initVaultIntro() {
     const box = document.getElementById("vault-intro")
@@ -1562,27 +1570,27 @@
     // the heading anchors are for a note page, not a hero
     tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
 
-    // group the note by heading; a collapsible callout is a section of its own,
-    // titled by its callout title
+    // group the note by heading. A collapsible callout becomes a <details>
+    // right where it sits — a node like any other — rather than splitting off
+    // into a section of its own: split it off instead and a callout sitting
+    // among a teaser's "rest" blocks would escape into its own, separately
+    // collapsed fold, outside the one "Read more" is supposed to gate.
     const sections = []
-    let cur = { id: "", title: "", fold: false, nodes: [] }
+    let cur = { id: "", title: "", nodes: [] }
     const flush = () => {
       if (cur.title || cur.nodes.length) sections.push(cur)
     }
     for (const el of [...tmp.children]) {
       if (/^H[1-6]$/.test(el.tagName)) {
         flush()
-        cur = { id: el.id, title: el.textContent.trim(), fold: false, nodes: [] }
+        cur = { id: el.id, title: el.textContent.trim(), nodes: [] }
       } else if (el.matches("blockquote.callout.is-collapsible")) {
-        flush()
-        cur = {
-          id: "",
-          title: el.querySelector(".callout-title-inner")?.textContent.trim() ?? "",
-          fold: true,
-          nodes: [...(el.querySelector(".callout-content")?.children ?? [])],
-        }
-        flush()
-        cur = { id: "", title: "", fold: false, nodes: [] }
+        const fold = document.createElement("details")
+        fold.className = "vault-intro-fold"
+        const sum = document.createElement("summary")
+        sum.textContent = el.querySelector(".callout-title-inner")?.textContent.trim() ?? ""
+        fold.append(sum, ...(el.querySelector(".callout-content")?.children ?? []))
+        cur.nodes.push(fold)
       } else {
         cur.nodes.push(el)
       }
@@ -1592,21 +1600,33 @@
 
     const put = (target, s) => {
       if (!target) return
-      if (s.fold) {
-        const fold = document.createElement("details")
-        fold.className = "vault-intro-fold"
-        const sum = document.createElement("summary")
-        sum.textContent = s.title
-        fold.append(sum, ...s.nodes)
-        target.appendChild(fold)
-        return
-      }
       if (s.title) {
         const h = document.createElement("h2")
         h.textContent = s.title
         target.appendChild(h)
       }
-      target.append(...s.nodes)
+      // teaser cut: a section named in INTRO_TEASER shows only its first N
+      // blocks, the rest behind "Read more" — by position, not node type, so
+      // whatever the note adds past the cut (a paragraph, a list, a callout
+      // already turned <details> above) lands in the one hidden "rest" div.
+      const cut = INTRO_TEASER[s.id]
+      if (!cut || s.nodes.length <= cut) {
+        target.append(...s.nodes)
+        return
+      }
+      const rest = document.createElement("div")
+      rest.className = "vault-intro-rest"
+      rest.hidden = true
+      rest.append(...s.nodes.slice(cut))
+      const more = document.createElement("button")
+      more.className = "vault-intro-more"
+      more.type = "button"
+      more.textContent = "Read more"
+      more.addEventListener("click", () => {
+        rest.hidden = !rest.hidden
+        more.textContent = rest.hidden ? "Read more" : "Read less"
+      })
+      target.append(...s.nodes.slice(0, cut), rest, more)
     }
 
     box.replaceChildren()
@@ -2095,8 +2115,10 @@
     btn.classList.toggle("on", !off)
   }
 
-  // explorer toggle: ☰ in the top bar hides the fixed explorer panel and
-  // the layout reflows into its space (CSS body.nav-off in custom.scss).
+  // explorer toggle: ☰ in the top bar hides the fixed explorer panel (CSS
+  // body.nav-off in custom.scss). On tablet the text reflows into its
+  // space; on desktop the text never moves — the panel's space is already
+  // reserved or it overlays, so this toggle only shows/hides it there.
   // Choice persists across pages and visits.
   function initNavToggle() {
     // home is a hall, not a document: explorer always starts closed there.
@@ -2125,6 +2147,68 @@
     btn.classList.toggle("on", !off)
   }
 
+  // phone top bar, LessWrong's header pattern — hides on scroll down,
+  // reappears on scroll up. Pulled out pure so topbar.test.ts can break it on
+  // its own, no DOM involved; the glue below just feeds it scrollY and reads
+  // the result back onto body.topbar-hidden (custom.scss's transform).
+  function topbarScrollDecision(prevY, y, hidden, barH) {
+    if (y < barH) return false // top of the page: the bar always shows here
+    const dy = y - prevY
+    if (dy > 8) return true // scrolling down past the threshold
+    if (dy < -8) return false // scrolling up past the threshold
+    return hidden // inside the dead zone: keep whatever it already was
+  }
+
+  // where the next scroll delta is measured from. It moves only once a
+  // delta clears the threshold, so a slow drag (a few px per frame) still
+  // adds up to a direction instead of resetting every frame in the dead zone
+  function topbarScrollAnchor(prevY, y, barH) {
+    return y < barH || Math.abs(y - prevY) > 8 ? y : prevY
+  }
+
+  let tbPrevY = 0
+  let tbHidden = false
+
+  function initTopbarScroll() {
+    // every nav resets the state (a swapped page can land anywhere), but the
+    // listener itself binds once — it reads live DOM each tick, so it never
+    // goes stale across a page swap the way a cached element reference would
+    tbPrevY = window.scrollY
+    tbHidden = false
+    document.body.classList.remove("topbar-hidden")
+    if (window.__vbTopbarWired) return
+    window.__vbTopbarWired = true
+    let queued = false
+    const apply = () => {
+      queued = false
+      const bar = document.querySelector(".sidebar.left")
+      const y = window.scrollY
+      // never hide while a drawer anchored to the bar's top is open under
+      // it — the explorer, search, or the observatory overlay — and only on
+      // the phone width custom.scss actually makes the bar sticky
+      const blocked =
+        !bar ||
+        !matchMedia("(max-width: 800px)").matches ||
+        document.body.classList.contains("vb-open") ||
+        document.querySelector(".explorer:not(.collapsed)") ||
+        document.querySelector(".search-container.active")
+      tbHidden = blocked
+        ? false
+        : topbarScrollDecision(tbPrevY, y, tbHidden, bar.getBoundingClientRect().height)
+      document.body.classList.toggle("topbar-hidden", tbHidden)
+      tbPrevY = topbarScrollAnchor(tbPrevY, y, bar ? bar.getBoundingClientRect().height : 0)
+    }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (queued) return
+        queued = true
+        requestAnimationFrame(apply)
+      },
+      { passive: true },
+    )
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     // home's track depends on day/night, so a toggle mid-visit must re-pick it
@@ -2135,6 +2219,7 @@
       markSeen() // Task 2: record this pageview before init() paints the brain from it
       paintSeenLinks()
       initNavToggle()
+      initTopbarScroll()
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
@@ -2158,6 +2243,7 @@
   markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
   paintSeenLinks()
   initNavToggle()
+  initTopbarScroll()
   initSidebarResize()
   initBrainToggle()
   initSideBrain()
