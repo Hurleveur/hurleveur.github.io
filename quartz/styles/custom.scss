@@ -1851,6 +1851,13 @@ body[data-slug^="books"] {
     transform: translateY(-100%);
   }
 
+  // the drawer is positioned from the bar, which sits inside #quartz-body's
+  // 1rem side padding: from there, -100vw left a 16px strip of it on screen
+  // (and the open drawer ran 16px off the right). Pin it to the screen edge.
+  body .explorer .explorer-content {
+    left: -1rem;
+  }
+
   // the drawer's rows were desktop-sized (24px lines) under a thumb: a size
   // up and ~44px tall, the usual minimum tap target
   body .explorer-content .folder-container div > a,
