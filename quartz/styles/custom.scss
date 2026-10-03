@@ -1851,6 +1851,18 @@ body[data-slug^="books"] {
     transform: translateY(-100%);
   }
 
+  // the drawer's rows were desktop-sized (24px lines) under a thumb: a size
+  // up and ~44px tall, the usual minimum tap target
+  body .explorer-content .folder-container div > a,
+  body .explorer-content .folder-container div > button span {
+    font-size: 1.15rem;
+    line-height: 2.75rem;
+  }
+  body .explorer-content ul li > a {
+    font-size: 1.05rem;
+    line-height: 2.5rem;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     #quartz-body .sidebar.left {
       transition: none;
