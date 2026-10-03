@@ -411,7 +411,7 @@ export async function handleBuild(argv) {
 
     if (cleanupBuild) {
       console.log(styleText("yellow", "Detected a source code change, doing a hard rebuild..."))
-      await cleanupBuild()
+      await cleanupBuild.close()
     }
 
     const result = await ctx.rebuild().catch((err) => {
@@ -441,6 +441,35 @@ export async function handleBuild(argv) {
 
     cleanupBuild = await buildQuartz(argv, buildMutex, clientRefresh)
     clientRefresh()
+  }
+
+  // quartz/static/** and *.scss never change markdown content, only the CSS/JS
+  // bundle and copied static files — re-bundle (scss is inlined into the esbuild
+  // bundle) and re-run just the resource emitters against the existing ctx/content,
+  // instead of build()'s full rm+glob+parse+emit of every page.
+  const refreshResources = async (clientRefresh) => {
+    if (!cleanupBuild) {
+      // no build has produced watch state yet; fall back to a full build
+      return build(clientRefresh)
+    }
+
+    const release = await buildMutex.acquire()
+    let mod
+    try {
+      await ctx.rebuild().catch((err) => {
+        console.error(
+          `${styleText("red", "Failed to build Quartz.")} Check for syntax errors in your configuration or plugins.`,
+        )
+        console.log(`Reason: ${styleText("gray", err.message ?? String(err))}`)
+        process.exit(1)
+      })
+      mod = await import(`../../${cacheFile}?update=${randomUUID()}`)
+    } finally {
+      release()
+    }
+
+    console.log(styleText("yellow", "Detected a static/style change, refreshing resources..."))
+    await mod.refreshResources(cleanupBuild.buildData, clientRefresh)
   }
 
   let clientRefresh = () => {}
@@ -596,21 +625,33 @@ export async function handleBuild(argv) {
   }
 
   if (argv.watch) {
-    const paths = await globby([
+    const hardRebuildPaths = await globby([
       "**/*.ts",
       "quartz/cli/*.js",
-      "quartz/static/**/*",
       "**/*.tsx",
-      "**/*.scss",
       "package.json",
       "quartz.config.yaml",
       "quartz.config.default.yaml",
+      // exclude the build output: Static.emit() copies quartz/static/*.test.ts
+      // verbatim into `${argv.output}/static/`, and an unscoped "**/*.ts" would
+      // otherwise watch its own output, triggering a hard rebuild that re-emits
+      // it, which triggers another hard rebuild, ad infinitum
+      `!${argv.output}/**`,
     ])
     chokidar
-      .watch(paths, { ignoreInitial: true })
+      .watch(hardRebuildPaths, { ignoreInitial: true })
       .on("add", () => build(clientRefresh))
       .on("change", () => build(clientRefresh))
       .on("unlink", () => build(clientRefresh))
+
+    // resource-only paths: never touch markdown content, so they skip the
+    // full rebuild (see refreshResources above)
+    const resourcePaths = await globby(["quartz/static/**/*", "**/*.scss"])
+    chokidar
+      .watch(resourcePaths, { ignoreInitial: true })
+      .on("add", () => refreshResources(clientRefresh))
+      .on("change", () => refreshResources(clientRefresh))
+      .on("unlink", () => refreshResources(clientRefresh))
 
     console.log(styleText("gray", "hint: exit with ctrl+c"))
   }

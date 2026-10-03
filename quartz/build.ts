@@ -195,8 +195,52 @@ async function startWatching(
       scheduleRebuild()
     })
 
-  return async () => {
-    await watcher.close()
+  return {
+    close: async () => {
+      await watcher.close()
+    },
+    // handed back so a static/scss-only change can re-run just the resource
+    // emitters against this same ctx/content instead of a full rebuild
+    buildData,
+  }
+}
+
+/**
+ * Re-run only the resource-producing emitters (CSS/JS bundle + static file
+ * copies) against the existing ctx/content. Used for a quartz/static/** or
+ * *.scss change, which never alters markdown content, so the full rm+glob+
+ * parse+emit in buildQuartz is unneeded — only ComponentResources (rebuilds
+ * index.css/js from the freshly re-bundled styles) and Static (re-copies
+ * quartz/static/** verbatim) need to run again.
+ */
+export async function refreshResources(buildData: BuildData, clientRefresh: () => void) {
+  const { ctx, contentMap, mut } = buildData
+  const release = await mut.acquire()
+  try {
+    // Use this module's own `cfg` (imported at file scope), not ctx.cfg: ctx
+    // was built by a previous bundle generation, so its plugin instances have
+    // the OLD *.scss content closed over them. This module was freshly
+    // re-bundled by the esbuild rebuild that preceded this call, so its `cfg`
+    // carries the new styles. ctx itself (allFiles, hashedResourceNames, ...)
+    // is kept — only the plugin set backing the emit calls is swapped in.
+    ctx.cfg = cfg
+    const content = Array.from(contentMap.values())
+      .filter((file) => file.type === "markdown")
+      .map((file) => file.content)
+    const staticResources = getStaticResourcesFromPlugins(ctx)
+    for (const name of ["ComponentResources", "Static"]) {
+      const emitter = cfg.plugins.emitters.find((e) => e.name === name)
+      if (!emitter) continue
+      const emitted = await emitter.emit(ctx, content, staticResources)
+      if (Symbol.asyncIterator in emitted) {
+        for await (const _file of emitted) {
+          // drain; neither emitter needs per-file handling here
+        }
+      }
+    }
+    clientRefresh()
+  } finally {
+    release()
   }
 }
 
