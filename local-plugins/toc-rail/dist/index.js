@@ -4,10 +4,159 @@ function classNames(...classes) {
 }
 
 // src/components/scripts/tocRail.inline.ts
-var tocRail_inline_default = 'function s(e){if(e.target.closest("a")){this.classList.contains("expanded")||(e.preventDefault(),this.classList.add("expanded"));return}this.classList.toggle("expanded")}function i(e){let t=document.getElementsByClassName("toc-rail");for(let n of t)n.contains(e.target)||n.classList.remove("expanded")}function a(){let e=Array.from(document.getElementsByClassName("toc-rail"));for(let t of e)t.addEventListener("click",s),window.addCleanup(()=>t.removeEventListener("click",s));document.addEventListener("click",i),window.addCleanup(()=>document.removeEventListener("click",i))}document.addEventListener("nav",a);document.addEventListener("render",a);\n';
+var tocRail_inline_default = 'function i(){let e=document.querySelector(".center");if(!e)return;let n=window.innerWidth-e.getBoundingClientRect().left+12;document.documentElement.style.setProperty("--toc-rail-right",`${n}px`)}function s(e){if(e.target.closest("a")){this.classList.contains("expanded")||(e.preventDefault(),this.classList.add("expanded"));return}this.classList.toggle("expanded")}function o(e){let t=document.getElementsByClassName("toc-rail");for(let n of t)n.contains(e.target)||n.classList.remove("expanded")}function a(){let e=Array.from(document.getElementsByClassName("toc-rail"));for(let t of e)t.addEventListener("click",s),window.addCleanup(()=>t.removeEventListener("click",s));document.addEventListener("click",o),window.addCleanup(()=>document.removeEventListener("click",o)),i(),window.addEventListener("resize",i),window.addCleanup(()=>window.removeEventListener("resize",i))}document.addEventListener("nav",a);document.addEventListener("render",a);\n';
 
 // src/components/styles/tocRail.scss
-var tocRail_default = ".toc-rail {\n  position: fixed;\n  top: 6rem;\n  left: 0;\n  z-index: 20;\n  max-height: calc(100vh - 8rem);\n  overflow: hidden;\n  width: 14px;\n  background: var(--light);\n  border-right: 1px solid var(--lightgray);\n  border-radius: 0 6px 6px 0;\n  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);\n  transition: width 0.2s ease;\n}\n.toc-rail:hover, .toc-rail.expanded {\n  width: min(320px, 70vw);\n  overflow-y: auto;\n}\n@media all and (max-width: 600px) {\n  .toc-rail:hover, .toc-rail.expanded {\n    width: min(260px, 80vw);\n  }\n}\n\n.toc-rail-list {\n  list-style: none;\n  margin: 0;\n  padding: 0.5rem 0;\n  display: flex;\n  flex-direction: column;\n  gap: 0.15rem;\n}\n\n.toc-rail-item > a {\n  display: flex;\n  align-items: center;\n  gap: 0.6rem;\n  padding: 0.15rem 0.35rem;\n  white-space: nowrap;\n  color: var(--darkgray);\n}\n.toc-rail-item > a:hover {\n  color: var(--secondary);\n}\n.toc-rail-item.depth-0 > a {\n  padding-left: calc(0.35rem + 0 * 0.75rem);\n}\n.toc-rail-item.depth-1 > a {\n  padding-left: calc(0.35rem + 1 * 0.75rem);\n}\n.toc-rail-item.depth-2 > a {\n  padding-left: calc(0.35rem + 2 * 0.75rem);\n}\n.toc-rail-item.depth-3 > a {\n  padding-left: calc(0.35rem + 3 * 0.75rem);\n}\n.toc-rail-item.depth-4 > a {\n  padding-left: calc(0.35rem + 4 * 0.75rem);\n}\n.toc-rail-item.depth-5 > a {\n  padding-left: calc(0.35rem + 5 * 0.75rem);\n}\n\n.toc-rail-tick {\n  flex-shrink: 0;\n  width: 8px;\n  height: 2px;\n  border-radius: 1px;\n  background: var(--gray);\n}\n\n.toc-rail-label {\n  opacity: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 0.85rem;\n  transition: opacity 0.15s ease;\n}\n\n.toc-rail:hover .toc-rail-label,\n.toc-rail.expanded .toc-rail-label {\n  opacity: 1;\n}";
+var tocRail_default = `@charset "UTF-8";
+.toc-rail {
+  position: fixed;
+  top: 6rem;
+  left: 0;
+  z-index: 20;
+  max-height: calc(100vh - 8rem);
+  overflow: hidden;
+  width: 14px;
+  background: var(--light);
+  border-right: 1px solid var(--lightgray);
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: width 0.2s ease;
+}
+.toc-rail:hover, .toc-rail.expanded {
+  width: min(320px, 70vw);
+  overflow-y: auto;
+}
+@media all and (max-width: 600px) {
+  .toc-rail:hover, .toc-rail.expanded {
+    width: min(260px, 80vw);
+  }
+}
+
+.toc-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toc-rail-item > a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.15rem 0.35rem;
+  white-space: nowrap;
+  color: var(--darkgray);
+}
+.toc-rail-item > a:hover {
+  color: var(--secondary);
+}
+.toc-rail-item.depth-0 > a {
+  padding-left: calc(0.35rem + 0 * 0.75rem);
+}
+.toc-rail-item.depth-1 > a {
+  padding-left: calc(0.35rem + 1 * 0.75rem);
+}
+.toc-rail-item.depth-2 > a {
+  padding-left: calc(0.35rem + 2 * 0.75rem);
+}
+.toc-rail-item.depth-3 > a {
+  padding-left: calc(0.35rem + 3 * 0.75rem);
+}
+.toc-rail-item.depth-4 > a {
+  padding-left: calc(0.35rem + 4 * 0.75rem);
+}
+.toc-rail-item.depth-5 > a {
+  padding-left: calc(0.35rem + 5 * 0.75rem);
+}
+
+.toc-rail-tick {
+  flex-shrink: 0;
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--gray);
+}
+
+.toc-rail-label {
+  opacity: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  transition: opacity 0.15s ease;
+}
+
+.toc-rail:hover .toc-rail-label,
+.toc-rail.expanded .toc-rail-label {
+  opacity: 1;
+}
+
+/* LOCI PATCH (whole block) \u2014 Desktop (LessWrong-style): the viewport-edge strip above is a mobile/tablet
+   fallback. Here the rail instead sits right beside the text, and the whole
+   left margin \u2014 not just the 14px tick column \u2014 reveals it on hover, so the
+   pointer doesn't have to land exactly on a dash.
+   1200px mirrors quartz/styles/variables.scss's $desktop; this fork builds
+   standalone and can't import that partial, so it's duplicated as a literal. */
+@media all and (min-width: 1200px) {
+  .toc-rail {
+    top: var(--topbar-h, 2.7rem);
+    bottom: 0;
+    left: 0;
+    right: var(--toc-rail-right, 240px);
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    background: none;
+    border-right: none;
+    border-radius: 0;
+    box-shadow: none;
+    transition: none;
+  }
+  .toc-rail:hover, .toc-rail.expanded {
+    width: auto;
+    overflow: visible;
+  }
+  body:not(.nav-off) .toc-rail {
+    left: var(--sidebar-w, 240px);
+  }
+  .toc-rail-list {
+    position: absolute;
+    top: calc(6rem - var(--topbar-h, 2.7rem));
+    right: 0;
+    max-height: calc(100% - 4rem);
+    width: 14px;
+    overflow: hidden;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+    background: var(--light);
+    border-left: 1px solid var(--lightgray);
+    border-radius: 6px 0 0 6px;
+    box-shadow: -1px 0 4px rgba(0, 0, 0, 0.08);
+    transition: width 0.2s ease 0.2s;
+    gap: 0.225rem;
+    z-index: 10;
+  }
+  .toc-rail:hover .toc-rail-list,
+  .toc-rail.expanded .toc-rail-list,
+  .toc-rail:focus-within .toc-rail-list {
+    width: min(320px, 70vw);
+    transition-delay: 0s;
+  }
+  .toc-rail-label {
+    transition: opacity 0.15s ease 0.2s;
+  }
+  .toc-rail:hover .toc-rail-label,
+  .toc-rail.expanded .toc-rail-label,
+  .toc-rail:focus-within .toc-rail-label {
+    opacity: 1;
+    transition-delay: 0s;
+  }
+  .toc-rail-item > a {
+    padding-top: 0.225rem;
+    padding-bottom: 0.225rem;
+  }
+}`;
 var l;
 l = { __e: function(n2, l2, u3, t2) {
   for (var i2, r2, o2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
