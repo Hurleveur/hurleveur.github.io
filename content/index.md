@@ -4,6 +4,7 @@ publish: true
 ---
 
 <div class="rotunda-band">
+  <div class="rotunda-stage">
   <nav class="frieze" id="vb-frieze" aria-label="Rooms of the vault"></nav>
   <div id="vault-brain" data-mini="1">
     <canvas id="vb-stars" aria-hidden="true"></canvas>
@@ -14,6 +15,7 @@ publish: true
     <span class="vb-expand-ico" aria-hidden="true">⤢</span>
     <span class="vb-expand-txt">Enter the mind</span>
   </button>
+  </div>
 </div>
 
 <section class="palace-hero">

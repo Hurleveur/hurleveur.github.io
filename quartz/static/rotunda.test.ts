@@ -1,6 +1,6 @@
 import test, { describe } from "node:test"
 import assert from "node:assert"
-import { readFileSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { join } from "path"
 
 // The rotunda hero puts two layers on the same pixels: the room names carved
@@ -11,8 +11,9 @@ import { join } from "path"
 // under the canvas silently open /brain instead of their room, which no
 // build step or type check would notice.
 //
-// Positions are in the rotunda.png viewBox, 1252x428 image px.
-const BAND_W = 1252
+// Positions are in the rotunda.png viewBox, 1376x768 image px.
+const BAND_W = 1376
+const BAND_H = 768
 
 const here = join(import.meta.dirname, "..")
 const js = readFileSync(join(here, "static/vaultbrain.js"), "utf8")
@@ -49,16 +50,18 @@ describe("rotunda frieze over the brain canvas", () => {
     )
   })
 
-  test("each side of the band runs left to right and stays on the image", () => {
-    const m = js.match(/const SIDES = \[\{ x0: (\d+), x1: (\d+) \}, \{ x0: (\d+), x1: (\d+) \}\]/)
-    assert.ok(m, "vaultbrain.js no longer declares SIDES in the expected shape")
-    const [, ...n] = m!.map(Number)
-    for (const [x0, x1] of [
-      [n[0], n[1]],
-      [n[2], n[3]],
-    ]) {
-      assert.ok(x0 < x1, `frieze side ${x0}-${x1} is inverted`)
-      assert.ok(x0 >= 0 && x1 <= BAND_W, `frieze side ${x0}-${x1} leaves the image`)
+  test("every carved word has its mask and stays on the image", () => {
+    const table = js.match(/const CARVED = \{([^}]+)\}/)
+    assert.ok(table, "vaultbrain.js no longer declares the CARVED table")
+    const rows = [...table![1].matchAll(/(\w+): \[(\d+), (\d+), (\d+), (\d+)\]/g)]
+    assert.ok(rows.length > 0, "CARVED lists no words")
+    for (const [, word, ...box] of rows) {
+      const [x, y, w, h] = box.map(Number)
+      assert.ok(x >= 0 && y >= 0 && x + w <= BAND_W && y + h <= BAND_H, `${word} leaves the image`)
+      assert.ok(
+        existsSync(join(here, "static/frieze", word + ".png")),
+        `${word} has no static/frieze/${word}.png — re-run extract.py`,
+      )
     }
   })
 })

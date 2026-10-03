@@ -836,9 +836,16 @@ body[data-slug="index"] {
     display: none;
   }
 
-  /* no 6rem forecourt above the dome, no dead right column: the band gets the width */
+  /* no forecourt above the dome: the band starts at the very top of the
+     screen, under the translucent bar, instead of below a strip of page */
   .page-header {
-    margin-top: 1.2rem;
+    margin-top: 0;
+  }
+
+  @media all and not ($mobile) {
+    .page {
+      padding-top: 0;
+    }
   }
 
   @media all and ($desktop) {
@@ -855,32 +862,65 @@ body[data-slug="index"] {
   }
 }
 
-/* rotunda hero band — cropped dome image, live mini vault-brain over the glowing brain */
+/* rotunda hero band — the whole hall, edge to edge, live mini vault-brain over
+   the glowing brain. The page text then floats over the band's foot. */
 .rotunda-band {
-  position: relative;
-  /* same aspect as rotunda.png (1252x428): image fits exactly, so the
-     overlay's % insets map 1:1 onto image regions at every width */
-  aspect-ratio: 1252 / 428;
-  border-radius: 6px;
+  /* full bleed: absolute with left/right 0 and no positioned ancestor resolves
+     against the viewport (scrollbar excluded, so no sideways scroll), while the
+     unset top keeps the band where it sat in the flow. It takes no space, so
+     the hero below reserves it — see .rotunda-band + .palace-hero. */
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* the whole screen; the top bar floats over it, translucent */
+  height: 100svh;
   overflow: hidden;
-  /* webp, 62KB against the PNG's 880KB — this is the first paint of the home
-     page, so the PNG's weight was all above-the-fold latency. rotunda.png stays
-     as the lossless master and the reference the /?tune insets are read off:
-     python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)" */
-  background: url("/static/rotunda.webp") center / cover no-repeat;
+  /* how far past "just covers the screen" the hall is zoomed. Above ~1.25 the
+     outer room names leave a 16:10 screen. */
+  --band-zoom: 1.1;
+
+  /* the image itself, sized like background-size: cover (times the zoom) and
+     centred, so the band crops it at any screen shape. Everything laid over the
+     image lives in here and is placed in % of it, which are image px / 1376 or
+     / 768 at every size. No transform and no containment here: either would
+     trap the observatory, which expands #vault-brain with position: fixed. */
+  .rotunda-stage {
+    --stage-w: calc(max(100vw, 100svh * 1376 / 768) * var(--band-zoom));
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--stage-w);
+    aspect-ratio: 1376 / 768;
+    margin: calc(var(--stage-w) * -768 / 1376 / 2) 0 0 calc(var(--stage-w) / -2);
+    /* webp, a tenth of the PNG — this is the first paint of the home page.
+       rotunda.png stays as the lossless master the /?tune insets are read off:
+       python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)" */
+    background: url("/static/rotunda.webp") center / 100% 100% no-repeat;
+  }
 
   &::after {
-    /* fade the band's foot into the marble page */
+    /* frosted glass under the hero's text: from 80% down (the pool) the hall
+       shows through blurred, thickening into the page colour at the foot.
+       Feathered in by the mask, so it has no edge, border or corners. */
     content: "";
     position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, transparent 55%, var(--light) 100%);
+    inset: 80% 0 0 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--light) 30%, transparent) 0%,
+      color-mix(in srgb, var(--light) 60%, transparent) 55%,
+      var(--light) 100%
+    );
+    backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 35%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 35%);
     pointer-events: none;
   }
 
-  /* room names carved along the entablature, where the old latin ran.
-     SVG viewBox = image pixels (1252x428), so the arc maps 1:1 onto the
-     stone band at every width — same trick as the brain insets below */
+  /* the room names are carved into the image; each lights through its own
+     glyph mask (see initFrieze). SVG viewBox = image pixels (1376x768), so
+     the masks sit on their grooves at every width — same trick as the brain
+     insets below */
   .frieze {
     position: absolute;
     inset: 0;
@@ -898,22 +938,13 @@ body[data-slug="index"] {
       height: 100%;
     }
 
-    text {
-      /* a touch under the original carving (~14px in image coords) */
-      font-family: var(--headerFont);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     .frieze-word {
       /* the one thing in the frieze that takes the pointer back */
       pointer-events: auto;
-      /* carved: stone-shadow fill with the room's tint breathing through;
-         light falls from the oculus — bright groove edge below, shade above */
-      fill: color-mix(in srgb, var(--tint) 45%, #5c6470);
-      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
-        drop-shadow(0 -1px 1px rgba(40, 45, 55, 0.55));
+      /* at rest every groove is gilded the same pale gold, so the frieze
+         reads as one inscription and draws the eye to the room names */
+      fill: #e9c97a;
+      filter: drop-shadow(0 0 2px rgba(255, 226, 150, 0.7));
       transition:
         fill 0.25s ease,
         filter 0.25s ease;
@@ -924,9 +955,8 @@ body[data-slug="index"] {
         /* lit: full tint, halo like light raking across the carving.
            .hl echoes a hovered section star in the brain canvas */
         fill: var(--tint);
-        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
-          drop-shadow(0 0 5px var(--tint))
-          drop-shadow(0 0 14px color-mix(in srgb, var(--tint) 60%, transparent));
+        filter: drop-shadow(0 0 3px var(--tint))
+          drop-shadow(0 0 10px color-mix(in srgb, var(--tint) 60%, transparent));
       }
 
       /* the idle tour (hlEmit's soft flag): lit, but a step under a real
@@ -934,22 +964,22 @@ body[data-slug="index"] {
          round the room, not as something the pointer is doing. */
       &.hl-soft:not(:hover) {
         fill: var(--tint);
-        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6))
-          drop-shadow(0 0 5px var(--tint));
+        filter: drop-shadow(0 0 3px var(--tint));
       }
     }
   }
 
-  /* the mini brain sits over the image's glowing-brain region. Set by eye in
-     /?tune, starting from where the painted glow measures in rotunda.png
-     (x 425-855, y 140-352 image px) — the cloud fills ~86% of this box, so
-     the box runs wider than the glow it has to land on. */
+  /* the mini brain sits over the image's glowing-brain region, set by eye in
+     /?tune against the painted glow in rotunda.png (x 488-888, y 205-528
+     image px). The box ends above the brain stem: the constellation cloud
+     spills past its box, so a box down to the stem puts stars under it. Its bottom must stay
+     above the hero's glass (80% of the screen), or the glass covers it. */
   #vault-brain {
     position: absolute;
-    left: 31.13%;
-    right: 32.12%;
-    top: 31.19%;
-    bottom: 12.7%;
+    left: 34.41%;
+    right: 33.3%;
+    top: 23.09%;
+    bottom: 36.68%;
     height: auto;
     min-height: 0;
     z-index: 1;
@@ -971,12 +1001,12 @@ body[data-slug="index"] {
     position: absolute;
     left: -16%;
     right: -16%;
-    /* above the brain box, not across it. The gap is a % of that box so it
-       scales with the painting at every width. The observatory brain is the
+    /* over the crown of the brain box, low enough to clear the top bar. The
+       offset is a % of that box so it scales with the painting at every width. The observatory brain is the
        whole viewport, where "above" is off-screen — it re-centres this box
        itself (see #vault-brain.vb-expanded). */
     top: auto;
-    bottom: 107%;
+    bottom: 97%;
     /* shrink-to-fit inside that inset range: the slab hugs the sentence
        instead of spanning the whole band. Not `fit-content`, in either form —
        the bare keyword clamps against the available -16%/+16% span, so any
@@ -1054,8 +1084,24 @@ body[data-slug="index"] {
 
 .rotunda-band + .palace-hero {
   min-height: 0;
-  padding-top: 1rem;
+  /* the band takes no space (absolute), so the hero reserves it and starts
+     its text where the band's glass does: 80% down the screen, over the pool.
+     Padding, not margin: a margin would collapse through the article and drag
+     the band's static position down with it. */
+  padding-top: calc(100svh * 0.8 + 2rem);
   padding-bottom: 1.5rem;
+  /* the hero's box now spans the whole band; only its content takes the
+     pointer, so the brain, the frieze and the expand button stay clickable */
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  /* the oculus wash would lie over the painted dome */
+  &::before {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1119,12 +1165,12 @@ body[data-slug="index"] {
 
 @media (max-width: 640px) {
   /* the tiny brain + frieze hide on phones; the button becomes the
-     labelled entrance, centred low over the dome */
+     labelled entrance, centred under the brain, above the hero's glass */
   #vb-expand {
     top: auto;
     right: auto;
     left: 50%;
-    bottom: 14%;
+    bottom: 24%;
     transform: translateX(-50%);
 
     .vb-expand-txt {
@@ -1171,6 +1217,9 @@ body[data-slug="index"] {
     top: 50%;
     bottom: auto;
     transform: translateY(-50%);
+    /* showDesc nudges the slab below the top bar inline, for the rotunda only;
+       a nudge still set when the observatory opens must not follow it here */
+    translate: none !important;
   }
 }
 
@@ -1569,7 +1618,7 @@ body[data-slug^="books"] {
    Mobile keeps the stock stacked layout (explorer's own ☰ drawer).
    ============================================================ */
 :root {
-  --topbar-h: 3.4rem;
+  --topbar-h: 2.7rem;
 }
 
 @media all and not ($mobile) {
@@ -1589,8 +1638,20 @@ body[data-slug^="books"] {
     align-items: center;
     gap: 1.1rem;
     padding: 0 1.2rem;
-    background: var(--light);
-    border-bottom: 1px solid var(--lightgray);
+    border-bottom: 1px solid color-mix(in srgb, var(--lightgray) 60%, transparent);
+
+    /* frosted, so the page shows through as it scrolls under. On a pseudo,
+       not the bar: a backdrop-filter on the bar itself would make it the
+       containing block of the fixed explorer panel below and pin that panel
+       inside the bar. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: color-mix(in srgb, var(--light) 40%, transparent);
+      backdrop-filter: blur(8px) saturate(1.2);
+    }
 
     > .page-title {
       font-size: 1.3rem;

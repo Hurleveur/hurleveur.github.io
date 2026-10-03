@@ -1120,7 +1120,7 @@
   // the mini-brain box: dashed outline over #vault-brain, drag it to move,
   // drag the corner grip to resize. Numbers come out as the CSS inset rule.
   function tuneBrain() {
-    const band = document.querySelector(".rotunda-band")
+    const band = document.querySelector(".rotunda-stage")
     const wrap = document.getElementById("vault-brain")
     if (!band || !wrap || wrap.dataset.vbTune) return
     wrap.dataset.vbTune = "1"
@@ -1186,35 +1186,6 @@
     apply()
   }
 
-  // the frieze band: sliders for the ellipse the room names ride, plus the
-  // two x ranges. ry/rx is the curve's angle — the flatter the ratio, the
-  // less the words tilt at the edges. The cyan path draws the live curve.
-  function tuneFrieze(band, sides, layout) {
-    const panel = tunePanel()
-    const out = document.createElement("pre")
-    out.setAttribute("style", "margin:8px 0 0;white-space:pre-wrap;color:#ffd08a")
-    const redraw = () => {
-      layout()
-      out.textContent =
-        `const BAND = { cx: ${band.cx}, cy: ${band.cy}, rx: ${band.rx}, ry: ${band.ry}, ` +
-        `tilt: ${band.tilt} }\n` +
-        `const SIDES = [{ x0: ${sides[0].x0}, x1: ${sides[0].x1} }, ` +
-        `{ x0: ${sides[1].x0}, x1: ${sides[1].x1} }]`
-    }
-    tuneRow(panel, "band cx", band, "cx", 400, 900, 0.5, redraw)
-    tuneRow(panel, "band cy", band, "cy", -400, 200, 0.5, redraw)
-    tuneRow(panel, "band rx", band, "rx", 300, 1400, 1, redraw)
-    tuneRow(panel, "band ry", band, "ry", 120, 900, 1, redraw)
-    // word tilt, 1 = the curve's true tangent
-    tuneRow(panel, "word tilt", band, "tilt", 0.3, 1.7, 0.01, redraw)
-    tuneRow(panel, "left from", sides[0], "x0", 40, 500, 1, redraw)
-    tuneRow(panel, "left to", sides[0], "x1", 40, 500, 1, redraw)
-    tuneRow(panel, "right from", sides[1], "x0", 780, 1220, 1, redraw)
-    tuneRow(panel, "right to", sides[1], "x1", 780, 1220, 1, redraw)
-    panel.appendChild(out)
-    redraw()
-  }
-
   // rotunda frieze: one room name per real top-level folder, colored like
   // the constellation, counts live from the index — never a hand-kept list
   async function initFrieze() {
@@ -1234,40 +1205,27 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    // words carved along the rotunda entablature, where the baked
-    // pseudo-latin used to run (inpainted out of rotunda.png). SVG
-    // textPath on the entablature arc, fitted to the image's carve line;
-    // the brain image occludes the middle, so the rooms split left/right.
+    // the room names are carved into rotunda.png itself; each word lights by
+    // painting its own glyph mask (static/frieze/<room>.png) in the room's
+    // colour. The masks and these boxes come out of quartz/static/frieze/
+    // extract.py, a pixel diff of the image with and without the carving —
+    // exact to the groove, so nothing here is fitted or tuned by eye.
     {
       const NS = "http://www.w3.org/2000/svg"
       const svg = document.createElementNS(NS, "svg")
-      svg.setAttribute("viewBox", "0 0 1252 428")
+      svg.setAttribute("viewBox", "0 0 1376 768")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // words sit on the entablature band ellipse and rotate with its tangent,
-      // so no per-word lift or rotation fudge is needed anywhere. The starting
-      // ellipse was a least-squares fit of the cornice line read out of
-      // rotunda.png (cx 628.8, cy -16.5, rx 603.2, ry 333.9); these are that
-      // fit walked onto the carve line by eye in /?tune, which is the only
-      // reliable way to set them — see tuneFrieze below.
-      // tilt scales the tangent every word rotates by; 1 is the curve's own
-      // tangent. It is off 1 because the carve line and the cornice the fit
-      // was read off are different circles in 3D, so their projected tangents
-      // differ — but a value far from 1 means the ellipse itself is wrong.
-      const BAND = { cx: 626.5, cy: -20, rx: 580, ry: 333.9, tilt: 1.02 }
-      const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
-      const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
-      const bandDeg = (x) =>
-        ((Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI) *
-        BAND.tilt
-      // per-side x ranges: start where the band clears the front column, end
-      // where the carve line leaves the entablature. They may reach over the
-      // brain canvas box — .frieze stacks above it and hands the pointer back
-      // on its glyphs alone, so those words still open their own room.
-      const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
+      // [x, y, width, height] of each word's mask, rotunda.png px
+      const CARVED = {
+        alignment: [172, 180, 104, 98],
+        work: [278, 262, 59, 52],
+        travel: [340, 295, 70, 46],
+        friends: [413, 321, 75, 40],
+        shared: [902, 317, 86, 43],
+        library: [997, 270, 101, 64],
+        meaning: [1095, 184, 102, 101],
+      }
       const folders = Object.keys(counts).sort(chakraSort)
-      const half = Math.ceil(folders.length / 2)
-      const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
-      // attach before measuring: getComputedTextLength needs a laid-out tree
       frieze.appendChild(svg)
       // the hovered room's folder-note description surfaces in the middle of
       // the brain, word by word (contentIndex[folder/index].description)
@@ -1299,59 +1257,66 @@
         // 0 = nothing was laid out (the band is hidden on a phone): leave the
         // cap alone rather than collapsing the box to nothing
         if (widest) descBox.style.width = Math.ceil(widest) + 1 + "px"
-      }
-      const sides = [folders.slice(0, half), folders.slice(half)].map((list) =>
-        list.map((folder) => {
-          const text = document.createElementNS(NS, "text")
-          text.setAttribute("text-anchor", "middle")
-          const a = document.createElementNS(NS, "a")
-          a.setAttribute("href", "/" + folder + "/")
-          a.setAttribute("class", "frieze-word")
-          a.dataset.folder = folder
-          a.style.setProperty("--tint", folderColor(folder))
-          a.textContent = folder.replace(/-/g, " ")
-          // same touch-contact-reads-as-hover issue as onMove above: a tap on
-          // the word must not flash its description before the click navigates
-          a.addEventListener("pointerenter", (e) => {
-            if (e.pointerType !== "touch") hlEmit(folder)
-          })
-          a.addEventListener("pointerleave", (e) => {
-            if (e.pointerType !== "touch") hlEmit(null)
-          })
-          text.appendChild(a)
-          svg.appendChild(text)
-          return text
-        }),
-      )
-      // re-runnable so ?tune can re-place every word as the band is dragged
-      const layout = () => {
-        sides.forEach((words, s) => {
-          const { x0, x1 } = SIDES[s]
-          // measure actual glyph widths (only possible once attached to the
-          // DOM) so long words get real room instead of a fixed index slot
-          const widths = words.map((t) => t.getComputedTextLength())
-          const span = widths.reduce((a, b) => a + b, 0) + WORD_GAP * (words.length - 1)
-          const scale = Math.min(1, (x1 - x0) / (span || 1))
-          let cursor = x0 + Math.max(0, (x1 - x0 - span * scale) / 2)
-          words.forEach((text, i) => {
-            const x = cursor + (widths[i] * scale) / 2
-            cursor += widths[i] * scale + WORD_GAP * scale
-            text.setAttribute(
-              "transform",
-              `translate(${x.toFixed(1)} ${bandY(x).toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
-            )
-          })
-        })
-        if (guide) {
-          const pts = []
-          for (let x = 40; x <= 1212; x += 12) pts.push(`${x} ${bandY(x).toFixed(1)}`)
-          guide.setAttribute("d", "M" + pts.join("L"))
+        // the slab hangs above the brain, and the band starts at the top of
+        // the screen: on a short screen that is under the fixed top bar. Push
+        // it down until it clears the bar. `translate`, not `transform`: the
+        // observatory centres this same box with a transform of its own.
+        descBox.style.translate = ""
+        if (!descBox.closest(".vb-expanded")) {
+          const bar = document.querySelector(".sidebar.left")?.getBoundingClientRect()
+          const top = descBox.getBoundingClientRect().top
+          const under = bar && bar.height < 120 ? bar.bottom + 8 - top : 0
+          if (under > 0) descBox.style.translate = `0 ${Math.ceil(under)}px`
         }
       }
-      const guide = TUNE ? svg.appendChild(document.createElementNS(NS, "path")) : null
-      if (guide) guide.setAttribute("style", "fill:none;stroke:#0ff;stroke-width:1;opacity:.7")
-      layout()
-      if (TUNE) tuneFrieze(BAND, SIDES, layout)
+      const defs = svg.appendChild(document.createElementNS(NS, "defs"))
+      const rect = (x, y, w, h) => {
+        const r = document.createElementNS(NS, "rect")
+        r.setAttribute("x", x)
+        r.setAttribute("y", y)
+        r.setAttribute("width", w)
+        r.setAttribute("height", h)
+        return r
+      }
+      for (const folder of folders) {
+        const key = folder.toLowerCase()
+        // ponytail: a room not carved into the image gets no word; carve it
+        // into the picture and re-run extract.py to give it one
+        if (!CARVED[key]) continue
+        const [x, y, w, h] = CARVED[key]
+        const mask = document.createElementNS(NS, "mask")
+        mask.id = "vb-carve-" + key
+        mask.setAttribute("maskUnits", "userSpaceOnUse")
+        const img = mask.appendChild(document.createElementNS(NS, "image"))
+        img.setAttribute("href", `/static/frieze/${key}.png`)
+        img.setAttribute("x", x)
+        img.setAttribute("y", y)
+        img.setAttribute("width", w)
+        img.setAttribute("height", h)
+        defs.appendChild(mask)
+        const a = document.createElementNS(NS, "a")
+        a.setAttribute("href", "/" + folder + "/")
+        a.setAttribute("class", "frieze-word")
+        a.setAttribute("aria-label", folder.replace(/-/g, " "))
+        a.dataset.folder = folder
+        a.style.setProperty("--tint", folderColor(folder))
+        // same touch-contact-reads-as-hover issue as onMove above: a tap on
+        // the word must not flash its description before the click navigates
+        a.addEventListener("pointerenter", (e) => {
+          if (e.pointerType !== "touch") hlEmit(folder)
+        })
+        a.addEventListener("pointerleave", (e) => {
+          if (e.pointerType !== "touch") hlEmit(null)
+        })
+        // the glyphs: a box of the word's colour, cut to the carving
+        const glyphs = a.appendChild(rect(x, y, w, h))
+        glyphs.setAttribute("mask", `url(#${mask.id})`)
+        // the hit area: the whole box, so the pointer need not land in a groove.
+        // A fill attribute beats the colour the <a> hands down; transparent
+        // still counts as painted, so it takes the pointer.
+        a.appendChild(rect(x, y, w, h)).setAttribute("fill", "transparent")
+        svg.appendChild(a)
+      }
       // the brain echoes back: hovering a section star lights its word — and
       // rides the same bus, so a star and its room name both raise the panel
       const onHl = (e) => {

@@ -46,16 +46,16 @@ Seven forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`
 
 `quartz/static/vaultbrain.js` and `quartz/styles/custom.scss` deliberately fail `prettier --check` (aligned comments, compact arrays — 150 and 45 diff lines respectively). Never `--write` them. To check just your own additions: `npx prettier <file> | diff <file> -` and confirm your block contributes nothing to the diff.
 
-## The rotunda is fitted to a painted image — `/?tune` refits it
+## The rotunda is fitted to a painted image
 
-Two numbers on the home hero are eyeballed against `quartz/static/rotunda.png` (1252x428 image px, the SVG viewBox and the band's own aspect ratio, so % insets map 1:1 at every width) and live in two different files: the mini-brain box (`#vault-brain` insets in `custom.scss`) and the frieze band ellipse the room names ride (`BAND` + `SIDES` in `vaultbrain.js`).
+The home hero is `quartz/static/rotunda.png` (1376x768), drawn full-screen and cropped like `background-size: cover` by `.rotunda-stage`; everything over the image is placed in % of that stage, so image px map 1:1 at every size.
 
-- Run `npm run tune` and open `/?tune`: drag the brain box, slide the band, paste the panel's numbers back into the source. Nothing else is a reliable way to set these.
+- The room names are carved into the image. `quartz/static/frieze/extract.py` diffs it against the same render without the carving and writes one glyph mask per room plus the `CARVED` box table in `vaultbrain.js`; a new image means re-running it, never hand-placing words.
+- The mini-brain box (`#vault-brain` insets in `custom.scss`) is the one thing still set by eye: `npm run tune`, open `/?tune`, drag the box, paste the numbers back.
 - **Start the dev server with `dangerouslyDisableSandbox: true`.** The Bash sandbox unshares the network namespace, so a server started inside it prints "listening at 8050" while nothing is bound on the host — the browser gets nothing. Confirm with `ss -ltn | grep :8050`, never with `curl` from inside the sandbox (always `000`).
 - The panel mirrors itself to `tune.out` at the repo root (gitignored): `tunePanel` POSTs its text to `/__tune`, which the dev server writes to disk. Read that file instead of asking for a paste.
-- `SIDES` may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
+- A carved word may reach into the `#vault-brain` box: the frieze sits above the canvas (`z-index: 2`) and is `pointer-events: none` except on `.frieze-word`, so a word over the brain still clicks through to its room. Delete any part of that and those words silently open `/brain` instead — `quartz/static/rotunda.test.ts` is the only thing that notices.
 - `#vb-desc` is one element in two places — the mini brain and the full-screen observatory — so any rem-only size cap on it overflows a phone screen; keep a `100vw` term in the cap.
-- `BAND` is a least-squares fit of the cornice line in the image, not a guess; the words ride its true tangent, so a per-word lift or rotation fudge means the fit is wrong, not the word.
 - `.palace-hero` is painted in literal daylight hex, not theme variables. Any colour added there needs a matching `[saved-theme="dark"]` rule or it is invisible at night.
 - The band is painted from `rotunda.webp`; `rotunda.png` is the lossless master the insets are measured against and is never referenced by the page. Re-encode after editing the master: `python3 -c "from PIL import Image; Image.open('rotunda.png').convert('RGB').save('rotunda.webp','WEBP',quality=86,method=6)"`.
 
