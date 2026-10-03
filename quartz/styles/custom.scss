@@ -1,3 +1,4 @@
+@use "sass:math";
 @use "./variables.scss" as *;
 
 /* ============================================================
@@ -2000,10 +2001,14 @@ body.vb-open #quartz-body .sidebar.right {
   }
 }
 
-/* the map and the shelf both want more than the 240px the stock column gives */
+/* the map and the shelf both want more than the 240px the stock column gives,
+   and on a wide screen the floor between the text and the map is otherwise
+   left empty: the column grows with the screen instead */
+$rightCol: clamp(320px, 24vw, 480px);
+
 @media all and ($desktop) {
   body:not([data-slug="index"]):not(.brain-off) #quartz-body {
-    grid-template-columns: auto 320px;
+    grid-template-columns: auto $rightCol;
   }
 
   /* ✦ off takes the whole column with it — TOC, recent notes, backlinks,
@@ -2028,10 +2033,12 @@ body.vb-open #quartz-body .sidebar.right {
    text column's position is a function of viewport width and brain-on/off
    only — never body.nav-off, so ☰ no longer shifts it.
    $explorerFitsAt is the viewport width at which centering the text below
-   already clears the explorer's default width on its own (both gutters +
-   right column + gap + read width + default --sidebar-w + 1rem). Below it
-   the explorer has nowhere to go but over the text, so it overlays instead. */
-$explorerFitsAt: calc(2rem + 1.2rem + 320px + 5px + #{$readWidth} + #{$sidePanelWidth} + 1rem);
+   already clears the explorer's default width on its own. Below it the
+   explorer has nowhere to go but over the text, so it overlays instead.
+   A media query can't read $rightCol's clamp, so it is solved here for its
+   24vw middle (valid while 24vw lands within 320-480px, i.e. 1333-2000px):
+   V - 0.24V >= gutters 2rem+1.2rem + gap 5px + read width + explorer + 1rem */
+$explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 16px, 0.76);
 
 @media all and ($desktop) {
   body:not([data-slug="index"]) {
