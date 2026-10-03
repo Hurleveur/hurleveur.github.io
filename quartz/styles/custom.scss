@@ -2082,6 +2082,7 @@ $rightCol: clamp(320px, 24vw, 480px);
    A media query can't read $rightCol's clamp, so it is solved here for its
    24vw middle (valid while 24vw lands within 320-480px, i.e. 1333-2000px):
    V - 0.24V >= gutters 2rem+1.2rem + gap 5px + read width + explorer + 1rem */
+$readWidthMax: 840px; // wide screens: the line may grow this far into the margin
 $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 16px, 0.76);
 
 @media all and ($desktop) {
@@ -2119,12 +2120,16 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
      into the now-empty margin rather than onto the page */
   @media (min-width: $explorerFitsAt) {
     body:not([data-slug="index"]) {
+      // text starts 2rem past the explorer's edge (room for the toc rail)
+      // and grows into the rest, up to $readWidthMax; slack past that splits
+      // evenly. Viewport-only, so ☰ and ✦ still never move it.
       .center,
       footer {
-        margin-left: max(
-          min(calc(50vw - #{$readWidth} / 2 - 2rem), calc(100% - #{$readWidth})),
-          calc(var(--sidebar-w, #{$sidePanelWidth}) + 1rem)
-        );
+        --text-l: var(--sidebar-w, #{$sidePanelWidth});
+        --text-w: min(#{$readWidthMax}, calc(100% - var(--text-l)));
+        max-width: none;
+        width: var(--text-w);
+        margin-left: calc(var(--text-l) + (100% - var(--text-l) - var(--text-w)) / 2);
       }
     }
   }

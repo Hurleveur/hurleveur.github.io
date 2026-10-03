@@ -65,6 +65,7 @@ The text column's position depends on viewport width only, never on ☰ or ✦ (
 
 - `.center` needs `min-width: 0` beside its `max-width: $readWidth`: `base.scss` gives it `min-width: 100%`, which beats max-width and silently spreads the text under the side brain.
 - `.page-header` lives inside `.center`; give it no centring of its own or it is offset twice.
+- Past `$explorerFitsAt` the text starts 2rem right of the explorer edge and grows to `$readWidthMax` (840px), extra width split evenly.
 - The right column is `$rightCol` (`clamp(320px, 24vw, 480px)`); `$explorerFitsAt` is solved by hand for that clamp, so change one and re-solve the other.
 - The home hero title is placed in the rotunda stage's own cover-crop coordinates and shares `--band-zoom` (on `:root`) with `.rotunda-stage`; change the stage's sizing formula and the hero's must follow.
 - The `toc-rail` fork measures `.center`'s left edge in JS (`--toc-rail-right`) to sit beside the text.
