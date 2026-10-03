@@ -1110,12 +1110,33 @@ body[data-slug="index"] {
       right: 0;
       margin: 0;
       text-align: center;
-      /* this sits on the raw painted sky now, not the hero's frosted glass
-         (that starts at 80%) — the daylight hex needs help standing out. A
-         fixed dark shadow, not a [saved-theme="dark"] colour: the backdrop
-         is the painting, which doesn't flip with the site theme, so there is
-         no night variant for this one to answer to. */
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+      /* this sits on the raw painted marble now, not the hero's frosted
+         glass (that starts at 80%): a pale halo lifts the bronze off the grey
+         stone, where a dark blur only muddied it */
+      text-shadow:
+        0 0 2px rgba(255, 250, 238, 0.95),
+        0 0 14px rgba(255, 250, 238, 0.85);
+    }
+
+    /* the plaque reads from across the hall here, not from the doorway */
+    h1 {
+      font-size: clamp(1.9rem, 3vw, 2.7rem);
+      font-weight: 600;
+    }
+
+    .eyebrow {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* at night the ink is the light one, so the halo goes dark. Here, not in
+       the [saved-theme="dark"] .palace-hero block: that ties this rule on
+       specificity and loses on order */
+    [saved-theme="dark"] & .eyebrow,
+    [saved-theme="dark"] & h1 {
+      text-shadow:
+        0 0 2px rgba(0, 0, 0, 0.9),
+        0 0 14px rgba(0, 0, 0, 0.75);
     }
 
     .eyebrow {
