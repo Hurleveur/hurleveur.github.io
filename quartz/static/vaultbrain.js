@@ -1535,25 +1535,15 @@
     }
   }
 
-  // homepage "what this place is": Vault Map down to its rooms section, via
-  // static/vaultmap.json. Everything above "The rooms" — what this place is and
-  // how to get around it — belongs on the home page; the rooms themselves are
-  // the doors below, and the sections after them have their own homes.
-  // First paragraph shows; "Read more" swaps in the rest plus the way through
-  // to the full map — same teaser mechanic as the whoami card above.
   // the home page carries Vault Map itself, section by section, in the note's
   // own order: heading and body render plainly, the rooms section is dropped
   // because the doors below already render it, and whatever follows the rooms
-  // lands in #vault-outro underneath them.
+  // lands in #vault-outro underneath them. Every section renders whole — the
+  // note decides what the home page says, not a cut here.
   //
-  // Two exceptions, neither of which the note has syntax for:
-  //   - a section named here shows only its first N blocks, the rest behind a
-  //     "Read more" — the Palace prose opens the page, but the paragraph on
-  //     evergreen notes is detail nobody needs before they have walked in.
-  //   - a collapsible callout becomes a <details>. That is also the only thing
-  //     that works: the callout script binds on nav, so a callout injected
-  //     after it would render but never toggle.
-  const INTRO_TEASER = { palace: 2 }
+  // One exception the note has no syntax for: a collapsible callout becomes a
+  // <details>. That is also the only thing that works: the callout script
+  // binds on nav, so a callout injected after it would render but never toggle.
 
   async function initVaultIntro() {
     const box = document.getElementById("vault-intro")
@@ -1616,24 +1606,7 @@
         h.textContent = s.title
         target.appendChild(h)
       }
-      const cut = INTRO_TEASER[s.id]
-      if (!cut || s.nodes.length <= cut) {
-        target.append(...s.nodes)
-        return
-      }
-      const rest = document.createElement("div")
-      rest.className = "vault-intro-rest"
-      rest.hidden = true
-      rest.append(...s.nodes.slice(cut))
-      const more = document.createElement("button")
-      more.className = "vault-intro-more"
-      more.type = "button"
-      more.textContent = "Read more"
-      more.addEventListener("click", () => {
-        rest.hidden = !rest.hidden
-        more.textContent = rest.hidden ? "Read more" : "Read less"
-      })
-      target.append(...s.nodes.slice(0, cut), rest, more)
+      target.append(...s.nodes)
     }
 
     box.replaceChildren()

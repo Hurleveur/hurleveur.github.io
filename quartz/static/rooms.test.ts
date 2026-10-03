@@ -42,16 +42,11 @@ describe("the rooms", () => {
     )
   })
 
-  test("only the Palace prose hides behind Read more", () => {
-    // every other section of the note renders plainly. If the teaser map grows
-    // a second entry, or the button stops being built, part of the map either
-    // disappears from the home page or arrives already spent.
-    const teaser = js.slice(
-      js.indexOf("const INTRO_TEASER"),
-      js.indexOf("async function initVaultIntro"),
-    )
-    assert.match(teaser, /\{ palace: 2 \}/, "the Palace teaser no longer cuts at two blocks")
-    assert.match(initVaultIntro, /"Read more"/, "the Read more control is gone")
+  test("every section of the note renders whole", () => {
+    // the note decides what the home page says. A cut here once hid every
+    // line of Palace past the second behind "Read more", so new lines added
+    // to the note never showed.
+    assert.doesNotMatch(initVaultIntro, /"Read more"/, "part of the map is behind Read more again")
     assert.match(
       initVaultIntro,
       /\^H\[1-6\]\$/,
