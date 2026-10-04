@@ -981,6 +981,14 @@ body[data-slug="index"] {
     height: auto;
     min-height: 0;
     z-index: 1;
+
+    /* a finger sweeping the brain glances over its stars like a mouse does;
+       left to the browser it would take the swipe as page scroll and cancel
+       the pointer after the first touch. The page still scrolls from outside
+       this box. */
+    canvas {
+      touch-action: none;
+    }
   }
 
   #vb-stars {
