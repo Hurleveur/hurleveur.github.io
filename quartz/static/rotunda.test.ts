@@ -206,3 +206,41 @@ describe("the description slab is as wide as its longest line", () => {
     assert.equal(widestLine([rect(0, 0, 0)]), 0)
   })
 })
+
+// The mini brain keeps its stars inside the painted outline (brainShape). A
+// typo in BRAIN_OUTLINE or a flipped inPoly comparison would scatter them over
+// the dome or pile them in the middle — nothing else would notice.
+describe("brain outline", () => {
+  const src = js.slice(
+    js.indexOf("const BRAIN_OUTLINE"),
+    js.indexOf("// frieze ↔ brain highlight bus"),
+  )
+  const { pts, inPoly } = new Function(`${src}; return { pts: BRAIN_OUTLINE, inPoly }`)() as {
+    pts: [number, number][]
+    inPoly: (pts: [number, number][], x: number, y: number) => boolean
+  }
+
+  test("the brain's middle and its lobes are inside", () => {
+    for (const [x, y] of [
+      [690, 330],
+      [520, 320],
+      [690, 220],
+      [860, 360],
+      [800, 455],
+    ]) {
+      assert.ok(inPoly(pts, x, y), `${x},${y} should be inside`)
+    }
+  })
+
+  test("the dome, the stem and the columns are outside", () => {
+    for (const [x, y] of [
+      [690, 180],
+      [470, 330],
+      [700, 520],
+      [540, 450],
+      [910, 360],
+    ]) {
+      assert.ok(!inPoly(pts, x, y), `${x},${y} should be outside`)
+    }
+  })
+})

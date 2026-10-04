@@ -1178,22 +1178,15 @@ body[data-slug="index"] {
     display: none; /* carved room names: too small to read on a phone */
   }
 
-  /* the brain itself stays live (init() just needs a non-zero box) but
-     shrinks and recentres. The desktop insets above are a % of the stage,
-     not the viewport: in portrait the cover-cropped stage runs ~4x wider
-     than the screen (it has to, to cover the height), so a plain % inset
-     here would still centre a box wider than the phone. Stage is always
-     centred on the viewport's own centre though (left: 50%, margin -w/2
-     above), so "50%" from either edge already lands on screen-centre —
-     subtracting a vw-capped half-width off that gives a fixed on-screen
-     box regardless of how wide the stage balloons. Vertical stays a plain
-     %: the stage only overshoots height by the zoom factor (~10%), so top/
-     bottom keep clearing the top bar and the painted figure at ~82% fine. */
+  /* the brain itself stays live (init() just needs a non-zero box). In
+     portrait the cover-cropped stage runs ~4x wider than the screen, so the
+     box spans the screen instead (the stage is centred on it, so 50% less
+     50vw is the screen's edge) and keeps the image-aligned top/bottom from
+     above. The stars stay inside the painted outline clipped to this box
+     (brainShape in vaultbrain.js), so the box can be the whole screen. */
   .rotunda-band #vault-brain {
-    left: calc(50% - min(140px, 38vw));
-    right: calc(50% - min(140px, 38vw));
-    top: 26%;
-    bottom: 44%;
+    left: calc(50% - 50vw);
+    right: calc(50% - 50vw);
   }
 }
 

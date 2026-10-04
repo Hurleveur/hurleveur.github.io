@@ -87,6 +87,26 @@
   // ponytail: 7 distinct steps, wraps past 7 sub-folders in one section.
   const TINTS = [0.24, 0.12, 0.33, 0.06, 0.42, 0.18, 0.3]
 
+  // the painted brain's outline in rotunda.png px (1376x768): cerebrum and
+  // cerebellum, the stem left out. Traced by hand — the brain is translucent
+  // over the dome, so no threshold finds its edge. The rotunda's mini brain
+  // lays its rooms out inside it and keeps every star in it (brainShape).
+  const BRAIN_OUTLINE = [
+    [487, 330], [492, 295], [515, 260], [545, 237], [590, 220], [640, 210], [680, 206],
+    [730, 210], [780, 220], [820, 240], [855, 275], [877, 315], [886, 360], [882, 400],
+    [865, 430], [840, 465], [790, 475], [730, 450], [690, 442], [630, 445], [600, 430],
+    [580, 400], [540, 400], [505, 375], [490, 350],
+  ]
+  // even-odd ray cast: is (x, y) inside the polygon pts
+  function inPoly(pts, x, y) {
+    let inside = false
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j]
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+    }
+    return inside
+  }
+
   // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
   // stars, hovering a star lights its frieze word. detail = folder or null.
   // ev.soft marks the idle tour in initFrieze rather than a pointer: the same
@@ -392,6 +412,34 @@
     const showLabels = local && nodes.length <= 16
 
     let W, H, dpr
+    // mini: BRAIN_OUTLINE in canvas px with each room's spot inside it, or null
+    let shape = null
+    // the outline goes from image px to this canvas through the stage's live
+    // box (the stage is the image, cover-cropped), clamped to the canvas less
+    // a glow margin: on a phone the painted brain is wider than the box.
+    // Rooms keep their ring order, stretched to the outline's extent and
+    // walked back toward the middle until they sit inside it.
+    function brainShape() {
+      const stage = wrap.closest(".rotunda-stage")
+      if (!stage) return null
+      const s = stage.getBoundingClientRect(), w = wrap.getBoundingClientRect()
+      const k = s.width / 1376, m = 12
+      const pts = BRAIN_OUTLINE.map(([x, y]) => [
+        Math.min(W - m, Math.max(m, s.left + x * k - w.left)),
+        Math.min(H - m, Math.max(m, s.top + y * k - w.top)),
+      ])
+      const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1])
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = (x1 - x0) / 2, ry = (y1 - y0) / 2
+      const hub = {}
+      for (const f in hubs) {
+        let t = 0.7
+        const at = () => [cx + hubs[f].ax * rx * t, cy + (hubs[f].ay / 0.72) * ry * t]
+        while (t > 0.1 && !inPoly(pts, ...at())) t -= 0.05
+        hub[f] = at()
+      }
+      return { pts, cx, cy, rx, ry, hub }
+    }
     // zoom/pan viewport (full mode only): screen = world * s + offset
     const view = { s: 1, x: 0, y: 0 }
     function clampView() {
@@ -411,6 +459,7 @@
         c.height = H * dpr
         c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0)
       })
+      if (mini) shape = brainShape()
       paintStars()
       clampView()
       heat = Math.max(heat, 0.6) // rewarm the sim so the sky re-settles to the new size
@@ -438,13 +487,14 @@
         return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
       }
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
-      let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
-      let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
+      let [hx, hy] = shape
+        ? shape.hub[n.folder] || [shape.cx, shape.cy]
+        : [W / 2 + hub.ax * W * (mini ? 0.32 : 0.3), H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)]
       // sub-folder notes home to a spot offset from the section hub so each
       // sub-folder settles as its own clump; hubs and no-sub notes sit at core.
       const off = !n.hub && n.sub && subOff[n.folder + "/" + n.sub]
       if (off) {
-        const R = Math.min(W, H) * (mini ? 0.1 : 0.085)
+        const R = shape ? Math.min(shape.rx, shape.ry) * 0.3 : Math.min(W, H) * (mini ? 0.1 : 0.085)
         hx += off[0] * R
         hy += off[1] * R
       }
@@ -495,8 +545,16 @@
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
         // ellipse sits well inside the canvas: node glows reach ~4x node radius,
         // and anything past the canvas edge clips to a hard bright rectangle
-        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.47))
-        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.45))
+        // mini: the painted outline instead (brainShape), pulled toward its middle
+        if (shape) {
+          if (!inPoly(shape.pts, n.x, n.y)) {
+            n.vx += (shape.cx - n.x) * 0.02
+            n.vy += (shape.cy - n.y) * 0.02
+          }
+          return
+        }
+        const ex = (n.x - W / 2) / (W * 0.47)
+        const ey = (n.y - H / 2) / (H * 0.45)
         const d = ex * ex + ey * ey
         if (d > 1) {
           n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
