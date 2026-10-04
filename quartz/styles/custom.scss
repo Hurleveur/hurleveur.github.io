@@ -1939,10 +1939,10 @@ body[data-slug^="books"] {
   /* :not() so the overlay wins when ⤢ takes this same element full-screen —
      two ids here would otherwise outrank #vault-brain.vb-expanded */
   #vault-brain:not(.vb-expanded) {
-    /* square: the ring is sized to the short side (homeOf), so any extra
-       height was empty sky above and below it */
+    /* wider than tall: the ring is an ellipse filling the box (homeOf), so
+       the ⤢ and the caption sit on the map's own edges, not on empty sky */
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: 5 / 4;
     max-height: 46vh;
     min-height: 0;
     /* no sky of its own: the neighbourhood is drawn straight on the page, in
@@ -1957,7 +1957,7 @@ body[data-slug^="books"] {
   }
 
   .vb-side-cap {
-    margin: 0.4rem 0 0;
+    margin: 0;
     font-family: var(--sans);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
@@ -1982,8 +1982,8 @@ body.vb-open #quartz-body .sidebar.right {
 /* ⤢ the whole vault — the same button and handler as the rotunda's, so it
    opens the same observatory; only its place on the panel differs */
 #vb-side #vb-expand {
-  top: 0.45rem;
-  right: 0.45rem;
+  top: 0.2rem;
+  right: 0.2rem;
   min-height: 32px;
   padding: 0 0.5rem;
   z-index: 3;

@@ -543,9 +543,10 @@
       // mini: the canvas IS the image's brain — spread wider to fill it
       if (local) {
         if (n.you) return [W / 2, H / 2]
-        // 0.36 of the short side leaves room outside the ring for the titles
-        const R = Math.min(W, H) * 0.36
-        return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
+        // an ellipse filling the panel: titles clamp inside the width (label),
+        // so only 24px above and below is kept for the top and bottom ones
+        const rx = W * 0.36, ry = Math.max(H / 2 - 24, H * 0.3)
+        return [W / 2 + Math.cos(n.ang) * rx, H / 2 + Math.sin(n.ang) * ry]
       }
       if (shape) return (n.hub ? shape.hub[n.folder] : shape.home[n.slug]) || [shape.cx, shape.cy]
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
