@@ -25,10 +25,11 @@ THRESH = 14  # grey levels of darkening that count as groove, not JPEG noise
 PAD = 3  # px of margin around each word's box, so the glow is not clipped
 SCALE = 3  # masks are written at 3x the image, so the gilding stays crisp on a
 # screen that shows the rotunda larger than its 1376px
-CRACK = 2  # px at SCALE: widest vein gap closed inside a letter
-SOLID = 3  # alpha gain: a groove a third as dark as the rest still gilds fully
-SPECK = 70  # px at SCALE (counted after SOLID): the dot beside LIBRARY is 32+54,
-# the smallest real letter piece (SHARED's A, split by a vein) is 82
+FLOOR = 6  # grey levels of darkening that are JPEG noise, gilded at zero
+FULL = 60  # percentile of a word's groove darkening that gilds at full: a
+# stem's usual depth, so only its shallow edge and the hairlines ramp
+LIFT = 0.6  # gamma on the ramp: half-deep strokes gild most of the way
+SPECK = 40  # px at SCALE: the dot beside LIBRARY, not any letter piece
 
 
 def disk(r):
@@ -65,14 +66,11 @@ for word, (ys, xs) in zip(WORDS, boxes):
     # the bicubic curve between pixels instead of the 1x pixel staircase
     crop = Image.fromarray((dark * mask_near(mask))[y0:y1, x0:x1].astype(np.float32), "F")
     up = np.asarray(crop.resize(((x1 - x0) * SCALE, (y1 - y0) * SCALE), Image.BICUBIC))
-    # soft ramp around the threshold rather than a hard cut: antialiased edges
-    alpha = np.clip((up - (THRESH - 6)) / 16, 0, 1)
-    # a marble vein crossing a groove barely darkens it, so the raw mask goes
-    # grey or black there and the gold shows the crack: solid inside a letter,
-    # soft only at its edge, and hairline gaps closed. The radius stays under
-    # a letter's counter, so A, B, R keep their holes.
-    alpha = np.clip(alpha * SOLID, 0, 1)
-    alpha = ndimage.grey_closing(alpha, footprint=disk(CRACK))
+    # gold in proportion to how deep the groove is painted, not a threshold:
+    # stems gild full, a 1px hairline or serif gilds faint instead of dropping
+    # out, and the letter keeps the painted outline rather than a swollen one
+    full = np.percentile(up[up > THRESH], FULL)
+    alpha = np.clip((up - FLOOR) / (full - FLOOR), 0, 1) ** LIFT
     # and drop specks that are not part of any letter
     blobs, n = ndimage.label(alpha > 0)
     sizes = ndimage.sum(alpha > 0.5, blobs, range(1, n + 1))
