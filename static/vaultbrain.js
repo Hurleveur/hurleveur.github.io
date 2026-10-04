@@ -2184,7 +2184,10 @@
     const center = document.querySelector(".center")
     if (!rail || !center) return
     let foot = document.getElementById("vb-shelf-foot")
-    if (document.body.classList.contains("brain-off") && wide()) {
+    // home hides its column outright (custom.scss); moving the shelf out
+    // from under that rule would put recent notes under the rotunda
+    const home = document.body.dataset.slug === "index"
+    if (document.body.classList.contains("brain-off") && wide() && !home) {
       if (!foot) {
         foot = document.createElement("div")
         foot.id = "vb-shelf-foot"
