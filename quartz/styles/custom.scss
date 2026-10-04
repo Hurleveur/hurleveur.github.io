@@ -1723,7 +1723,7 @@ body[data-slug^="books"] {
     flex-direction: row;
     align-items: center;
     gap: 1.1rem;
-    padding: 0 0.75rem; // ☰ and ✦ hug the window edges, like the phone bar
+    padding: 0; // ☰ and ✦ touch the window edges
     border-bottom: 1px solid color-mix(in srgb, var(--lightgray) 60%, transparent);
 
     /* frosted, so the page shows through as it scrolls under. On a pseudo,
@@ -1831,16 +1831,17 @@ body[data-slug^="books"] {
     top: 0;
     z-index: 6;
     // was padding: 0; padding-top: 2rem — half the bar was empty air above
-    // the row. No side padding: #quartz-body's 1rem gutter already insets
-    // it, so ☰ and ✦ line up with the text instead of sitting 2rem in
+    // the row. The negative margin cancels #quartz-body's 1rem gutter, so
+    // ☰ and ✦ touch the screen edges
     padding: 0.6rem 0;
+    margin: 0 -1rem;
     min-height: 40px;
     transition: transform 0.2s ease;
 
     &::before {
       content: "";
       position: absolute;
-      inset: 0 -1rem; // over #quartz-body's 1rem side padding, edge to edge
+      inset: 0;
       z-index: -1;
       background: color-mix(in srgb, var(--light) 40%, transparent);
       backdrop-filter: blur(8px) saturate(1.2);
@@ -1862,11 +1863,10 @@ body[data-slug^="books"] {
     transform: translateY(-100%);
   }
 
-  // the drawer is positioned from the bar, which sits inside #quartz-body's
-  // 1rem side padding: from there, -100vw left a 16px strip of it on screen
-  // (and the open drawer ran 16px off the right). Pin it to the screen edge.
+  // the drawer hangs from the edge-to-edge bar; its rows keep 1rem off the
+  // screen edge (border-box keeps the drawer itself 100vw wide)
   body .explorer .explorer-content {
-    left: -1rem;
+    padding-left: 1rem;
   }
 
   // the drawer's rows were desktop-sized (24px lines) under a thumb: a size
