@@ -2235,6 +2235,63 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
   }
 }
 
+/* phone: the right column becomes a drawer off the right edge, pulled out by
+   a swipe left from there (vaultbrain.js swipeSideDecision) — the desktop
+   column in miniature: side brain, recent notes, backlinks. Slid with right
+   rather than transform: a transform would make it the containing block of
+   the observatory that ⤢ expands out of it. */
+@media all and ($mobile) {
+  body:not([data-slug="index"]) #quartz-body .sidebar.right {
+    --side-w: min(85vw, 340px);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: calc(-1 * var(--side-w) - 24px); /* the shadow stays off-screen too */
+    z-index: 7; /* over the top bar (6) */
+    width: var(--side-w);
+    height: auto;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 1.2rem;
+    overflow-y: auto;
+    background: var(--light);
+    box-shadow: -6px 0 24px rgba(0, 0, 0, 0.25);
+    transition: right 0.25s ease;
+
+    & > * {
+      flex: 0 0 auto;
+      max-height: none;
+    }
+  }
+
+  body.side-open:not([data-slug="index"]) #quartz-body .sidebar.right {
+    right: 0;
+  }
+
+  body.side-open #vb-side {
+    display: block;
+
+    #vault-brain:not(.vb-expanded) {
+      display: block;
+    }
+    #vb-expand {
+      display: inline-flex;
+    }
+    .vb-side-cap {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body:not([data-slug="index"]) #quartz-body .sidebar.right {
+      transition: none;
+    }
+  }
+}
+
 /* ============================================================
    READER MODE ON PHONE — the reader-mode plugin (readermode.scss)
    only fades .sidebar.left/.sidebar.right, which below $desktop are

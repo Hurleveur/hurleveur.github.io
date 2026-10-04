@@ -54,3 +54,33 @@ describe("swipeDrawerDecision", () => {
     assert.equal(decide(10, 70, 0, true), null)
   })
 })
+
+// the right drawer mirrors it: open from the right edge, close by swiping back
+const side = new Function(`${src}; return swipeSideDecision`)() as (
+  startX: number,
+  dx: number,
+  dy: number,
+  sideOpen: boolean,
+  width: number,
+) => "open" | "close" | null
+
+describe("swipeSideDecision", () => {
+  test("swipe left from the right edge opens it", () => {
+    assert.equal(side(380, -70, 0, false, 400), "open")
+    assert.equal(side(281, -70, 0, false, 400), "open") // just inside the 120px edge zone
+  })
+
+  test("swipe left from mid-screen does nothing", () => {
+    assert.equal(side(200, -70, 0, false, 400), null)
+  })
+
+  test("short or vertical drags never count", () => {
+    assert.equal(side(380, -40, 0, false, 400), null)
+    assert.equal(side(380, -70, 80, false, 400), null)
+  })
+
+  test("swipe right closes it when open, from anywhere", () => {
+    assert.equal(side(50, 70, 0, true, 400), "close")
+    assert.equal(side(50, -70, 0, true, 400), null)
+  })
+})

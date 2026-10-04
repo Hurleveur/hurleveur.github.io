@@ -2304,6 +2304,7 @@
         !bar ||
         !matchMedia("(max-width: 800px)").matches ||
         document.body.classList.contains("vb-open") ||
+        document.body.classList.contains("side-open") ||
         document.querySelector(".explorer:not(.collapsed)") ||
         document.querySelector(".search-container.active")
       tbHidden = blocked
@@ -2339,6 +2340,25 @@
     return dx > 0 && startX < SWIPE_EDGE_ZONE ? "open" : null
   }
 
+  // the mirror on the right edge: swipe left from there pulls out the right
+  // column (side brain, recent notes, backlinks) as a drawer; swipe right closes it
+  function swipeSideDecision(startX, dx, dy, sideOpen, width) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null
+    if (Math.abs(dx) <= Math.abs(dy)) return null
+    if (sideOpen) return dx > 0 ? "close" : null
+    return dx < 0 && startX > width - SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  // the right drawer: body.side-open slides .sidebar.right in (custom.scss).
+  // The brain is display:none while it is shut, so init() only finds a box to
+  // mount into once the class is on, and the sim stops again when it closes
+  function setSideDrawer(open) {
+    if (document.body.classList.contains("vb-open")) return // observatory owns the brain
+    document.body.classList.toggle("side-open", open)
+    if (cleanup) cleanup()
+    if (open) init()
+  }
+
   let swStartX = 0
   let swStartY = 0
   let swTracking = false
@@ -2370,18 +2390,37 @@
         if (!swTracking) return
         swTracking = false
         const t = e.changedTouches[0]
+        if (!t) return
+        const dx = t.clientX - swStartX
+        const dy = t.clientY - swStartY
         const explorer = document.querySelector(".explorer")
-        if (!t || !explorer) return
-        const decision = swipeDrawerDecision(
-          swStartX,
-          t.clientX - swStartX,
-          t.clientY - swStartY,
-          !explorer.classList.contains("collapsed"),
-        )
-        if (!decision) return
-        explorer.querySelector(".mobile-explorer")?.click()
+        const explorerOpen = !!explorer && !explorer.classList.contains("collapsed")
+        const sideOpen = document.body.classList.contains("side-open")
+        // one drawer at a time: an open one only listens for its own close
+        if (!sideOpen && explorer && swipeDrawerDecision(swStartX, dx, dy, explorerOpen)) {
+          explorer.querySelector(".mobile-explorer")?.click()
+          return
+        }
+        // home has no right column (custom.scss hides it there)
+        if (explorerOpen || !document.getElementById("vb-side")) return
+        const side = swipeSideDecision(swStartX, dx, dy, sideOpen, innerWidth)
+        if (side) setSideDrawer(side === "open")
       },
       { passive: true },
+    )
+    // a tap beside the open drawer closes it and goes no further, so it never
+    // lands on a link in the page behind
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!document.body.classList.contains("side-open")) return
+        if (e.target.closest(".sidebar.right")) return
+        if (document.body.classList.contains("vb-open")) return
+        e.preventDefault()
+        e.stopPropagation()
+        setSideDrawer(false)
+      },
+      true,
     )
   }
 
@@ -2392,6 +2431,7 @@
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
+      document.body.classList.remove("side-open") // nor can the right drawer
       markSeen() // Task 2: record this pageview before init() paints the brain from it
       paintSeenLinks()
       initNavToggle()
