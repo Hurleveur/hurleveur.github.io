@@ -1838,8 +1838,9 @@ body[data-slug^="books"] {
     top: 0;
     z-index: 6;
     // was padding: 0; padding-top: 2rem — half the bar was empty air above
-    // the row; even padding on both axes keeps the same ~40px+ tap height
-    padding: 0.6rem 1rem;
+    // the row. No side padding: #quartz-body's 1rem gutter already insets
+    // it, so ☰ and ✦ line up with the text instead of sitting 2rem in
+    padding: 0.6rem 0;
     min-height: 40px;
     transition: transform 0.2s ease;
 
@@ -1858,7 +1859,7 @@ body[data-slug^="books"] {
   // that hid the frosting above; outrank it
   body .page > #quartz-body .sidebar.left:has(.explorer) {
     background-color: transparent;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 0;
   }
 
   /* vaultbrain.js toggles this on scroll direction; its own "blocked" guard
