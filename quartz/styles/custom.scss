@@ -1817,9 +1817,9 @@ body[data-slug^="books"] {
     }
   }
 
-  /* right column: align with the shorter forecourt and stick below the bar */
+  /* right column: sticks right under the bar, the map flush against it */
   #quartz-body .sidebar.right {
-    padding-top: 1.2rem;
+    padding-top: 0;
     top: var(--topbar-h);
     height: calc(100vh - var(--topbar-h));
   }
@@ -1928,7 +1928,8 @@ body[data-slug^="books"] {
    (vaultbrain.js initSideBrain). It replaces Quartz's graph: one
    map of the whole vault, with the page you are on ringed in its
    section's color, so the vault is never out of sight.
-   ✦ in the top bar hides it (body.brain-off, persisted).
+   ✦ in the top bar keeps it but sends the shelf under it to the foot of
+   the page (body.brain-off, persisted; vaultbrain.js placeShelf).
    ============================================================ */
 #vb-side {
   position: relative; /* the ⤢ sits in the panel's own corner */
@@ -2095,11 +2096,40 @@ $rightCol: clamp(320px, 24vw, 480px);
     grid-template-columns: auto $rightCol;
   }
 
-  /* ✦ off takes the whole column with it — TOC, recent notes, backlinks,
-     a folder page's listing — but keeps its track, so the text below
-     doesn't move: ✦ behaves like ☰ */
-  body:not([data-slug="index"]).brain-off #quartz-body {
-    .sidebar.right {
+  /* the map stays put at the top of the column; recent notes and backlinks
+     scroll under it when they outgrow the screen (a folder page's listing
+     scrolls inside its own box instead, flex 1 above) */
+  body:not([data-slug="index"]) #quartz-body .sidebar.right {
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    > #vb-side {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--light);
+    }
+  }
+
+  /* ✦ off: the shelf that left the column (placeShelf), set under the text */
+  #vb-shelf-foot {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--lightgray);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* reader mode: only the text. The plugin fades both sidebars to 0 and
+     shows them again on hover, but here the left one is the top bar, which
+     also holds the explorer panel — hovering the bar would pop the panel and
+     the map back over the page. The bar keeps its fade (it holds the way
+     out); the panel, the column and the heading rail go entirely. */
+  html[reader-mode="on"] body:not([data-slug="index"]) {
+    #quartz-body .sidebar.left > .explorer,
+    #quartz-body .sidebar.right,
+    .toc-rail {
       display: none;
     }
   }

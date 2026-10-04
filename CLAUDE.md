@@ -62,7 +62,7 @@ The home hero is `quartz/static/rotunda.png` (1376x768), drawn full-screen and c
 
 ## Desktop page layout
 
-The text column's position depends on viewport width only, never on ☰ or ✦ (✦ off hides the right column but keeps its track) — the explorer opens into the left margin or overlays the text with a shadow (block after `$explorerFitsAt` in `custom.scss`).
+The text column's position depends on viewport width only, never on ☰ or ✦ (✦ only moves the shelf under the side brain, never the column) — the explorer opens into the left margin or overlays the text with a shadow (block after `$explorerFitsAt` in `custom.scss`).
 
 - `.center` needs `min-width: 0` beside its `max-width: $readWidth`: `base.scss` gives it `min-width: 100%`, which beats max-width and silently spreads the text under the side brain.
 - `.page-header` lives inside `.center`; give it no centring of its own or it is offset twice.
@@ -105,8 +105,10 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   it, so dates, tags and the category guests `initFolderAssets()` appends later
   travel with it. There it re-sorts the shelf by latest edit alone and drops
   folders whose note has no text (`contentIndex.json` content empty).
-- `✦` off (`body.brain-off`, desktop) hides the whole right column, a folder
-  page's listing with it: `initFolderRail` moves it into the column even while off.
+- `✦` off (`body.brain-off`, desktop) keeps the side brain and moves everything
+  under it to `#vb-shelf-foot` at the end of `.center` (`placeShelf`, rerun every nav).
+- The side brain is `position: sticky` inside the scrolling right column; it needs
+  its opaque background or the shelf shows through as it scrolls under.
 - `initCrumbBar()` moves the breadcrumbs from `.page-header` into the top bar
   above 800px and drops their "Home" link, so "Loci ❯ Work" reads as one path;
   the header's zeroed forecourt in `custom.scss` assumes they left.
