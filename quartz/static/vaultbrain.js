@@ -2209,6 +2209,68 @@
     )
   }
 
+  // phone edge-swipe for the explorer drawer, native-app style —
+  // swipe right starting near the left edge opens it, swipe left anywhere
+  // closes it. Pulled out pure like topbarScrollDecision so swipe.test.ts can
+  // cover the thresholds without a browser; the glue below only reads touch
+  // points (passive, never preventDefault — vertical scroll is untouched)
+  // and replays the ☰ click so state/aria/topbar-blocked stay consistent.
+  const SWIPE_MIN_DIST = 60 // px, must clear this to count as a swipe at all
+  const SWIPE_EDGE_ZONE = 120 // px from the left edge a swipe-to-open must start in
+
+  function swipeDrawerDecision(startX, dx, dy, explorerOpen) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null // too short
+    if (Math.abs(dx) <= Math.abs(dy)) return null // mostly vertical: leave it to scroll
+    if (explorerOpen) return dx < 0 ? "close" : null
+    return dx > 0 && startX < SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  let swStartX = 0
+  let swStartY = 0
+  let swTracking = false
+
+  function initSwipeDrawer() {
+    if (window.__vbSwipeWired) return
+    window.__vbSwipeWired = true
+    // never hijack horizontal scrolling that belongs to something else: code
+    // blocks, tables, math, the search overlay, or the brain canvas (its own
+    // pointer handlers already pan it, mini/side/observatory alike)
+    const excluded = (target) =>
+      document.body.classList.contains("vb-open") ||
+      target.closest("#vault-brain, pre, .table-container, .katex-display, .search-container")
+    document.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0]
+        swTracking = !!t && matchMedia("(max-width: 800px)").matches && !excluded(e.target)
+        if (swTracking) {
+          swStartX = t.clientX
+          swStartY = t.clientY
+        }
+      },
+      { passive: true },
+    )
+    document.addEventListener(
+      "touchend",
+      (e) => {
+        if (!swTracking) return
+        swTracking = false
+        const t = e.changedTouches[0]
+        const explorer = document.querySelector(".explorer")
+        if (!t || !explorer) return
+        const decision = swipeDrawerDecision(
+          swStartX,
+          t.clientX - swStartX,
+          t.clientY - swStartY,
+          !explorer.classList.contains("collapsed"),
+        )
+        if (!decision) return
+        explorer.querySelector(".mobile-explorer")?.click()
+      },
+      { passive: true },
+    )
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     // home's track depends on day/night, so a toggle mid-visit must re-pick it
@@ -2220,6 +2282,7 @@
       paintSeenLinks()
       initNavToggle()
       initTopbarScroll()
+      initSwipeDrawer()
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
@@ -2244,6 +2307,7 @@
   paintSeenLinks()
   initNavToggle()
   initTopbarScroll()
+  initSwipeDrawer()
   initSidebarResize()
   initBrainToggle()
   initSideBrain()
