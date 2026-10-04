@@ -1,173 +1,76 @@
-// LessWrong-style rail: a narrow strip of tick marks fixed to the left edge
-// of the viewport, independent of the sidebar grid so it survives the
-// mobile layout switch untouched. Hover (desktop) or tap (mobile, via
-// tocRail.inline.ts) widens it to show the heading text.
+// LOCI PATCH (whole file): rebuilt as a LessWrong-style margin ToC — a plain
+// list of heading text sitting in the left margin beside the article, quiet
+// (var(--gray)) until the section being read goes to full ink
+// (var(--darkgray), as LessWrong does; --tertiary is --gray in this
+// palette). No dash ticks, no hover-to-expand box, no open animation: it is just there or not.
+//
+// It only ever shows on wide desktop, and only when the explorer is closed:
+// .toc-rail is a DOM child of .sidebar.left (both are "left" slots in
+// quartz.config.yaml), which past $explorerFitsAt reserves a left margin
+// exactly var(--sidebar-w) wide for the explorer whether open or not
+// (quartz/styles/custom.scss's --text-l math) — the rail borrows that same
+// margin for itself while the explorer isn't using it, rather than reserving
+// a second one. Below that width the margin isn't guaranteed (the explorer
+// overlays the text instead, see custom.scss's $explorerFitsAt comment), so
+// the rail stays off there and on phone/tablet entirely — no rail ever
+// overlapping the text is the whole point of this rewrite.
 .toc-rail {
-  position: fixed;
-  // 6rem matches the sidebar's own top padding (quartz/styles/variables.scss $topSpacing)
-  top: 6rem;
-  left: 0;
-  z-index: 20;
-  max-height: calc(100vh - 8rem);
-  overflow: hidden;
-  width: 14px;
-  background: var(--light);
-  border-right: 1px solid var(--lightgray);
-  border-radius: 0 6px 6px 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  transition: width 0.2s ease;
+  display: none;
+}
 
-  &:hover,
-  &.expanded {
-    width: min(320px, 70vw);
+// this fork builds standalone and can't import quartz/styles/variables.scss
+// or custom.scss's $explorerFitsAt — this is that formula's solved value
+// (32px + 19.2px + 5px + 760px read width + 240px explorer + 16px, / 0.76),
+// copied as a literal. Keep in sync if that formula changes.
+@media all and (min-width: 1411px) {
+  body.nav-off .toc-rail {
+    display: block;
+    position: fixed;
+    top: var(--topbar-h, 2.7rem);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w, 240px);
+    box-sizing: border-box;
     overflow-y: auto;
-  }
-
-  @media all and (max-width: 600px) {
-    &:hover,
-    &.expanded {
-      width: min(260px, 80vw);
-    }
+    // matches the explorer panel's own padding (custom.scss) so the margin
+    // reads the same whether it's showing the tree or the rail
+    padding: 1.2rem 1rem 1.2rem 1.4rem;
   }
 }
 
 .toc-rail-list {
   list-style: none;
   margin: 0;
-  padding: 0.5rem 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.35rem;
 }
 
 .toc-rail-item {
   & > a {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.15rem 0.35rem;
-    white-space: nowrap;
-    color: var(--darkgray);
+    display: block;
+    color: var(--gray);
+    font-family: var(--bodyFont);
+    font-size: 0.8rem;
+    line-height: 1.3;
+    text-decoration: none;
+    overflow-wrap: break-word;
+    transition: color 0.15s ease;
 
     &:hover {
-      color: var(--secondary);
+      color: var(--darkgray);
+    }
+
+    // the section currently being read: full ink, no box, no bold
+    &.active {
+      color: var(--darkgray);
     }
   }
 
   @for $depth from 0 through 5 {
     &.depth-#{$depth} > a {
-      padding-left: calc(0.35rem + #{$depth} * 0.75rem);
+      padding-left: calc(#{$depth} * 0.7rem);
     }
-  }
-}
-
-.toc-rail-tick {
-  flex-shrink: 0;
-  width: 8px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--gray);
-}
-
-.toc-rail-label {
-  opacity: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.85rem;
-  transition: opacity 0.15s ease;
-}
-
-.toc-rail:hover .toc-rail-label,
-.toc-rail.expanded .toc-rail-label {
-  opacity: 1;
-}
-
-/* LOCI PATCH (whole block) — Desktop (LessWrong-style): the viewport-edge strip above is a mobile/tablet
-   fallback. Here the rail instead sits right beside the text, and the whole
-   left margin — not just the 14px tick column — reveals it on hover, so the
-   pointer doesn't have to land exactly on a dash.
-   1200px mirrors quartz/styles/variables.scss's $desktop; this fork builds
-   standalone and can't import that partial, so it's duplicated as a literal. */
-@media all and (min-width: 1200px) {
-  .toc-rail {
-    // .toc-rail was the visible strip itself (fixed width, its own
-    // background/border); on desktop it becomes the invisible hover zone
-    // spanning the whole margin, and .toc-rail-list below becomes the
-    // visible strip anchored to the zone's right edge, beside the text.
-    top: var(--topbar-h, 2.7rem);
-    bottom: 0; // LOCI PATCH: its only child is absolute, so without this the zone is 0px tall
-    left: 0; // viewport edge — overridden below once the explorer is open
-    right: var(--toc-rail-right, 240px); // JS-measured distance to the text's left edge (tocRail.inline.ts)
-    width: auto;
-    max-height: none;
-    overflow: visible; // let the expanded list overflow left over the explorer
-    background: none;
-    border-right: none;
-    border-radius: 0;
-    box-shadow: none;
-    transition: none;
-
-    &:hover,
-    &.expanded {
-      width: auto; // only .toc-rail-list grows now
-      overflow: visible;
-    }
-  }
-
-  // explorer open: its right edge (not the viewport edge) starts the margin,
-  // so the zone never sits on top of the file tree's own clickable area
-  body:not(.nav-off) .toc-rail {
-    left: var(--sidebar-w, 240px);
-  }
-
-  .toc-rail-list {
-    position: absolute;
-    // LOCI PATCH: as tall as its entries, at the old 6rem from the viewport top
-    top: calc(6rem - var(--topbar-h, 2.7rem));
-    right: 0;
-    max-height: calc(100% - 4rem);
-    width: 14px;
-    overflow: hidden;
-    overflow-y: auto;
-    padding: 0.5rem 0;
-    background: var(--light);
-    border-left: 1px solid var(--lightgray);
-    border-radius: 6px 0 0 6px;
-    box-shadow: -1px 0 4px rgba(0, 0, 0, 0.08);
-    // delay only the close: a mouse crossing the margin diagonally, briefly
-    // off the zone, shouldn't collapse the panel out from under it. Opens
-    // instantly (delay 0 on the reveal rule below).
-    transition: width 0.2s ease 0.2s;
-    gap: 0.225rem; // 1.5x the base 0.15rem — dashes and labels move together, same row
-    // only needs to clear the explorer panel (5) — the zone's top never
-    // reaches the topbar's own area (6), so the two never actually overlap
-    z-index: 10;
-  }
-
-  // hover/focus anywhere in the zone (not just the tick column) reveals it;
-  // focus-within carries keyboard focus
-  .toc-rail:hover .toc-rail-list,
-  .toc-rail.expanded .toc-rail-list,
-  .toc-rail:focus-within .toc-rail-list {
-    width: min(320px, 70vw);
-    transition-delay: 0s;
-  }
-
-  // same open-instant/close-delayed treatment for the label text itself —
-  // overrides the base (mobile/tablet) rule, which has no delay
-  .toc-rail-label {
-    transition: opacity 0.15s ease 0.2s;
-  }
-
-  .toc-rail:hover .toc-rail-label,
-  .toc-rail.expanded .toc-rail-label,
-  .toc-rail:focus-within .toc-rail-label {
-    opacity: 1;
-    transition-delay: 0s;
-  }
-
-  .toc-rail-item > a {
-    padding-top: 0.225rem; // 1.5x the base 0.15rem
-    padding-bottom: 0.225rem;
   }
 }

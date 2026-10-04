@@ -1,8 +1,10 @@
 # @quartz-community/toc-rail
 
-A LessWrong-style table-of-contents rail: a narrow strip fixed to the left
-edge of the viewport that expands into the current page's headings on hover
-(tap on touch devices), rather than an always-open sidebar list.
+A LessWrong-style table-of-contents rail: a plain heading list sitting in the
+left margin beside the article on wide desktop screens (3+ headings, and only
+while the explorer is closed), quiet until the section being read is
+scrollspied into view. Hidden everywhere else — no rail ever overlaps the
+text.
 
 ## Installation
 

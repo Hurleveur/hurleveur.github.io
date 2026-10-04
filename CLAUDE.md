@@ -69,7 +69,7 @@ The text column's position depends on viewport width only, never on ☰ or ✦ (
 - Past `$explorerFitsAt` the text starts 2rem right of the explorer edge and grows to `$readWidthMax` (840px), extra width split evenly.
 - The right column is `$rightCol` (`clamp(320px, 24vw, 480px)`); `$explorerFitsAt` is solved by hand for that clamp, so change one and re-solve the other.
 - The home hero title is placed in the rotunda stage's own cover-crop coordinates and shares `--band-zoom` (on `:root`) with `.rotunda-stage`; change the stage's sizing formula and the hero's must follow.
-- The `toc-rail` fork measures `.center`'s left edge in JS (`--toc-rail-right`) to sit beside the text.
+- The `toc-rail` fork is a LessWrong-style heading list in the explorer's margin: shown only past 1411px (`$explorerFitsAt`, copied as a literal into the fork) and only under `body.nav-off`, so the two never share the margin.
 
 ## The side brain (right column)
 

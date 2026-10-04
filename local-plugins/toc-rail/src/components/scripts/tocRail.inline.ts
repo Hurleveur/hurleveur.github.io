@@ -1,55 +1,49 @@
-// LOCI PATCH: desktop only (see tocRail.scss's 1200px rule): the rail's hover zone has to
-// stop right at the text column's left edge. That edge moves with viewport
-// width, the side-brain column and whether the explorer overlaps the text
-// (quartz/styles/custom.scss's $explorerFitsAt) — cheaper and more reliable
-// to read .center's real position than to re-derive that formula here and
-// have it silently drift the next time custom.scss changes.
-function updateTocRailBounds() {
-  const center = document.querySelector(".center") as HTMLElement | null;
-  if (!center) return;
-  const gap = 12; // breathing room between the expanded panel and the text
-  const right = window.innerWidth - center.getBoundingClientRect().left + gap;
-  document.documentElement.style.setProperty("--toc-rail-right", `${right}px`);
-}
+// LOCI PATCH (whole file): rebuilt from a hover-expanding dash strip into a
+// LessWrong-style margin ToC — a plain heading list, quiet until the current
+// section is scrolled under it. Clicking already works for free: html has
+// scroll-behavior: smooth and scroll-padding-top (base.scss), so a plain
+// <a href="#slug"> jumps and clears the fixed topbar on its own. The only
+// job left for this script is scrollspy: mark the heading currently being
+// read as .active.
 
-// Hover expands the rail (plain CSS, see tocRail.scss); this handles the
-// input hover can't: tap-to-reveal on touch, where a collapsed rail is too
-// narrow to hit a specific heading link. First tap on a collapsed rail
-// expands it instead of following the link; a second tap on the link navigates.
-function onRailClick(this: HTMLElement, ev: MouseEvent) {
-  const link = (ev.target as HTMLElement).closest("a");
-  if (link) {
-    if (!this.classList.contains("expanded")) {
-      ev.preventDefault();
-      this.classList.add("expanded");
-    }
-    return;
-  }
-  this.classList.toggle("expanded");
-}
+// Fires once a heading has scrolled to just under the fixed topbar and
+// marks its rail link active; the previous active link is cleared by the
+// next heading's own entry, so exactly one (the latest one reached) is lit
+// at a time — including on load, since IntersectionObserver reports the
+// current state immediately on observe().
+function setupScrollSpy(rail: HTMLElement) {
+  const links = Array.from(rail.querySelectorAll<HTMLAnchorElement>(".toc-rail-item > a"));
+  const headings = links
+    .map((link) => {
+      const id = link.getAttribute("data-for");
+      const heading = id && document.getElementById(id);
+      return heading ? { link, heading } : null;
+    })
+    .filter((x): x is { link: HTMLAnchorElement; heading: HTMLElement } => x !== null);
+  if (headings.length === 0) return;
 
-function onDocumentClick(this: Document, ev: MouseEvent) {
-  const rails = document.getElementsByClassName("toc-rail");
-  for (const rail of rails) {
-    if (!rail.contains(ev.target as Node)) {
-      rail.classList.remove("expanded");
-    }
-  }
+  // measured, not read from --topbar-h: that var is a rem string ("2.7rem"),
+  // and this only ever runs where the fixed bar is actually on screen
+  const topbarH = document.querySelector(".sidebar.left")?.getBoundingClientRect().height || 43;
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const hit = headings.find((h) => h.heading === entry.target);
+        if (!hit) continue;
+        for (const { link } of headings) link.classList.remove("active");
+        hit.link.classList.add("active");
+      }
+    },
+    { rootMargin: `-${topbarH + 8}px 0px -80% 0px`, threshold: 0 },
+  );
+  for (const { heading } of headings) observer.observe(heading);
+  window.addCleanup(() => observer.disconnect());
 }
 
 function setupTocRail() {
   const rails = Array.from(document.getElementsByClassName("toc-rail")) as HTMLElement[];
-  for (const rail of rails) {
-    rail.addEventListener("click", onRailClick);
-    window.addCleanup(() => rail.removeEventListener("click", onRailClick));
-  }
-  document.addEventListener("click", onDocumentClick);
-  window.addCleanup(() => document.removeEventListener("click", onDocumentClick));
-
-  // LOCI PATCH: keep the hover zone ending at the text column
-  updateTocRailBounds();
-  window.addEventListener("resize", updateTocRailBounds);
-  window.addCleanup(() => window.removeEventListener("resize", updateTocRailBounds));
+  for (const rail of rails) setupScrollSpy(rail);
 }
 
 document.addEventListener("nav", setupTocRail);

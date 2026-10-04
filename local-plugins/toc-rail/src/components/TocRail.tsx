@@ -17,7 +17,9 @@ interface TocRailEntry {
 const TocRail: QuartzComponent = ({ displayClass, fileData }: QuartzComponentProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toc = (fileData as any)?.toc as TocRailEntry[] | undefined;
-  if (!toc || toc.length === 0) {
+  // LOCI PATCH: LessWrong only shows its margin ToC for posts with 3+
+  // headings — below that a heading list reads as clutter, not navigation.
+  if (!toc || toc.length < 3) {
     return null;
   }
 
@@ -27,8 +29,7 @@ const TocRail: QuartzComponent = ({ displayClass, fileData }: QuartzComponentPro
         {toc.map((entry) => (
           <li key={entry.slug} class={`toc-rail-item depth-${entry.depth}`}>
             <a href={`#${entry.slug}`} data-for={entry.slug}>
-              <span class="toc-rail-tick" />
-              <span class="toc-rail-label">{entry.text}</span>
+              {entry.text}
             </a>
           </li>
         ))}

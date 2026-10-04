@@ -13,6 +13,13 @@ html {
   @media all and ($mobile) {
     scroll-padding-top: 4rem;
   }
+
+  // desktop/tablet have the same fixed topbar problem (an anchor jump lands
+  // a heading right under it) but no clearance for it at all; the toc-rail's
+  // click-to-scroll is a plain <a href="#slug"> relying on this
+  @media all and not ($mobile) {
+    scroll-padding-top: calc(var(--topbar-h, 2.7rem) + 0.5rem);
+  }
 }
 
 body {
