@@ -87,6 +87,82 @@
   // ponytail: 7 distinct steps, wraps past 7 sub-folders in one section.
   const TINTS = [0.24, 0.12, 0.33, 0.06, 0.42, 0.18, 0.3]
 
+  // the painted brain's outline in rotunda.png px (1376x768): cerebrum and
+  // cerebellum, the stem left out. Traced by hand — the brain is translucent
+  // over the dome, so no threshold finds its edge. The rotunda's mini brain
+  // lays its rooms out inside it and keeps every star in it (brainShape).
+  const BRAIN_OUTLINE = [
+    [487, 330], [492, 295], [515, 260], [545, 237], [590, 220], [640, 210], [680, 206],
+    [730, 210], [780, 220], [820, 240], [855, 275], [877, 315], [886, 360], [882, 400],
+    [865, 430], [840, 465], [790, 475], [730, 450], [690, 442], [630, 445], [600, 430],
+    [580, 400], [540, 400], [505, 375], [490, 350],
+  ]
+  // even-odd ray cast: is (x, y) inside the polygon pts
+  function inPoly(pts, x, y) {
+    let inside = false
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j]
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+    }
+    return inside
+  }
+  // one seat per note, spread evenly over the outline pts, so the cloud fills
+  // the brain however the notes divide between rooms. Seats sit on a hex grid
+  // sized to the note count (shrunk until enough fit, each seat a half-step
+  // clear of the edge). The centre group (rooms[0] when its key is "~") takes
+  // the seats nearest the middle; the other rooms, in ring order, take slices
+  // of the rest by angle, each slice as large as the room, the first one
+  // centred on 12 o'clock like the old ring. A room's star sits at its slice's
+  // mean. rooms: [{ key, notes: [slug] }] -> { home: {slug: [x, y]}, hub: {key: [x, y]} }
+  function seatBrain(pts, cx, cy, rooms) {
+    const N = rooms.reduce((a, r) => a + r.notes.length, 0)
+    const home = {}, hub = {}
+    if (!N) return { home, hub }
+    let area = 0
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++)
+      area += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1])
+    area = Math.abs(area) / 2
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1])
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+    let s = Math.sqrt(area / N), seats = []
+    for (let tries = 0; tries < 30 && seats.length < N; tries++, s *= 0.94) {
+      seats = []
+      const h = s * 0.866, e = s * 0.5
+      for (let r = 0, y = y0 + e; y < y1; r++, y += h)
+        for (let x = x0 + e + (r % 2) * e; x < x1; x += s)
+          if (inPoly(pts, x, y) && inPoly(pts, x - e, y) && inPoly(pts, x + e, y) &&
+              inPoly(pts, x, y - e) && inPoly(pts, x, y + e)) seats.push([x, y])
+    }
+    const M = seats.length
+    const fill = (key, notes, mine) => {
+      notes.forEach((slug, i) => (home[slug] = mine[Math.floor(((i + 0.5) * mine.length) / notes.length)]))
+      hub[key] = mine.length
+        ? [mine.reduce((a, p) => a + p[0], 0) / mine.length, mine.reduce((a, p) => a + p[1], 0) / mine.length]
+        : [cx, cy]
+    }
+    let rest = seats, ring = rooms
+    if (rooms[0] && rooms[0].key === "~") {
+      const k = Math.round((M * rooms[0].notes.length) / N)
+      rest = seats.slice().sort((a, b) => Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy))
+      fill("~", rooms[0].notes, rest.slice(0, k))
+      rest = rest.slice(k)
+      ring = rooms.slice(1)
+    }
+    const ang = (p) => (Math.atan2(p[1] - cy, p[0] - cx) + Math.PI / 2 + 4 * Math.PI) % (2 * Math.PI)
+    rest = rest.slice().sort((a, b) => ang(a) - ang(b))
+    const left = ring.reduce((a, r) => a + r.notes.length, 0)
+    const sizes = ring.map((r) => Math.round((rest.length * r.notes.length) / (left || 1)))
+    if (sizes.length) sizes[sizes.length - 1] = rest.length - sizes.slice(0, -1).reduce((a, b) => a + b, 0)
+    // rotate so the first room's slice straddles 12 o'clock
+    const shift = Math.floor((sizes[0] || 0) / 2)
+    rest = rest.slice(rest.length - shift).concat(rest.slice(0, rest.length - shift))
+    let at = 0
+    ring.forEach((r, i) => {
+      fill(r.key, r.notes, rest.slice(at, (at += sizes[i])))
+    })
+    return { home, hub }
+  }
+
   // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
   // stars, hovering a star lights its frieze word. detail = folder or null.
   // ev.soft marks the idle tour in initFrieze rather than a pointer: the same
@@ -392,6 +468,34 @@
     const showLabels = local && nodes.length <= 16
 
     let W, H, dpr
+    // mini: BRAIN_OUTLINE in canvas px with each room's spot inside it, or null
+    let shape = null
+    // the outline goes from image px to this canvas through the stage's live
+    // box (the stage is the image, cover-cropped), clamped to the canvas less
+    // a glow margin: on a phone the painted brain is wider than the box.
+    function brainShape() {
+      const stage = wrap.closest(".rotunda-stage")
+      if (!stage) return null
+      const s = stage.getBoundingClientRect(), w = wrap.getBoundingClientRect()
+      const k = s.width / 1376, m = 12
+      const pts = BRAIN_OUTLINE.map(([x, y]) => [
+        Math.min(W - m, Math.max(m, s.left + x * k - w.left)),
+        Math.min(H - m, Math.max(m, s.top + y * k - w.top)),
+      ])
+      const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1])
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2
+      // every note gets its own seat (seatBrain); a sub-folder's notes sit
+      // side by side in their room's slice, so it still reads as one clump
+      const rooms = ["~", ...ring].map((f) => ({
+        key: f,
+        notes: nodes
+          .filter((n) => !n.hub && n.folder === f)
+          .sort((a, b) => (a.sub || "").localeCompare(b.sub || "") || a.slug.localeCompare(b.slug))
+          .map((n) => n.slug),
+      }))
+      return { pts, cx, cy, ...seatBrain(pts, cx, cy, rooms) }
+    }
     // zoom/pan viewport (full mode only): screen = world * s + offset
     const view = { s: 1, x: 0, y: 0 }
     function clampView() {
@@ -411,6 +515,7 @@
         c.height = H * dpr
         c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0)
       })
+      if (mini) shape = brainShape()
       paintStars()
       clampView()
       heat = Math.max(heat, 0.6) // rewarm the sim so the sky re-settles to the new size
@@ -437,6 +542,7 @@
         const R = Math.min(W, H) * 0.36
         return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
       }
+      if (shape) return (n.hub ? shape.hub[n.folder] : shape.home[n.slug]) || [shape.cx, shape.cy]
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
       let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
       let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
@@ -495,8 +601,16 @@
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
         // ellipse sits well inside the canvas: node glows reach ~4x node radius,
         // and anything past the canvas edge clips to a hard bright rectangle
-        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.47))
-        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.45))
+        // mini: the painted outline instead (brainShape), pulled toward its middle
+        if (shape) {
+          if (!inPoly(shape.pts, n.x, n.y)) {
+            n.vx += (shape.cx - n.x) * 0.02
+            n.vy += (shape.cy - n.y) * 0.02
+          }
+          return
+        }
+        const ex = (n.x - W / 2) / (W * 0.47)
+        const ey = (n.y - H / 2) / (H * 0.45)
         const d = ex * ex + ey * ey
         if (d > 1) {
           n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
@@ -2209,6 +2323,68 @@
     )
   }
 
+  // phone edge-swipe for the explorer drawer, native-app style —
+  // swipe right starting near the left edge opens it, swipe left anywhere
+  // closes it. Pulled out pure like topbarScrollDecision so swipe.test.ts can
+  // cover the thresholds without a browser; the glue below only reads touch
+  // points (passive, never preventDefault — vertical scroll is untouched)
+  // and replays the ☰ click so state/aria/topbar-blocked stay consistent.
+  const SWIPE_MIN_DIST = 60 // px, must clear this to count as a swipe at all
+  const SWIPE_EDGE_ZONE = 120 // px from the left edge a swipe-to-open must start in
+
+  function swipeDrawerDecision(startX, dx, dy, explorerOpen) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null // too short
+    if (Math.abs(dx) <= Math.abs(dy)) return null // mostly vertical: leave it to scroll
+    if (explorerOpen) return dx < 0 ? "close" : null
+    return dx > 0 && startX < SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  let swStartX = 0
+  let swStartY = 0
+  let swTracking = false
+
+  function initSwipeDrawer() {
+    if (window.__vbSwipeWired) return
+    window.__vbSwipeWired = true
+    // never hijack horizontal scrolling that belongs to something else: code
+    // blocks, tables, math, the search overlay, or the brain canvas (its own
+    // pointer handlers already pan it, mini/side/observatory alike)
+    const excluded = (target) =>
+      document.body.classList.contains("vb-open") ||
+      target.closest("#vault-brain, pre, .table-container, .katex-display, .search-container")
+    document.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0]
+        swTracking = !!t && matchMedia("(max-width: 800px)").matches && !excluded(e.target)
+        if (swTracking) {
+          swStartX = t.clientX
+          swStartY = t.clientY
+        }
+      },
+      { passive: true },
+    )
+    document.addEventListener(
+      "touchend",
+      (e) => {
+        if (!swTracking) return
+        swTracking = false
+        const t = e.changedTouches[0]
+        const explorer = document.querySelector(".explorer")
+        if (!t || !explorer) return
+        const decision = swipeDrawerDecision(
+          swStartX,
+          t.clientX - swStartX,
+          t.clientY - swStartY,
+          !explorer.classList.contains("collapsed"),
+        )
+        if (!decision) return
+        explorer.querySelector(".mobile-explorer")?.click()
+      },
+      { passive: true },
+    )
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     // home's track depends on day/night, so a toggle mid-visit must re-pick it
@@ -2220,6 +2396,7 @@
       paintSeenLinks()
       initNavToggle()
       initTopbarScroll()
+      initSwipeDrawer()
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
@@ -2244,6 +2421,7 @@
   paintSeenLinks()
   initNavToggle()
   initTopbarScroll()
+  initSwipeDrawer()
   initSidebarResize()
   initBrainToggle()
   initSideBrain()

@@ -206,3 +206,83 @@ describe("the description slab is as wide as its longest line", () => {
     assert.equal(widestLine([rect(0, 0, 0)]), 0)
   })
 })
+
+// The mini brain keeps its stars inside the painted outline (brainShape). A
+// typo in BRAIN_OUTLINE or a flipped inPoly comparison would scatter them over
+// the dome or pile them in the middle — nothing else would notice.
+describe("brain outline", () => {
+  const src = js.slice(
+    js.indexOf("const BRAIN_OUTLINE"),
+    js.indexOf("// frieze ↔ brain highlight bus"),
+  )
+  type Pt = [number, number]
+  const { pts, inPoly, seatBrain } = new Function(
+    `${src}; return { pts: BRAIN_OUTLINE, inPoly, seatBrain }`,
+  )() as {
+    pts: Pt[]
+    inPoly: (pts: Pt[], x: number, y: number) => boolean
+    seatBrain: (
+      pts: Pt[],
+      cx: number,
+      cy: number,
+      rooms: { key: string; notes: string[] }[],
+    ) => { home: Record<string, Pt>; hub: Record<string, Pt> }
+  }
+
+  test("the brain's middle and its lobes are inside", () => {
+    for (const [x, y] of [
+      [690, 330],
+      [520, 320],
+      [690, 220],
+      [860, 360],
+      [800, 455],
+    ]) {
+      assert.ok(inPoly(pts, x, y), `${x},${y} should be inside`)
+    }
+  })
+
+  test("the dome, the stem and the columns are outside", () => {
+    for (const [x, y] of [
+      [690, 180],
+      [470, 330],
+      [700, 520],
+      [540, 450],
+      [910, 360],
+    ]) {
+      assert.ok(!inPoly(pts, x, y), `${x},${y} should be outside`)
+    }
+  })
+
+  // a lopsided vault: one room ten times another, the way the real one is
+  const rooms = [
+    { key: "~", notes: Array.from({ length: 20 }, (_, i) => `root${i}`) },
+    ...[30, 300, 15, 120, 60].map((n, r) => ({
+      key: `room${r}`,
+      notes: Array.from({ length: n }, (_, i) => `room${r}/n${i}`),
+    })),
+  ]
+  const all = rooms.flatMap((r) => r.notes)
+  const { home, hub } = seatBrain(pts, 686, 340, rooms)
+
+  test("every note gets its own seat, inside the brain", () => {
+    assert.equal(all.length, 545)
+    const seen = new Set<string>()
+    for (const slug of all) {
+      const [x, y] = home[slug]
+      assert.ok(inPoly(pts, x, y), `${slug} at ${x},${y} is outside the brain`)
+      seen.add(`${x},${y}`)
+    }
+    assert.equal(seen.size, all.length, "two notes share a seat")
+    for (const r of rooms) assert.ok(inPoly(pts, ...hub[r.key]), `${r.key}'s star is outside`)
+  })
+
+  test("the crown is as full as the base: no half of the brain is left empty", () => {
+    // split the brain at its seat median height; equal areas must hold equal
+    // shares of notes, which a ring of fixed room spots never gave
+    const ys = all.map((s) => home[s][1]).sort((a, b) => a - b)
+    const top = ys.filter((y) => y < 300).length / ys.length
+    const bottom = ys.filter((y) => y > 400).length / ys.length
+    assert.ok(top > 0.25, `only ${top} of the notes sit above y 300`)
+    assert.ok(bottom > 0.08, `only ${bottom} of the notes sit below y 400`)
+  })
+})

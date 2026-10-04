@@ -2455,7 +2455,7 @@
   function screenPos(n) { return { x: n.x * scale + tx, y: n.y * scale + ty }; }
 
   function nodeAt(wx, wy, pad) {
-    pad = pad || 9;
+    pad = pad || 9 / scale; /* screen px at any zoom, like pointerdown passes: the dblclick and hover hit tests missed zoomed-out stars and fitView() reset the camera */
     var best = null, bd = 1e9;
     nodes.forEach(function (n) {
       var dx = n.x - wx, dy = n.y - wy;
