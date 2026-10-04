@@ -248,11 +248,16 @@
   // (getComputedStyle/querySelector deliberately lie) or even matched
   // reliably — Chrome 136+ partitions it per top-level site — so this reads
   // the plain localStorage slug set and toggles a real class instead.
+  // the main categories never wash out: a room is a door you keep walking
+  // back through, not a page you have read. A room is a top-level folder,
+  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash)
+  const isRoom = (path) => /^\/?[^/]+\/(index)?$/.test(path)
   function paintSeenLinks() {
     const seen = loadSeen()
     document.querySelectorAll("a.internal").forEach((a) => {
       try {
-        a.classList.toggle("vb-seen", seen.has(normSlug(new URL(a.href, location.href).pathname)))
+        const path = new URL(a.href, location.href).pathname
+        a.classList.toggle("vb-seen", !isRoom(path) && seen.has(normSlug(path)))
       } catch (e) {
         /* malformed href */
       }
@@ -397,7 +402,7 @@
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
           : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
         hubWeight: backlinks[slug] || 0,
-        seen: seenSlugs.has(normSlug(slug)),
+        seen: !isRoom(slug) && seenSlugs.has(normSlug(slug)),
         x: 0, y: 0, vx: 0, vy: 0,
       }
     })
@@ -438,7 +443,7 @@
         color: folderColor(f),
         r: ((mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2)) * rs,
         hubWeight: 0,
-        seen: seenSlugs.has(normSlug(f + "/")),
+        seen: false, // a room never washes out (isRoom)
         x: 0, y: 0, vx: 0, vy: 0,
       })
     })
@@ -538,9 +543,10 @@
       // mini: the canvas IS the image's brain — spread wider to fill it
       if (local) {
         if (n.you) return [W / 2, H / 2]
-        // 0.36 of the short side leaves room outside the ring for the titles
-        const R = Math.min(W, H) * 0.36
-        return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
+        // an ellipse filling the panel: titles clamp inside the width (label),
+        // so only 24px above and below is kept for the top and bottom ones
+        const rx = W * 0.36, ry = Math.max(H / 2 - 24, H * 0.3)
+        return [W / 2 + Math.cos(n.ang) * rx, H / 2 + Math.sin(n.ang) * ry]
       }
       if (shape) return (n.hub ? shape.hub[n.folder] : shape.home[n.slug]) || [shape.cx, shape.cy]
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
@@ -2101,8 +2107,8 @@
     const rail = document.querySelector(".sidebar.right")
     if (!rail || document.body.dataset.slug === "index") return
     // the panel itself is desktop-only (CSS), but the markup goes in at every
-    // width: on a phone ✦ expands this same wrapper into the observatory
-    if (document.body.classList.contains("brain-off") && wide()) return
+    // width: on a phone ✦ expands this same wrapper into the observatory.
+    // ✦ off leaves it in place and sends the shelf to the page foot (placeShelf)
     const slug = document.body.dataset.slug || ""
     const folder = slug.includes("/") ? slug.split("/")[0] : null
     const box = document.createElement("div")
@@ -2142,7 +2148,7 @@
     const rail = document.querySelector(".sidebar.right")
     const list = document.querySelector(".page-listing")
     if (!rail || !list || rail.contains(list) || !wide()) return
-    // moved even while ✦ is off: it then hides with the column (custom.scss)
+    // moved even while ✦ is off: placeShelf then carries it to the page foot
     rail.append(list)
     // the dates alone read as a feed with no name; this one says it is one.
     // No count: initFolderAssets' bump of the first number finds none here.
@@ -2165,6 +2171,30 @@
       .catch(() => {})
     tagFolderLinks(list)
     document.body.classList.add("has-rail")
+  }
+
+  // ✦ off on desktop: everything in the right column under the map — latest
+  // edits, recent notes, backlinks — moves to the foot of the text, so the
+  // map stays and the column stops competing with the page. On again moves
+  // it back in the same order. The SPA morph drops the foot box with the old
+  // page and refills the column, so this runs again on every nav.
+  // ponytail: checked on toggle and nav only, resizing across 1200px keeps the old place
+  function placeShelf() {
+    const rail = document.querySelector(".sidebar.right")
+    const center = document.querySelector(".center")
+    if (!rail || !center) return
+    let foot = document.getElementById("vb-shelf-foot")
+    if (document.body.classList.contains("brain-off") && wide()) {
+      if (!foot) {
+        foot = document.createElement("div")
+        foot.id = "vb-shelf-foot"
+        center.append(foot)
+      }
+      foot.append(...[...rail.children].filter((el) => el.id !== "vb-side"))
+    } else if (foot) {
+      rail.append(...foot.children)
+      foot.remove()
+    }
   }
 
   // a folder is a link ending in "/"; it takes its top section's color,
@@ -2195,8 +2225,9 @@
     if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
 
-  // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
-  // the side brain. Choice persists across pages and visits; default on.
+  // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it
+  // keeps the side brain and moves the shelf under it to the page foot
+  // (placeShelf). Choice persists across pages and visits; default on.
   function initBrainToggle() {
     const off = localStorage.getItem("vb-brain-off") === "1"
     document.body.classList.toggle("brain-off", off)
@@ -2218,10 +2249,7 @@
         const nowOff = document.body.classList.toggle("brain-off")
         localStorage.setItem("vb-brain-off", nowOff ? "1" : "")
         btn.classList.toggle("on", !nowOff)
-        if (cleanup) cleanup()
-        initSideBrain()
-        init()
-        initExpand()
+        placeShelf()
       })
       const bar = document.querySelector(".sidebar.left")
       ;(bar || document.body).append(btn)
@@ -2304,6 +2332,7 @@
         !bar ||
         !matchMedia("(max-width: 800px)").matches ||
         document.body.classList.contains("vb-open") ||
+        document.body.classList.contains("side-open") ||
         document.querySelector(".explorer:not(.collapsed)") ||
         document.querySelector(".search-container.active")
       tbHidden = blocked
@@ -2339,6 +2368,25 @@
     return dx > 0 && startX < SWIPE_EDGE_ZONE ? "open" : null
   }
 
+  // the mirror on the right edge: swipe left from there pulls out the right
+  // column (side brain, recent notes, backlinks) as a drawer; swipe right closes it
+  function swipeSideDecision(startX, dx, dy, sideOpen, width) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null
+    if (Math.abs(dx) <= Math.abs(dy)) return null
+    if (sideOpen) return dx > 0 ? "close" : null
+    return dx < 0 && startX > width - SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  // the right drawer: body.side-open slides .sidebar.right in (custom.scss).
+  // The brain is display:none while it is shut, so init() only finds a box to
+  // mount into once the class is on, and the sim stops again when it closes
+  function setSideDrawer(open) {
+    if (document.body.classList.contains("vb-open")) return // observatory owns the brain
+    document.body.classList.toggle("side-open", open)
+    if (cleanup) cleanup()
+    if (open) init()
+  }
+
   let swStartX = 0
   let swStartY = 0
   let swTracking = false
@@ -2370,18 +2418,37 @@
         if (!swTracking) return
         swTracking = false
         const t = e.changedTouches[0]
+        if (!t) return
+        const dx = t.clientX - swStartX
+        const dy = t.clientY - swStartY
         const explorer = document.querySelector(".explorer")
-        if (!t || !explorer) return
-        const decision = swipeDrawerDecision(
-          swStartX,
-          t.clientX - swStartX,
-          t.clientY - swStartY,
-          !explorer.classList.contains("collapsed"),
-        )
-        if (!decision) return
-        explorer.querySelector(".mobile-explorer")?.click()
+        const explorerOpen = !!explorer && !explorer.classList.contains("collapsed")
+        const sideOpen = document.body.classList.contains("side-open")
+        // one drawer at a time: an open one only listens for its own close
+        if (!sideOpen && explorer && swipeDrawerDecision(swStartX, dx, dy, explorerOpen)) {
+          explorer.querySelector(".mobile-explorer")?.click()
+          return
+        }
+        // home has no right column (custom.scss hides it there)
+        if (explorerOpen || !document.getElementById("vb-side")) return
+        const side = swipeSideDecision(swStartX, dx, dy, sideOpen, innerWidth)
+        if (side) setSideDrawer(side === "open")
       },
       { passive: true },
+    )
+    // a tap beside the open drawer closes it and goes no further, so it never
+    // lands on a link in the page behind
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!document.body.classList.contains("side-open")) return
+        if (e.target.closest(".sidebar.right")) return
+        if (document.body.classList.contains("vb-open")) return
+        e.preventDefault()
+        e.stopPropagation()
+        setSideDrawer(false)
+      },
+      true,
     )
   }
 
@@ -2392,6 +2459,7 @@
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
+      document.body.classList.remove("side-open") // nor can the right drawer
       markSeen() // Task 2: record this pageview before init() paints the brain from it
       paintSeenLinks()
       initNavToggle()
@@ -2401,6 +2469,7 @@
       initBrainToggle()
       initSideBrain()
       initFolderRail()
+      placeShelf()
       document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
       init()
@@ -2426,6 +2495,7 @@
   initBrainToggle()
   initSideBrain()
   initFolderRail()
+  placeShelf()
   document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
   init()

@@ -38,12 +38,21 @@ test("side brain", async (t) => {
     assert.match(js, /const near = hovered \? adj\.get\(hovered\)/)
   })
 
-  await t.test("✦ off takes the whole column, listing included", () => {
-    const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
-    assert.match(scss, /\.brain-off #quartz-body \{[\s\S]*?\.sidebar\.right \{\s*display: none/)
-    // the listing hides only because it lives in the column: a brain-off gate
-    // in initFolderRail would leave it showing under the page
-    assert.doesNotMatch(js, /function initFolderRail[\s\S]{0,300}brain-off/)
+  await t.test("a room never washes out, its notes do", () => {
+    const src = js.match(/const isRoom = \(path\) => (\/.+\/)\.test\(path\)/)
+    assert.ok(src, "isRoom is gone — the main categories dim once visited again")
+    const isRoom = (p: string) => new Function(`return ${src![1]}`)().test(p)
+    for (const p of ["/work/", "work/", "work/index", "/travel/index"]) assert.ok(isRoom(p), p)
+    for (const p of ["/work", "/work/note", "work/sub/", "/", "about"]) assert.ok(!isRoom(p), p)
+  })
+
+  await t.test("✦ off keeps the map and sends the shelf to the page foot", () => {
+    // everything but #vb-side leaves the column, and it runs on every nav,
+    // since the SPA morph refills the column from the new page
+    assert.match(js, /foot\.append\(\.\.\.\[\.\.\.rail\.children\]\.filter\(\(el\) => el\.id !== "vb-side"\)\)/)
+    assert.match(js, /initFolderRail\(\)\n\s*placeShelf\(\)/)
+    // the brain itself is never gated on ✦ any more
+    assert.doesNotMatch(js, /function initSideBrain[\s\S]{0,500}brain-off/)
   })
 
   await t.test("the observatory opened from a page shows the whole vault, you in it", () => {
