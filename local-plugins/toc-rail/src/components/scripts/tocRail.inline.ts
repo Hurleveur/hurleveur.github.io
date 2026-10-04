@@ -75,6 +75,18 @@ function setupTocRail() {
     watch.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     // images and the side brain settle after load and push the headings down
     const settle = window.setTimeout(onResize, 1500);
+    // a pick from the overlay list closes it: focus and a phone's sticky :hover
+    // would both keep it open over the section it just jumped to
+    const onPick = (e: MouseEvent) => {
+      if (!rail.classList.contains("toc-rail-narrow")) return;
+      if (!(e.target as Element).closest("a")) return;
+      (document.activeElement as HTMLElement | null)?.blur();
+      rail.classList.add("toc-rail-shut");
+    };
+    const reopen = () => rail.classList.remove("toc-rail-shut");
+    rail.addEventListener("click", onPick);
+    rail.addEventListener("pointerdown", reopen);
+    rail.addEventListener("pointerleave", reopen);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     window.addCleanup(() => {

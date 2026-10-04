@@ -6,8 +6,8 @@ that heading falls in the article and a darker segment for the part on screen.
 Moving the pointer into the margin fades the heading titles in beside their
 ticks; the section being read is drawn darker. Where the margin is narrow (the
 explorer open beside the text, or a phone's gutter) the titles open over the
-text instead, on hover or, on a phone, on a tap of the gutter. Pages with
-fewer than three headings get no rail.
+text instead, on hover or, on a phone, on a tap of the gutter; picking a heading
+there closes the list. Pages with fewer than three headings get no rail.
 
 ## Installation
 

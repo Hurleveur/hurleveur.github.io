@@ -138,3 +138,16 @@
   background: var(--light);
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
 }
+
+// closed by a pick (tocRail.inline.ts) until the next tap or the pointer leaves
+.toc-rail.toc-rail-narrow.toc-rail-shut {
+  .toc-rail-list {
+    pointer-events: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  .toc-rail-item > a {
+    opacity: 0;
+  }
+}
