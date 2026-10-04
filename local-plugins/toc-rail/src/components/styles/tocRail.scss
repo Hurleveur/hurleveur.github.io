@@ -1,76 +1,140 @@
-// LOCI PATCH (whole file): rebuilt as a LessWrong-style margin ToC — a plain
-// list of heading text sitting in the left margin beside the article, quiet
-// (var(--gray)) until the section being read goes to full ink
-// (var(--darkgray), as LessWrong does; --tertiary is --gray in this
-// palette). No dash ticks, no hover-to-expand box, no open animation: it is just there or not.
-//
-// It only ever shows on wide desktop, and only when the explorer is closed:
-// .toc-rail is a DOM child of .sidebar.left (both are "left" slots in
-// quartz.config.yaml), which past $explorerFitsAt reserves a left margin
-// exactly var(--sidebar-w) wide for the explorer whether open or not
-// (quartz/styles/custom.scss's --text-l math) — the rail borrows that same
-// margin for itself while the explorer isn't using it, rather than reserving
-// a second one. Below that width the margin isn't guaranteed (the explorer
-// overlays the text instead, see custom.scss's $explorerFitsAt comment), so
-// the rail stays off there and on phone/tablet entirely — no rail ever
-// overlapping the text is the whole point of this rewrite.
+// LOCI PATCH (whole file): LessWrong's fixed ToC (FixedPositionToC), its
+// numbers measured off a live post: a 1px grey line 17px in from the margin's
+// edge, a darker segment for the part of the page on screen, a tick per
+// heading, and the titles at opacity 0 until the pointer is anywhere in the
+// margin (0.25s fade). tocRail.inline.ts sizes the rail to that margin and
+// spaces the rows by section length.
 .toc-rail {
-  display: none;
+  position: fixed;
+  top: var(--topbar-h, 2.7rem);
+  bottom: 0;
+  left: 0;
+  z-index: 6; // over the explorer panel (5), so its gap still hovers
+  display: flex;
+  padding: 1.4rem 0 1.4rem var(--rail-x, 17px);
+  outline: none;
+  box-sizing: border-box;
+  font-family: var(--bodyFont);
+
+  &.toc-rail-off {
+    display: none;
+  }
 }
 
-// this fork builds standalone and can't import quartz/styles/variables.scss
-// or custom.scss's $explorerFitsAt — this is that formula's solved value
-// (32px + 19.2px + 5px + 760px read width + 240px explorer + 16px, / 0.76),
-// copied as a literal. Keep in sync if that formula changes.
-@media all and (min-width: 1411px) {
-  body.nav-off .toc-rail {
-    display: block;
-    position: fixed;
-    top: var(--topbar-h, 2.7rem);
-    left: 0;
-    bottom: 0;
-    width: var(--sidebar-w, 240px);
-    box-sizing: border-box;
-    overflow-y: auto;
-    // matches the explorer panel's own padding (custom.scss) so the margin
-    // reads the same whether it's showing the tree or the rail
-    padding: 1.2rem 1rem 1.2rem 1.4rem;
-  }
+.toc-rail-line {
+  position: relative;
+  flex: none;
+  width: 1px;
+  background: var(--lightgray);
+}
+
+.toc-rail-progress {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  background: var(--darkgray);
 }
 
 .toc-rail-list {
   list-style: none;
-  margin: 0;
+  margin: 0 0 0 -4px; // the ticks straddle the line
   padding: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  min-width: 0;
 }
 
 .toc-rail-item {
+  // flex-grow is set per row from its section length; basis 0 so it is pure ratio
+  flex: 0 1 0%;
+  min-height: 0;
+  margin: 0;
+  position: relative;
+  padding-left: 14px;
+
+  // the tick: drawn across the line at the row's top
+  &::before {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 0.55em;
+    width: 7px;
+    height: 1px;
+    background: var(--gray);
+  }
+
   & > a {
     display: block;
     color: var(--gray);
-    font-family: var(--bodyFont);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     line-height: 1.3;
+    padding: 0.1rem 0.75rem 0.25rem 0;
     text-decoration: none;
     overflow-wrap: break-word;
-    transition: color 0.15s ease;
+    opacity: 0;
+    transition:
+      opacity 0.25s,
+      color 0.15s;
 
     &:hover {
       color: var(--darkgray);
     }
-
-    // the section currently being read: full ink, no box, no bold
-    &.active {
-      color: var(--darkgray);
-    }
   }
 
-  @for $depth from 0 through 5 {
+  &.active > a {
+    color: var(--darkgray);
+  }
+
+  &.active::before {
+    background: var(--darkgray);
+  }
+
+  @for $depth from 2 through 6 {
     &.depth-#{$depth} > a {
-      padding-left: calc(#{$depth} * 0.7rem);
+      padding-left: calc(#{$depth - 1} * 0.75rem);
     }
   }
+}
+
+.toc-rail-title {
+  &::before {
+    display: none;
+  }
+
+  & > a {
+    font-family: var(--headerFont);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding-bottom: 0.6rem;
+  }
+}
+
+.toc-rail:hover .toc-rail-item > a,
+.toc-rail:focus-within .toc-rail-item > a {
+  opacity: 1;
+}
+
+// a gap too narrow for the titles (the explorer is open beside the text):
+// the strip itself is the hover zone and the titles open to its right over
+// the text, on the page colour. At rest the invisible list lets clicks
+// through to the text.
+.toc-rail.toc-rail-narrow .toc-rail-list {
+  position: absolute;
+  top: 1.4rem;
+  bottom: 1.4rem;
+  left: calc(var(--rail-x, 17px) - 4px);
+  width: 260px;
+  margin: 0;
+  pointer-events: none;
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
+}
+
+.toc-rail.toc-rail-narrow:hover .toc-rail-list,
+.toc-rail.toc-rail-narrow:focus-within .toc-rail-list {
+  pointer-events: auto;
+  background: var(--light);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
 }

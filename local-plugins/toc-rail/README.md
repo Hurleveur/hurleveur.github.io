@@ -1,10 +1,13 @@
 # @quartz-community/toc-rail
 
-A LessWrong-style table-of-contents rail: a plain heading list sitting in the
-left margin beside the article on wide desktop screens (3+ headings, and only
-while the explorer is closed), quiet until the section being read is
-scrollspied into view. Hidden everywhere else — no rail ever overlaps the
-text.
+A table of contents that stays out of the way while you read. A hairline runs
+down the free margin left of the text, with one tick per heading placed where
+that heading falls in the article and a darker segment for the part on screen.
+Moving the pointer into the margin fades the heading titles in beside their
+ticks; the section being read is drawn darker. Where the margin is narrow (the
+explorer open beside the text, or a phone's gutter) the titles open over the
+text instead, on hover or, on a phone, on a tap of the gutter. Pages with
+fewer than three headings get no rail.
 
 ## Installation
 

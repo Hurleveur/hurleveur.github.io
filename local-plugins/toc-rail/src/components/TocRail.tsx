@@ -23,17 +23,29 @@ const TocRail: QuartzComponent = ({ displayClass, fileData }: QuartzComponentPro
     return null;
   }
 
+  // LOCI PATCH: LessWrong's fixed ToC — a hairline with one tick per heading,
+  // the titles faded in only while the pointer is in the left margin. Rows are
+  // spaced by their section's length (tocRail.inline.ts sets each flex-grow),
+  // so the ticks map the article; the title row heads the list.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const title = ((fileData as any)?.frontmatter?.title as string | undefined) ?? "";
   return (
-    <nav class={classNames(displayClass, "toc-rail")} aria-label="Table of contents">
-      <ul class="toc-rail-list">
+    <nav class={classNames(displayClass, "toc-rail")} aria-label="Table of contents" tabindex={-1}>
+      <div class="toc-rail-line">
+        <div class="toc-rail-progress" />
+      </div>
+      <ol class="toc-rail-list">
+        <li class="toc-rail-item toc-rail-title" data-for="">
+          <a href="#">{title}</a>
+        </li>
         {toc.map((entry) => (
-          <li key={entry.slug} class={`toc-rail-item depth-${entry.depth}`}>
+          <li key={entry.slug} class={`toc-rail-item depth-${entry.depth}`} data-for={entry.slug}>
             <a href={`#${entry.slug}`} data-for={entry.slug}>
               {entry.text}
             </a>
           </li>
         ))}
-      </ul>
+      </ol>
     </nav>
   );
 };

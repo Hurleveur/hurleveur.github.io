@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Rebuilt as a LessWrong-style margin ToC: a plain heading list in the left margin (desktop only, 3+ headings, explorer closed), quiet until the section being read lights up (scrollspy), no dash ticks, no hover-expand box, no open animation. Click-to-scroll is a plain anchor link relying on `scroll-padding-top`.
+- Rebuilt as a margin hairline with one tick per heading, spaced by section length, and a progress segment; titles fade in while the pointer is in the margin, the current section drawn darker. A narrow margin (explorer open, phone gutter) opens the titles over the text on hover or tap. The rail is moved to `body` so the phone's hiding top bar cannot carry it away.
 
 ### Added
 
