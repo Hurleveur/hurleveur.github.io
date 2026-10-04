@@ -97,7 +97,8 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   is what `toggleExpand` expands, so `#vb-side` is `display: contents`, never
   `none`), and `✦` opens the overlay directly.
 - `init()` bails on a wrapper with no box. That is what keeps the hidden phone
-  panel and the sub-640px rotunda from mounting a zero-size canvas.
+  panel from mounting a zero-size canvas; hide `#vault-brain` under 640px and the
+  portrait home brain silently shows only "Enter the mind".
 - `initFolderRail()` moves a folder or tag page's `.page-listing` into the right
   column under the map, desktop only. It moves the node rather than re-emitting
   it, so dates, tags and the category guests `initFolderAssets()` appends later
