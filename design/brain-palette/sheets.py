@@ -11,9 +11,9 @@ def save(img, name):
     img.save(HERE / name, "WEBP", quality=82, method=6)
 
 
-def grid(views, name, h):
+def grid(views, name, h, variants=V):
     rows = []
-    for v in V:
+    for v in variants:
         ims = [Image.open(R / f"{s}-{v}.png").convert("RGB") for s in views]
         ims = [i.resize((int(i.width * h / i.height), h)) for i in ims]
         row = Image.new("RGB", (sum(i.width + 10 for i in ims), h + 30), "white")
@@ -62,3 +62,17 @@ s = Image.new("RGB", (a.width * 2 + 10, a.height), "white")
 s.paste(a, (0, 0))
 s.paste(b, (a.width + 10, 0))
 save(s, "rotunda-current-vs-ember.webp")
+
+# lit core v2 against the shipped lit core: rotunda, observatory, side panel by night
+grid(["phone-home", "obs-dark", "side-dark"], "litcore-v2.webp", 420,
+     ["3-pigment-core", "7-soft-core", "8-soft-bloom", "9-soft-spikes", "10-obsidian"])
+
+# one room hub up close, then the rotunda's lit core against obsidian flecks
+ims = [Image.open(R / f"obs-dark-{v}.png").convert("RGB").crop((1500, 150, 1950, 550))
+       for v in ["3-pigment-core", "7-soft-core", "8-soft-bloom", "9-soft-spikes"]]
+ims += [Image.open(R / f"phone-home-{v}.png").convert("RGB").crop((200, 100, 650, 500))
+        for v in ["3-pigment-core", "10-obsidian"]]
+s = Image.new("RGB", (460 * len(ims) - 10, 400), "white")
+for k, i in enumerate(ims):
+    s.paste(i, (k * 460, 0))
+save(s, "litcore-v2-closeup.webp")

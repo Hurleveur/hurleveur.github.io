@@ -23,6 +23,10 @@ which is where the muted palette below comes from.
 | 4-gilded | hues pulled toward the site's gold | lit core |
 | 5-ember | gilded | near-white star, hue only in the halo |
 | 6-pearls | mineral pigments | pearl: highlight up-left, pigment body, darker rim — tried, rejected |
+| 7-soft-core | mineral pigments | lit core v2: white point, hue around it, fading out with no edge |
+| 8-soft-bloom | mineral pigments | soft core, and overlapping halos add their light |
+| 9-soft-spikes | mineral pigments | soft bloom plus faint diffraction spikes on room hubs |
+| 10-obsidian | mineral pigments | dark glass fleck, hue only as a sheen at its edge |
 
 ## Findings
 
@@ -42,8 +46,23 @@ darker rim give each star volume, which brought the game-like look straight
 back. Lit from the centre, a star reads as light; shaded as a sphere, it reads
 as an object.
 
+### Lit core v2
+
+The hard rim of the disc is what makes a star read as a token. Soft core (7)
+drops it: a white point fades through the room's hue to nothing, and a room
+hub becomes a light source instead of a coloured ball. Bloom (8) adds the
+halos together where they overlap, so a dense room glows like a nebula; it is
+the candidate. Diffraction spikes (9) are invisible at these sizes and would
+only show once large enough to read as decoration. Obsidian (10) fails: on the
+rotunda the dark flecks read as burns, on a night sky as hollow rings. At
+2–5px a material is only its colour; a texture needs about 20px, which only
+the room hubs ever reach, so materials per room are left to the hubs if tried
+again.
+
 ## Files
 
+- `litcore-v2.webp` and `litcore-v2-closeup.webp` — lit core v2 against the
+  shipped lit core, and obsidian.
 - `pearls.webp` — the rejected pearls: rotunda, observatory night and day, side
   panel by day.
 - `rotunda-current-vs-ember.webp` — the phone home brain, current vs ember.
@@ -64,5 +83,6 @@ python3 design/brain-palette/sheets.py # rebuilds the .webp sheets
 
 `render.mjs` rewrites `vaultbrain.js` in flight for each variant, so the repo
 source is never touched. Variants 0–5 patch the file as it stood before any of
-them shipped (commit `7589b1f1`); `6-pearls` rendered the working tree at commit `3d788793`, before it was reverted.
+them shipped (commit `7589b1f1`); `6-pearls` rendered the working tree at commit `3d788793`, before it was reverted; 7–10
+patch the lit core as shipped in `5420b0a1`.
 Add a variant by adding an entry to `VARIANTS`.
