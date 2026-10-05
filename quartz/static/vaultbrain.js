@@ -183,14 +183,17 @@
   // The home rotunda follows too: by day its brain is the white glass one
   // (rotunda.webp), where bright stars wash out, so it takes the day discs;
   // at night the dark brain (rotunda-night.webp) is their sky.
-  function skyColors() {
+  // On that white glass the side panel's near-black ink cut hard lines
+  // through the brain, so the rotunda inks its threads and rings in a faint
+  // bronze instead, like the glass's own lit veins.
+  function skyColors(mini) {
     const day = document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
           day: true,
           star: "#333c5c",
-          link: "rgba(51,60,92,.18)",
-          label: "rgba(32,39,65,.92)",
+          link: mini ? "rgba(140,110,60,.12)" : "rgba(51,60,92,.18)",
+          label: mini ? "rgba(140,105,50,.5)" : "rgba(32,39,65,.92)",
           sub: "rgba(95,107,142,.95)",
           root: "#5f6b8e",
         }
@@ -321,7 +324,7 @@
       console.error("vaultbrain: could not load contentIndex.json", e)
       return
     }
-    let sky = skyColors()
+    let sky = skyColors(mini)
     // Task 2: which stars are pages already opened — read once per init, same
     // set paintSeenLinks() reads for in-article links.
     const seenSlugs = loadSeen()
@@ -1077,7 +1080,7 @@
 
     // theme toggle flips the sky between day ink and night starlight
     function onTheme() {
-      sky = skyColors()
+      sky = skyColors(mini)
       paintStars()
       nodes.forEach((n) => {
         if (n.folder === "~" && !n.hub) n.color = sky.root

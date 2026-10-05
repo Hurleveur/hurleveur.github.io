@@ -1127,9 +1127,19 @@ body[data-slug="index"] {
    Phone and tablet are untouched — they keep the original padding-top
    below, in flow, over the frosted glass. */
 @media all and ($desktop) {
+  .rotunda-band,
   .rotunda-band + .palace-hero {
     --stage-h: calc(max(100vw, 100svh * 1376 / 768) * var(--band-zoom) * 768 / 1376);
     --stage-top: calc(50svh - var(--stage-h) / 2);
+  }
+
+  /* the frosted glass starts where the text does, under the figure's feet,
+     so the figure and the pool stay sharp */
+  .rotunda-band::after {
+    top: calc(var(--stage-top) + var(--stage-h) * 0.93);
+  }
+
+  .rotunda-band + .palace-hero {
     /* the join line between the eyebrow and h1 — between the brain box's
        foot (~63%, #vault-brain's bottom inset) and the figure's head (~82%) */
     --title-y: calc(var(--stage-top) + var(--stage-h) * 0.69);
