@@ -8,15 +8,18 @@
   // (keyed by lowercase folder slug) so no two neighbours collide; any folder
   // not listed falls back to a stable hash pick from the palette.
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
-  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
+  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet,
+  // in muted mineral pigments (vermilion, saffron, ochre, malachite, lapis) rather
+  // than screen-bright hues, which read as a game over the painted rotunda.
+  // Renders of the alternatives: design/brain-palette/.
   const COLORS = {
-    alignment: "#e05a5a", // root — grounding / foundation
-    travel: "#ef8b4e",     // sacral — experience / exploration
-    work: "#e8c14e",       // solar plexus — will / action
-    friends: "#7fb069",    // heart — connection
-    shared: "#6ab7e0",     // throat — media / communication (tv + clippings)
-    library: "#6a5acd",    // third eye — knowledge / insight
-    meaning: "#9b7ede",    // crown — purpose / spirit
+    alignment: "#b8513f", // root — grounding / foundation
+    travel: "#c47a3c",     // sacral — experience / exploration
+    work: "#c9a24a",       // solar plexus — will / action
+    friends: "#6e9468",    // heart — connection
+    shared: "#4f7aa6",     // throat — media / communication (tv + clippings)
+    library: "#53579a",    // third eye — knowledge / insight
+    meaning: "#86679f",    // crown — purpose / spirit
   }
 
   // the rooms read root -> crown wherever they are listed: the frieze along the
@@ -182,6 +185,7 @@
     const day = !mini && document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
+          day: true,
           star: "#333c5c",
           link: "rgba(51,60,92,.18)",
           label: "rgba(32,39,65,.92)",
@@ -932,7 +936,17 @@
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
         ctx.globalAlpha = dim
-        ctx.fillStyle = col
+        // at night a star burns white-hot at its centre and takes the room's
+        // hue at the rim, like starlight; on the pale day sky a lit centre
+        // reads as a hollow ring, so day keeps the flat pigment disc
+        if (sky.day) ctx.fillStyle = col
+        else {
+          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * pulse * 1.15)
+          cg.addColorStop(0, lighten(col, 0.7))
+          cg.addColorStop(0.45, lighten(col, 0.25))
+          cg.addColorStop(1, col)
+          ctx.fillStyle = cg
+        }
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
         ctx.fill()

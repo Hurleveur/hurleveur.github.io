@@ -91,14 +91,15 @@ const FOLDER_PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "
 // chakra scheme, root -> crown (mirrors COLORS in vaultbrain.js)
 // LOCI PATCH: "alignement" was a typo — the real folder is "Alignment", so
 // its colour was falling through to the hash palette instead of this chakra hue.
+// LOCI PATCH: muted mineral pigments, matching vaultbrain.js COLORS.
 const FOLDER_COLORS = {
-  alignment: "#e05a5a",
-  travel: "#ef8b4e",
-  work: "#e8c14e",
-  friends: "#7fb069",
-  shared: "#6ab7e0",
-  library: "#6a5acd",
-  meaning: "#9b7ede",
+  alignment: "#b8513f",
+  travel: "#c47a3c",
+  work: "#c9a24a",
+  friends: "#6e9468",
+  shared: "#4f7aa6",
+  library: "#53579a",
+  meaning: "#86679f",
 };
 
 function folderColor(folder) {
