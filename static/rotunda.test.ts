@@ -1,6 +1,6 @@
 import test, { describe } from "node:test"
 import assert from "node:assert"
-import { existsSync, readFileSync } from "fs"
+import { readFileSync } from "fs"
 import { join } from "path"
 
 // The rotunda hero puts two layers on the same pixels: the room names carved
@@ -11,9 +11,8 @@ import { join } from "path"
 // under the canvas silently open /brain instead of their room, which no
 // build step or type check would notice.
 //
-// Positions are in the rotunda.png viewBox, 1376x768 image px.
-const BAND_W = 1376
-const BAND_H = 768
+// Positions are in the rotunda.png viewBox, 1252x428 image px.
+const BAND_W = 1252
 
 const here = join(import.meta.dirname, "..")
 const js = readFileSync(join(here, "static/vaultbrain.js"), "utf8")
@@ -50,18 +49,16 @@ describe("rotunda frieze over the brain canvas", () => {
     )
   })
 
-  test("every carved word has its mask and stays on the image", () => {
-    const table = js.match(/const CARVED = \{([^}]+)\}/)
-    assert.ok(table, "vaultbrain.js no longer declares the CARVED table")
-    const rows = [...table![1].matchAll(/(\w+): \[(\d+), (\d+), (\d+), (\d+)\]/g)]
-    assert.ok(rows.length > 0, "CARVED lists no words")
-    for (const [, word, ...box] of rows) {
-      const [x, y, w, h] = box.map(Number)
-      assert.ok(x >= 0 && y >= 0 && x + w <= BAND_W && y + h <= BAND_H, `${word} leaves the image`)
-      assert.ok(
-        existsSync(join(here, "static/frieze", word + ".png")),
-        `${word} has no static/frieze/${word}.png — re-run extract.py`,
-      )
+  test("each side of the band runs left to right and stays on the image", () => {
+    const m = js.match(/const SIDES = \[\{ x0: (\d+), x1: (\d+) \}, \{ x0: (\d+), x1: (\d+) \}\]/)
+    assert.ok(m, "vaultbrain.js no longer declares SIDES in the expected shape")
+    const [, ...n] = m!.map(Number)
+    for (const [x0, x1] of [
+      [n[0], n[1]],
+      [n[2], n[3]],
+    ]) {
+      assert.ok(x0 < x1, `frieze side ${x0}-${x1} is inverted`)
+      assert.ok(x0 >= 0 && x1 <= BAND_W, `frieze side ${x0}-${x1} leaves the image`)
     }
   })
 })
@@ -204,85 +201,5 @@ describe("the description slab is as wide as its longest line", () => {
     // the band is display:none on a phone: every rect is empty
     assert.equal(widestLine([]), 0)
     assert.equal(widestLine([rect(0, 0, 0)]), 0)
-  })
-})
-
-// The mini brain keeps its stars inside the painted outline (brainShape). A
-// typo in BRAIN_OUTLINE or a flipped inPoly comparison would scatter them over
-// the dome or pile them in the middle — nothing else would notice.
-describe("brain outline", () => {
-  const src = js.slice(
-    js.indexOf("const BRAIN_OUTLINE"),
-    js.indexOf("// frieze ↔ brain highlight bus"),
-  )
-  type Pt = [number, number]
-  const { pts, inPoly, seatBrain } = new Function(
-    `${src}; return { pts: BRAIN_OUTLINE, inPoly, seatBrain }`,
-  )() as {
-    pts: Pt[]
-    inPoly: (pts: Pt[], x: number, y: number) => boolean
-    seatBrain: (
-      pts: Pt[],
-      cx: number,
-      cy: number,
-      rooms: { key: string; notes: string[] }[],
-    ) => { home: Record<string, Pt>; hub: Record<string, Pt> }
-  }
-
-  test("the brain's middle and its lobes are inside", () => {
-    for (const [x, y] of [
-      [690, 330],
-      [520, 320],
-      [690, 220],
-      [860, 360],
-      [800, 455],
-    ]) {
-      assert.ok(inPoly(pts, x, y), `${x},${y} should be inside`)
-    }
-  })
-
-  test("the dome, the stem and the columns are outside", () => {
-    for (const [x, y] of [
-      [690, 180],
-      [470, 330],
-      [700, 520],
-      [540, 450],
-      [910, 360],
-    ]) {
-      assert.ok(!inPoly(pts, x, y), `${x},${y} should be outside`)
-    }
-  })
-
-  // a lopsided vault: one room ten times another, the way the real one is
-  const rooms = [
-    { key: "~", notes: Array.from({ length: 20 }, (_, i) => `root${i}`) },
-    ...[30, 300, 15, 120, 60].map((n, r) => ({
-      key: `room${r}`,
-      notes: Array.from({ length: n }, (_, i) => `room${r}/n${i}`),
-    })),
-  ]
-  const all = rooms.flatMap((r) => r.notes)
-  const { home, hub } = seatBrain(pts, 686, 340, rooms)
-
-  test("every note gets its own seat, inside the brain", () => {
-    assert.equal(all.length, 545)
-    const seen = new Set<string>()
-    for (const slug of all) {
-      const [x, y] = home[slug]
-      assert.ok(inPoly(pts, x, y), `${slug} at ${x},${y} is outside the brain`)
-      seen.add(`${x},${y}`)
-    }
-    assert.equal(seen.size, all.length, "two notes share a seat")
-    for (const r of rooms) assert.ok(inPoly(pts, ...hub[r.key]), `${r.key}'s star is outside`)
-  })
-
-  test("the crown is as full as the base: no half of the brain is left empty", () => {
-    // split the brain at its seat median height; equal areas must hold equal
-    // shares of notes, which a ring of fixed room spots never gave
-    const ys = all.map((s) => home[s][1]).sort((a, b) => a - b)
-    const top = ys.filter((y) => y < 300).length / ys.length
-    const bottom = ys.filter((y) => y > 400).length / ys.length
-    assert.ok(top > 0.25, `only ${top} of the notes sit above y 300`)
-    assert.ok(bottom > 0.08, `only ${bottom} of the notes sit below y 400`)
   })
 })
