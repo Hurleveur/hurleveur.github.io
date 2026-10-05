@@ -4,7 +4,7 @@
 // Run from the repo root: node design/brain-palette/render.mjs [variant ...], then
 // sheets.py. Variants 0-5 patch vaultbrain.js as it stood before any of them
 // shipped (BASE); 6-pearls is the reverted pearl drawing (3d788793), unpatched;
-// 7+ patch the working tree (LIVE), i.e. the shipped lit core.
+// 7+ patch the lit core as first shipped (LIVE, 5420b0a1).
 import { chromium } from "playwright-core"
 import fs from "fs"
 import path from "path"
@@ -14,7 +14,7 @@ const HERE = path.dirname(new URL(import.meta.url).pathname)
 const OUT = path.join(HERE, "renders")
 fs.mkdirSync(OUT, { recursive: true })
 const BASE = execFileSync("git", ["show", "7589b1f1:quartz/static/vaultbrain.js"], { encoding: "utf8" })
-const LIVE = fs.readFileSync(path.join(HERE, "../../quartz/static/vaultbrain.js"), "utf8")
+const LIVE = execFileSync("git", ["show", "5420b0a1:quartz/static/vaultbrain.js"], { encoding: "utf8" })
 const PEARLS = execFileSync("git", ["show", "3d788793:quartz/static/vaultbrain.js"], { encoding: "utf8" })
 
 const PIGMENT = ["#b8513f", "#c47a3c", "#c9a24a", "#6e9468", "#4f7aa6", "#53579a", "#86679f"]
