@@ -41,6 +41,11 @@ which is where the muted palette below comes from.
 **Shipped: variant 3**, the mineral-pigment palette with a lit core on every
 night sky (rotunda, dark side panel, dark observatory) and flat discs by day.
 
+Since lit core v2 the home rotunda follows the theme as well: by day it keeps the
+white glass brain (`rotunda.webp`) with flat pigment discs, since bright stars
+wash out on it; at night it paints a dark brain (`rotunda-night.webp`) under the
+soft bloom.
+
 Pearls (6) were tried on top of it and rejected: the off-centre highlight and
 darker rim give each star volume, which brought the game-like look straight
 back. Lit from the centre, a star reads as light; shaded as a sphere, it reads

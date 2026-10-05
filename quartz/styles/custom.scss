@@ -896,6 +896,12 @@ body[data-slug="index"] {
     background: url("/static/rotunda.webp") center / 100% 100% no-repeat;
   }
 
+  /* night: the same hall with a dark brain (same geometry, pixel for pixel,
+     so every inset and frieze mask fits both). Master: rotunda-night.png. */
+  [saved-theme="dark"] & .rotunda-stage {
+    background-image: url("/static/rotunda-night.webp");
+  }
+
   &::after {
     /* frosted glass under the hero's text: from 80% down (the pool) the hall
        shows through blurred, thickening into the page colour at the foot.

@@ -180,9 +180,11 @@
 
   // canvas colors follow the theme: Quartz's darkmode script stamps saved-theme
   // on <html> and fires "themechange". Day = ink on pale sky, night = starlight.
-  // The home rotunda mini brain sits on the dark dome image — always night there.
-  function skyColors(mini) {
-    const day = !mini && document.documentElement.getAttribute("saved-theme") === "light"
+  // The home rotunda follows too: by day its brain is the white glass one
+  // (rotunda.webp), where bright stars wash out, so it takes the day discs;
+  // at night the dark brain (rotunda-night.webp) is their sky.
+  function skyColors() {
+    const day = document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
           day: true,
@@ -319,7 +321,7 @@
       console.error("vaultbrain: could not load contentIndex.json", e)
       return
     }
-    let sky = skyColors(mini)
+    let sky = skyColors()
     // Task 2: which stars are pages already opened — read once per init, same
     // set paintSeenLinks() reads for in-article links.
     const seenSlugs = loadSeen()
@@ -1075,7 +1077,7 @@
 
     // theme toggle flips the sky between day ink and night starlight
     function onTheme() {
-      sky = skyColors(mini)
+      sky = skyColors()
       paintStars()
       nodes.forEach((n) => {
         if (n.folder === "~" && !n.hub) n.color = sky.root
