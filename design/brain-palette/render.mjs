@@ -3,7 +3,7 @@
 // Needs the dev server on :8050 and playwright-core (npm i --no-save playwright-core).
 // Run from the repo root: node design/brain-palette/render.mjs [variant ...], then
 // sheets.py. Variants 0-5 patch vaultbrain.js as it stood before any of them
-// shipped (BASE); 6-pearls is the working tree as it ships now, unpatched.
+// shipped (BASE); 6-pearls is the reverted pearl drawing (3d788793), unpatched.
 import { chromium } from "playwright-core"
 import fs from "fs"
 import path from "path"
@@ -13,7 +13,7 @@ const HERE = path.dirname(new URL(import.meta.url).pathname)
 const OUT = path.join(HERE, "renders")
 fs.mkdirSync(OUT, { recursive: true })
 const BASE = execFileSync("git", ["show", "7589b1f1:quartz/static/vaultbrain.js"], { encoding: "utf8" })
-const LIVE = fs.readFileSync(path.join(HERE, "../../quartz/static/vaultbrain.js"), "utf8")
+const PEARLS = execFileSync("git", ["show", "3d788793:quartz/static/vaultbrain.js"], { encoding: "utf8" })
 
 const PIGMENT = ["#b8513f", "#c47a3c", "#c9a24a", "#6e9468", "#4f7aa6", "#53579a", "#86679f"]
 const STARLIGHT = ["#e39a8a", "#e8b48a", "#e6cf8f", "#a9c79a", "#93bcd9", "#9aa3dc", "#bba4dc"]
@@ -29,7 +29,7 @@ const VARIANTS = {
   "3-pigment-core": { p: PIGMENT, star: CORE },
   "4-gilded": { p: GILDED, star: CORE },
   "5-ember": { p: GILDED, star: EMBER },
-  "6-pearls": { live: true },
+  "6-pearls": { pearls: true },
 }
 const VIEWS = [
   ["phone-home", 390, 844, true, "dark", "/", { x: 0, y: 250, width: 390, height: 420 }],
@@ -50,7 +50,7 @@ const b = await chromium.launch({
 const only = process.argv.slice(2)
 for (const [name, v] of Object.entries(VARIANTS)) {
   if (only.length && !only.includes(name)) continue
-  let js = v.live ? LIVE : BASE
+  let js = v.pearls ? PEARLS : BASE
   if (v.p) js = js.replace("const COLORS = {", pal(v.p))
   if (v.star) js = js.replace(/ctx\.fillStyle = col\n/, v.star + "\n")
   for (const [tag, w, h, mobile, theme, url, clip] of VIEWS) {
