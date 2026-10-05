@@ -8,15 +8,18 @@
   // (keyed by lowercase folder slug) so no two neighbours collide; any folder
   // not listed falls back to a stable hash pick from the palette.
   const PALETTE = ["#9b7ede", "#d4a94e", "#6ab7e0", "#ef7b6d", "#7fb069", "#4ecdc4", "#e0a1c9", "#8fa6d4"]
-  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet
+  // chakra scheme, root -> crown: red · orange · yellow · green · blue · indigo · violet,
+  // in muted mineral pigments (vermilion, saffron, ochre, malachite, lapis) rather
+  // than screen-bright hues, which read as a game over the painted rotunda.
+  // Renders of the alternatives: design/brain-palette/.
   const COLORS = {
-    alignment: "#e05a5a", // root — grounding / foundation
-    travel: "#ef8b4e",     // sacral — experience / exploration
-    work: "#e8c14e",       // solar plexus — will / action
-    friends: "#7fb069",    // heart — connection
-    shared: "#6ab7e0",     // throat — media / communication (tv + clippings)
-    library: "#6a5acd",    // third eye — knowledge / insight
-    meaning: "#9b7ede",    // crown — purpose / spirit
+    alignment: "#b8513f", // root — grounding / foundation
+    travel: "#c47a3c",     // sacral — experience / exploration
+    work: "#c9a24a",       // solar plexus — will / action
+    friends: "#6e9468",    // heart — connection
+    shared: "#4f7aa6",     // throat — media / communication (tv + clippings)
+    library: "#53579a",    // third eye — knowledge / insight
+    meaning: "#86679f",    // crown — purpose / spirit
   }
 
   // the rooms read root -> crown wherever they are listed: the frieze along the
@@ -70,12 +73,13 @@
 
   // lerp a hex toward its own grayscale value by t — real desaturation, not a
   // wash of white, so a seen star (Task 2) goes near-grey and a colorful
-  // unseen one still pops next to it.
+  // unseen one still pops next to it. A negative t pushes away from grey:
+  // the rotunda's lit stars by day, vivid on the white glass.
   function desat(hex, t) {
     const n = parseInt(hex.slice(1), 16)
     const r = n >> 16, g = (n >> 8) & 255, b = n & 255
     const gray = r * 0.3 + g * 0.59 + b * 0.11
-    const f = (v) => Math.round(v + (gray - v) * t)
+    const f = (v) => Math.max(0, Math.min(255, Math.round(v + (gray - v) * t)))
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
@@ -177,14 +181,20 @@
 
   // canvas colors follow the theme: Quartz's darkmode script stamps saved-theme
   // on <html> and fires "themechange". Day = ink on pale sky, night = starlight.
-  // The home rotunda mini brain sits on the dark dome image — always night there.
+  // The home rotunda follows too: by day its brain is the white glass one
+  // (rotunda.webp), where bright stars wash out, so it takes the day discs;
+  // at night the dark brain (rotunda-night.webp) is their sky.
+  // On that white glass the side panel's near-black ink cut hard lines
+  // through the brain, so the rotunda inks its threads and rings in a faint
+  // bronze instead, like the glass's own lit veins.
   function skyColors(mini) {
-    const day = !mini && document.documentElement.getAttribute("saved-theme") === "light"
+    const day = document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
+          day: true,
           star: "#333c5c",
-          link: "rgba(51,60,92,.18)",
-          label: "rgba(32,39,65,.92)",
+          link: mini ? "rgba(140,110,60,.12)" : "rgba(51,60,92,.18)",
+          label: mini ? "rgba(140,105,50,.5)" : "rgba(32,39,65,.92)",
           sub: "rgba(95,107,142,.95)",
           root: "#5f6b8e",
         }
@@ -923,18 +933,38 @@
         const litG = mini ? Math.min(1, lit / hlAmp) : lit
         const glow = local ? Math.max(lit, near) : Math.max(0.5 * litG, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
+        // by day on the rotunda a lit room turns vivid rather than lighter:
+        // a pale tint vanishes into the white glass, saturation does not
+        const pig = mini && sky.day ? desat(col, -0.8 * Math.max(litG, near)) : col
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
-        g.addColorStop(0, col)
+        g.addColorStop(0, pig)
         g.addColorStop(1, "transparent")
         ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
+        // at night overlapping halos add their light, so a dense room glows
+        // like a nebula instead of stacking flat tints
+        if (!sky.day) ctx.globalCompositeOperation = "lighter"
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
+        ctx.globalCompositeOperation = "source-over"
         ctx.globalAlpha = dim
-        ctx.fillStyle = col
+        // at night a star is a point of light: white at the centre, the
+        // room's hue around it, fading out with no edge — a hard rim is what
+        // makes a star read as a token. On the pale day sky a lit centre reads
+        // as a hollow ring, so day keeps the flat pigment disc.
+        const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1)
+        if (sky.day) ctx.fillStyle = pig
+        else {
+          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
+          cg.addColorStop(0, "#fffaf2")
+          cg.addColorStop(0.15, lighten(col, 0.7))
+          cg.addColorStop(0.45, col)
+          cg.addColorStop(1, col + "00")
+          ctx.fillStyle = cg
+        }
         ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
+        ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
