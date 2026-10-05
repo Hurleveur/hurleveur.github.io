@@ -71,6 +71,15 @@
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
+  // lerp a hex toward black by t — the rotunda's day pigments, deepened to
+  // hold against the white glass brain
+  function darken(hex, t) {
+    const n = parseInt(hex.slice(1), 16)
+    const r = n >> 16, g = (n >> 8) & 255, b = n & 255
+    const f = (v) => Math.round(v * (1 - t))
+    return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
+  }
+
   // lerp a hex toward its own grayscale value by t — real desaturation, not a
   // wash of white, so a seen star (Task 2) goes near-grey and a colorful
   // unseen one still pops next to it.
@@ -922,8 +931,13 @@
         const dim = 1 - 0.85 * (hlMax - Math.max(lit, near))
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
+        // the rotunda by day paints in ink on white glass, not light: deeper
+        // pigment, and halos that multiply where they overlap, so a dense
+        // room stains the glass like watercolour
+        const ink = mini && sky.day
         // Task 2: a page already opened reads near-grey so an unseen one pops
         const col = n.seen ? desat(n.color, 0.78) : n.color
+        const pig = ink ? darken(col, 0.3) : col
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
         // On the rotunda the tour's room glows as bright as a hovered one:
@@ -933,13 +947,17 @@
         const glow = local ? Math.max(lit, near) : Math.max(0.5 * litG, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
-        g.addColorStop(0, col)
+        g.addColorStop(0, pig)
         g.addColorStop(1, "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
+        ctx.globalAlpha = Math.min(
+          1,
+          (n.hub ? 0.4 : big ? 0.3 : 0.2) * (ink ? 1.6 : 1) * dim * (1 + 0.8 * glow),
+        )
         ctx.fillStyle = g
         // at night overlapping halos add their light, so a dense room glows
         // like a nebula instead of stacking flat tints
         if (!sky.day) ctx.globalCompositeOperation = "lighter"
+        else if (ink) ctx.globalCompositeOperation = "multiply"
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
@@ -950,7 +968,7 @@
         // makes a star read as a token. On the pale day sky a lit centre reads
         // as a hollow ring, so day keeps the flat pigment disc.
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1)
-        if (sky.day) ctx.fillStyle = col
+        if (sky.day) ctx.fillStyle = pig
         else {
           const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
           cg.addColorStop(0, "#fffaf2")

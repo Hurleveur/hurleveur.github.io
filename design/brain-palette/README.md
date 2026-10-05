@@ -42,8 +42,9 @@ which is where the muted palette below comes from.
 night sky (rotunda, dark side panel, dark observatory) and flat discs by day.
 
 Since lit core v2 the home rotunda follows the theme as well: by day it keeps the
-white glass brain (`rotunda.webp`) with flat pigment discs, since bright stars
-wash out on it; at night it paints a dark brain (`rotunda-night.webp`) under the
+white glass brain (`rotunda.webp`), where bright stars wash out, so it paints in
+ink instead: pigments deepened 30% and halos that multiply where they overlap,
+like watercolour on the glass; at night it paints a dark brain (`rotunda-night.webp`) under the
 soft bloom.
 
 Pearls (6) were tried on top of it and rejected: the off-centre highlight and
