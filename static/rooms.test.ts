@@ -42,10 +42,12 @@ describe("the rooms", () => {
     )
   })
 
-  test("only the Palace prose hides behind Read more", () => {
+  test("the Palace teaser still cuts at two blocks, behind Read more", () => {
     // every other section of the note renders plainly. If the teaser map grows
     // a second entry, or the button stops being built, part of the map either
-    // disappears from the home page or arrives already spent.
+    // disappears from the home page or arrives already spent. (e7856abc read
+    // this cut as the reason a line added to the note never showed and deleted
+    // it outright — it wasn't: see the next test for what actually dropped it.)
     const teaser = js.slice(
       js.indexOf("const INTRO_TEASER"),
       js.indexOf("async function initVaultIntro"),
@@ -56,6 +58,119 @@ describe("the rooms", () => {
       initVaultIntro,
       /\^H\[1-6\]\$/,
       "initVaultIntro no longer groups the note by its own headings",
+    )
+  })
+
+  test("every block past the teaser lands inside the one fold, any node type", () => {
+    // This runs the real grouping + cut code (not a regex) against six fake
+    // blocks — five paragraphs and a trailing collapsible callout — and checks
+    // every one from the third on ends up a child of the single
+    // .vault-intro-rest div. The callout case is the one that actually broke:
+    // a collapsible callout used to flush the running section and split off
+    // into its OWN top-level, separately-collapsed <details> before the cut
+    // ever saw it, so a credit line written as a callout past the teaser
+    // rendered, but behind a second, disconnected toggle nobody associates
+    // with "Read more" — easy to read as "never showed".
+    const cutMatch = js.match(/const INTRO_TEASER = \{ palace: (\d+) \}/)
+    assert.ok(cutMatch, "INTRO_TEASER's shape changed — update this test's cut value")
+    const cut = Number(cutMatch[1])
+
+    const code = js.slice(
+      js.indexOf("// group the note by heading."),
+      js.indexOf("    box.replaceChildren()"),
+    )
+
+    // the smallest fake DOM the sliced code actually calls into: tagName, id,
+    // textContent, matches(), querySelector(), append/appendChild.
+    class FakeEl {
+      tagName: string
+      id = ""
+      _text = ""
+      classes = new Set<string>()
+      children: FakeEl[] = []
+      q: Record<string, FakeEl | undefined> = {}
+      constructor(tag: string) {
+        this.tagName = tag.toUpperCase()
+      }
+      get textContent() {
+        return this._text
+      }
+      set textContent(v: string) {
+        this._text = v
+      }
+      matches(sel: string) {
+        return (
+          sel === "blockquote.callout.is-collapsible" &&
+          this.tagName === "BLOCKQUOTE" &&
+          this.classes.has("callout") &&
+          this.classes.has("is-collapsible")
+        )
+      }
+      querySelector(sel: string) {
+        return this.q[sel] ?? null
+      }
+      appendChild(el: FakeEl) {
+        this.children.push(el)
+        return el
+      }
+      append(...els: FakeEl[]) {
+        this.children.push(...els)
+      }
+      addEventListener() {
+        // the "Read more" click handler — structure is what this test checks
+      }
+    }
+
+    const fakeDocument = { createElement: (tag: string) => new FakeEl(tag) }
+    const p = (text: string) => {
+      const e = new FakeEl("p")
+      e.textContent = text
+      return e
+    }
+
+    const heading = new FakeEl("h2")
+    heading.id = "palace"
+    heading.textContent = "Palace"
+
+    const title = new FakeEl("span")
+    title.textContent = "How this vault is put together"
+    const content = new FakeEl("div")
+    content.children = [p("inside the callout")]
+    const callout = new FakeEl("blockquote")
+    callout.classes.add("callout")
+    callout.classes.add("is-collapsible")
+    callout.q = { ".callout-title-inner": title, ".callout-content": content }
+
+    const tmp = {
+      children: [heading, p("one"), p("two"), p("three"), p("four"), p("five"), callout],
+    }
+
+    const run = new Function("document", "tmp", "INTRO_TEASER", code + "\nreturn { sections, put }")
+    const { sections, put } = run(fakeDocument, tmp, { palace: cut })
+    const palace = sections.find((s: { id: string }) => s.id === "palace")
+    assert.ok(palace, "the fake note produced no Palace section")
+    assert.equal(
+      palace.nodes.length,
+      6,
+      "five paragraphs plus the callout should all be one section's nodes",
+    )
+
+    const box = fakeDocument.createElement("div")
+    put(box, palace)
+
+    const rest = box.children.find((c: FakeEl) => (c as any).className === "vault-intro-rest")
+    assert.ok(rest, "no .vault-intro-rest was built — the teaser stopped folding")
+    assert.equal((rest as any).hidden, true, "the fold's rest div isn't hidden by default")
+    assert.equal(
+      rest.children.length,
+      palace.nodes.length - cut,
+      "not every block past the teaser landed inside the fold",
+    )
+    const foldedCallout = rest.children[rest.children.length - 1]
+    assert.equal(
+      foldedCallout.tagName,
+      "DETAILS",
+      "the callout past the teaser escaped into its own fold instead of this one",
     )
   })
 

@@ -87,6 +87,82 @@
   // ponytail: 7 distinct steps, wraps past 7 sub-folders in one section.
   const TINTS = [0.24, 0.12, 0.33, 0.06, 0.42, 0.18, 0.3]
 
+  // the painted brain's outline in rotunda.png px (1376x768): cerebrum and
+  // cerebellum, the stem left out. Traced by hand — the brain is translucent
+  // over the dome, so no threshold finds its edge. The rotunda's mini brain
+  // lays its rooms out inside it and keeps every star in it (brainShape).
+  const BRAIN_OUTLINE = [
+    [487, 330], [492, 295], [515, 260], [545, 237], [590, 220], [640, 210], [680, 206],
+    [730, 210], [780, 220], [820, 240], [855, 275], [877, 315], [886, 360], [882, 400],
+    [865, 430], [840, 465], [790, 475], [730, 450], [690, 442], [630, 445], [600, 430],
+    [580, 400], [540, 400], [505, 375], [490, 350],
+  ]
+  // even-odd ray cast: is (x, y) inside the polygon pts
+  function inPoly(pts, x, y) {
+    let inside = false
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j]
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside
+    }
+    return inside
+  }
+  // one seat per note, spread evenly over the outline pts, so the cloud fills
+  // the brain however the notes divide between rooms. Seats sit on a hex grid
+  // sized to the note count (shrunk until enough fit, each seat a half-step
+  // clear of the edge). The centre group (rooms[0] when its key is "~") takes
+  // the seats nearest the middle; the other rooms, in ring order, take slices
+  // of the rest by angle, each slice as large as the room, the first one
+  // centred on 12 o'clock like the old ring. A room's star sits at its slice's
+  // mean. rooms: [{ key, notes: [slug] }] -> { home: {slug: [x, y]}, hub: {key: [x, y]} }
+  function seatBrain(pts, cx, cy, rooms) {
+    const N = rooms.reduce((a, r) => a + r.notes.length, 0)
+    const home = {}, hub = {}
+    if (!N) return { home, hub }
+    let area = 0
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++)
+      area += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1])
+    area = Math.abs(area) / 2
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1])
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+    let s = Math.sqrt(area / N), seats = []
+    for (let tries = 0; tries < 30 && seats.length < N; tries++, s *= 0.94) {
+      seats = []
+      const h = s * 0.866, e = s * 0.5
+      for (let r = 0, y = y0 + e; y < y1; r++, y += h)
+        for (let x = x0 + e + (r % 2) * e; x < x1; x += s)
+          if (inPoly(pts, x, y) && inPoly(pts, x - e, y) && inPoly(pts, x + e, y) &&
+              inPoly(pts, x, y - e) && inPoly(pts, x, y + e)) seats.push([x, y])
+    }
+    const M = seats.length
+    const fill = (key, notes, mine) => {
+      notes.forEach((slug, i) => (home[slug] = mine[Math.floor(((i + 0.5) * mine.length) / notes.length)]))
+      hub[key] = mine.length
+        ? [mine.reduce((a, p) => a + p[0], 0) / mine.length, mine.reduce((a, p) => a + p[1], 0) / mine.length]
+        : [cx, cy]
+    }
+    let rest = seats, ring = rooms
+    if (rooms[0] && rooms[0].key === "~") {
+      const k = Math.round((M * rooms[0].notes.length) / N)
+      rest = seats.slice().sort((a, b) => Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy))
+      fill("~", rooms[0].notes, rest.slice(0, k))
+      rest = rest.slice(k)
+      ring = rooms.slice(1)
+    }
+    const ang = (p) => (Math.atan2(p[1] - cy, p[0] - cx) + Math.PI / 2 + 4 * Math.PI) % (2 * Math.PI)
+    rest = rest.slice().sort((a, b) => ang(a) - ang(b))
+    const left = ring.reduce((a, r) => a + r.notes.length, 0)
+    const sizes = ring.map((r) => Math.round((rest.length * r.notes.length) / (left || 1)))
+    if (sizes.length) sizes[sizes.length - 1] = rest.length - sizes.slice(0, -1).reduce((a, b) => a + b, 0)
+    // rotate so the first room's slice straddles 12 o'clock
+    const shift = Math.floor((sizes[0] || 0) / 2)
+    rest = rest.slice(rest.length - shift).concat(rest.slice(0, rest.length - shift))
+    let at = 0
+    ring.forEach((r, i) => {
+      fill(r.key, r.notes, rest.slice(at, (at += sizes[i])))
+    })
+    return { home, hub }
+  }
+
   // frieze ↔ brain highlight bus: hovering a frieze word lights that section's
   // stars, hovering a star lights its frieze word. detail = folder or null.
   // ev.soft marks the idle tour in initFrieze rather than a pointer: the same
@@ -172,11 +248,16 @@
   // (getComputedStyle/querySelector deliberately lie) or even matched
   // reliably — Chrome 136+ partitions it per top-level site — so this reads
   // the plain localStorage slug set and toggles a real class instead.
+  // the main categories never wash out: a room is a door you keep walking
+  // back through, not a page you have read. A room is a top-level folder,
+  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash)
+  const isRoom = (path) => /^\/?[^/]+\/(index)?$/.test(path)
   function paintSeenLinks() {
     const seen = loadSeen()
     document.querySelectorAll("a.internal").forEach((a) => {
       try {
-        a.classList.toggle("vb-seen", seen.has(normSlug(new URL(a.href, location.href).pathname)))
+        const path = new URL(a.href, location.href).pathname
+        a.classList.toggle("vb-seen", !isRoom(path) && seen.has(normSlug(path)))
       } catch (e) {
         /* malformed href */
       }
@@ -321,7 +402,7 @@
           ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
           : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
         hubWeight: backlinks[slug] || 0,
-        seen: seenSlugs.has(normSlug(slug)),
+        seen: !isRoom(slug) && seenSlugs.has(normSlug(slug)),
         x: 0, y: 0, vx: 0, vy: 0,
       }
     })
@@ -362,7 +443,7 @@
         color: folderColor(f),
         r: ((mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2)) * rs,
         hubWeight: 0,
-        seen: seenSlugs.has(normSlug(f + "/")),
+        seen: false, // a room never washes out (isRoom)
         x: 0, y: 0, vx: 0, vy: 0,
       })
     })
@@ -392,6 +473,34 @@
     const showLabels = local && nodes.length <= 16
 
     let W, H, dpr
+    // mini: BRAIN_OUTLINE in canvas px with each room's spot inside it, or null
+    let shape = null
+    // the outline goes from image px to this canvas through the stage's live
+    // box (the stage is the image, cover-cropped), clamped to the canvas less
+    // a glow margin: on a phone the painted brain is wider than the box.
+    function brainShape() {
+      const stage = wrap.closest(".rotunda-stage")
+      if (!stage) return null
+      const s = stage.getBoundingClientRect(), w = wrap.getBoundingClientRect()
+      const k = s.width / 1376, m = 12
+      const pts = BRAIN_OUTLINE.map(([x, y]) => [
+        Math.min(W - m, Math.max(m, s.left + x * k - w.left)),
+        Math.min(H - m, Math.max(m, s.top + y * k - w.top)),
+      ])
+      const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1])
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2
+      // every note gets its own seat (seatBrain); a sub-folder's notes sit
+      // side by side in their room's slice, so it still reads as one clump
+      const rooms = ["~", ...ring].map((f) => ({
+        key: f,
+        notes: nodes
+          .filter((n) => !n.hub && n.folder === f)
+          .sort((a, b) => (a.sub || "").localeCompare(b.sub || "") || a.slug.localeCompare(b.slug))
+          .map((n) => n.slug),
+      }))
+      return { pts, cx, cy, ...seatBrain(pts, cx, cy, rooms) }
+    }
     // zoom/pan viewport (full mode only): screen = world * s + offset
     const view = { s: 1, x: 0, y: 0 }
     function clampView() {
@@ -411,6 +520,7 @@
         c.height = H * dpr
         c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0)
       })
+      if (mini) shape = brainShape()
       paintStars()
       clampView()
       heat = Math.max(heat, 0.6) // rewarm the sim so the sky re-settles to the new size
@@ -433,10 +543,12 @@
       // mini: the canvas IS the image's brain — spread wider to fill it
       if (local) {
         if (n.you) return [W / 2, H / 2]
-        // 0.36 of the short side leaves room outside the ring for the titles
-        const R = Math.min(W, H) * 0.36
-        return [W / 2 + Math.cos(n.ang) * R, H / 2 + Math.sin(n.ang) * R]
+        // an ellipse filling the panel: titles clamp inside the width (label),
+        // so only 24px above and below is kept for the top and bottom ones
+        const rx = W * 0.36, ry = Math.max(H / 2 - 24, H * 0.3)
+        return [W / 2 + Math.cos(n.ang) * rx, H / 2 + Math.sin(n.ang) * ry]
       }
+      if (shape) return (n.hub ? shape.hub[n.folder] : shape.home[n.slug]) || [shape.cx, shape.cy]
       const hub = hubs[n.folder] || { ax: 0, ay: 0 }
       let hx = W / 2 + hub.ax * W * (mini ? 0.32 : 0.3)
       let hy = H / 2 + hub.ay * H * (mini ? 0.4 : 0.46)
@@ -495,8 +607,16 @@
         // not a hard clamp: a clamp piles nodes into a visible rim ring.
         // ellipse sits well inside the canvas: node glows reach ~4x node radius,
         // and anything past the canvas edge clips to a hard bright rectangle
-        const ex = (n.x - W / 2) / (W * (mini ? 0.44 : 0.47))
-        const ey = (n.y - H / 2) / (H * (mini ? 0.42 : 0.45))
+        // mini: the painted outline instead (brainShape), pulled toward its middle
+        if (shape) {
+          if (!inPoly(shape.pts, n.x, n.y)) {
+            n.vx += (shape.cx - n.x) * 0.02
+            n.vy += (shape.cy - n.y) * 0.02
+          }
+          return
+        }
+        const ex = (n.x - W / 2) / (W * 0.47)
+        const ey = (n.y - H / 2) / (H * 0.45)
         const d = ex * ex + ey * ey
         if (d > 1) {
           n.vx += (W / 2 - n.x) * 0.06 * (d - 1)
@@ -1120,7 +1240,7 @@
   // the mini-brain box: dashed outline over #vault-brain, drag it to move,
   // drag the corner grip to resize. Numbers come out as the CSS inset rule.
   function tuneBrain() {
-    const band = document.querySelector(".rotunda-band")
+    const band = document.querySelector(".rotunda-stage")
     const wrap = document.getElementById("vault-brain")
     if (!band || !wrap || wrap.dataset.vbTune) return
     wrap.dataset.vbTune = "1"
@@ -1186,35 +1306,6 @@
     apply()
   }
 
-  // the frieze band: sliders for the ellipse the room names ride, plus the
-  // two x ranges. ry/rx is the curve's angle — the flatter the ratio, the
-  // less the words tilt at the edges. The cyan path draws the live curve.
-  function tuneFrieze(band, sides, layout) {
-    const panel = tunePanel()
-    const out = document.createElement("pre")
-    out.setAttribute("style", "margin:8px 0 0;white-space:pre-wrap;color:#ffd08a")
-    const redraw = () => {
-      layout()
-      out.textContent =
-        `const BAND = { cx: ${band.cx}, cy: ${band.cy}, rx: ${band.rx}, ry: ${band.ry}, ` +
-        `tilt: ${band.tilt} }\n` +
-        `const SIDES = [{ x0: ${sides[0].x0}, x1: ${sides[0].x1} }, ` +
-        `{ x0: ${sides[1].x0}, x1: ${sides[1].x1} }]`
-    }
-    tuneRow(panel, "band cx", band, "cx", 400, 900, 0.5, redraw)
-    tuneRow(panel, "band cy", band, "cy", -400, 200, 0.5, redraw)
-    tuneRow(panel, "band rx", band, "rx", 300, 1400, 1, redraw)
-    tuneRow(panel, "band ry", band, "ry", 120, 900, 1, redraw)
-    // word tilt, 1 = the curve's true tangent
-    tuneRow(panel, "word tilt", band, "tilt", 0.3, 1.7, 0.01, redraw)
-    tuneRow(panel, "left from", sides[0], "x0", 40, 500, 1, redraw)
-    tuneRow(panel, "left to", sides[0], "x1", 40, 500, 1, redraw)
-    tuneRow(panel, "right from", sides[1], "x0", 780, 1220, 1, redraw)
-    tuneRow(panel, "right to", sides[1], "x1", 780, 1220, 1, redraw)
-    panel.appendChild(out)
-    redraw()
-  }
-
   // rotunda frieze: one room name per real top-level folder, colored like
   // the constellation, counts live from the index — never a hand-kept list
   async function initFrieze() {
@@ -1234,40 +1325,27 @@
       const folder = slug.split("/")[0]
       counts[folder] = (counts[folder] || 0) + 1
     }
-    // words carved along the rotunda entablature, where the baked
-    // pseudo-latin used to run (inpainted out of rotunda.png). SVG
-    // textPath on the entablature arc, fitted to the image's carve line;
-    // the brain image occludes the middle, so the rooms split left/right.
+    // the room names are carved into rotunda.png itself; each word lights by
+    // painting its own glyph mask (static/frieze/<room>.png) in the room's
+    // colour. The masks and these boxes come out of quartz/static/frieze/
+    // extract.py, a pixel diff of the image with and without the carving —
+    // exact to the groove, so nothing here is fitted or tuned by eye.
     {
       const NS = "http://www.w3.org/2000/svg"
       const svg = document.createElementNS(NS, "svg")
-      svg.setAttribute("viewBox", "0 0 1252 428")
+      svg.setAttribute("viewBox", "0 0 1376 768")
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-      // words sit on the entablature band ellipse and rotate with its tangent,
-      // so no per-word lift or rotation fudge is needed anywhere. The starting
-      // ellipse was a least-squares fit of the cornice line read out of
-      // rotunda.png (cx 628.8, cy -16.5, rx 603.2, ry 333.9); these are that
-      // fit walked onto the carve line by eye in /?tune, which is the only
-      // reliable way to set them — see tuneFrieze below.
-      // tilt scales the tangent every word rotates by; 1 is the curve's own
-      // tangent. It is off 1 because the carve line and the cornice the fit
-      // was read off are different circles in 3D, so their projected tangents
-      // differ — but a value far from 1 means the ellipse itself is wrong.
-      const BAND = { cx: 626.5, cy: -20, rx: 580, ry: 333.9, tilt: 1.02 }
-      const bandS = (x) => Math.sqrt(Math.max(1e-4, 1 - ((x - BAND.cx) / BAND.rx) ** 2))
-      const bandY = (x) => BAND.cy + BAND.ry * bandS(x)
-      const bandDeg = (x) =>
-        ((Math.atan((-BAND.ry * (x - BAND.cx)) / (BAND.rx * BAND.rx * bandS(x))) * 180) / Math.PI) *
-        BAND.tilt
-      // per-side x ranges: start where the band clears the front column, end
-      // where the carve line leaves the entablature. They may reach over the
-      // brain canvas box — .frieze stacks above it and hands the pointer back
-      // on its glyphs alone, so those words still open their own room.
-      const SIDES = [{ x0: 121, x1: 408 }, { x0: 894, x1: 1084 }]
+      // [x, y, width, height] of each word's mask, rotunda.png px
+      const CARVED = {
+        alignment: [172, 180, 104, 98],
+        work: [278, 262, 59, 52],
+        travel: [340, 295, 70, 46],
+        friends: [413, 321, 75, 40],
+        shared: [902, 317, 86, 43],
+        library: [997, 270, 101, 64],
+        meaning: [1095, 184, 102, 101],
+      }
       const folders = Object.keys(counts).sort(chakraSort)
-      const half = Math.ceil(folders.length / 2)
-      const WORD_GAP = 2 // min gap between adjacent word boxes, viewBox px
-      // attach before measuring: getComputedTextLength needs a laid-out tree
       frieze.appendChild(svg)
       // the hovered room's folder-note description surfaces in the middle of
       // the brain, word by word (contentIndex[folder/index].description)
@@ -1299,59 +1377,66 @@
         // 0 = nothing was laid out (the band is hidden on a phone): leave the
         // cap alone rather than collapsing the box to nothing
         if (widest) descBox.style.width = Math.ceil(widest) + 1 + "px"
-      }
-      const sides = [folders.slice(0, half), folders.slice(half)].map((list) =>
-        list.map((folder) => {
-          const text = document.createElementNS(NS, "text")
-          text.setAttribute("text-anchor", "middle")
-          const a = document.createElementNS(NS, "a")
-          a.setAttribute("href", "/" + folder + "/")
-          a.setAttribute("class", "frieze-word")
-          a.dataset.folder = folder
-          a.style.setProperty("--tint", folderColor(folder))
-          a.textContent = folder.replace(/-/g, " ")
-          // same touch-contact-reads-as-hover issue as onMove above: a tap on
-          // the word must not flash its description before the click navigates
-          a.addEventListener("pointerenter", (e) => {
-            if (e.pointerType !== "touch") hlEmit(folder)
-          })
-          a.addEventListener("pointerleave", (e) => {
-            if (e.pointerType !== "touch") hlEmit(null)
-          })
-          text.appendChild(a)
-          svg.appendChild(text)
-          return text
-        }),
-      )
-      // re-runnable so ?tune can re-place every word as the band is dragged
-      const layout = () => {
-        sides.forEach((words, s) => {
-          const { x0, x1 } = SIDES[s]
-          // measure actual glyph widths (only possible once attached to the
-          // DOM) so long words get real room instead of a fixed index slot
-          const widths = words.map((t) => t.getComputedTextLength())
-          const span = widths.reduce((a, b) => a + b, 0) + WORD_GAP * (words.length - 1)
-          const scale = Math.min(1, (x1 - x0) / (span || 1))
-          let cursor = x0 + Math.max(0, (x1 - x0 - span * scale) / 2)
-          words.forEach((text, i) => {
-            const x = cursor + (widths[i] * scale) / 2
-            cursor += widths[i] * scale + WORD_GAP * scale
-            text.setAttribute(
-              "transform",
-              `translate(${x.toFixed(1)} ${bandY(x).toFixed(1)}) rotate(${bandDeg(x).toFixed(1)})`,
-            )
-          })
-        })
-        if (guide) {
-          const pts = []
-          for (let x = 40; x <= 1212; x += 12) pts.push(`${x} ${bandY(x).toFixed(1)}`)
-          guide.setAttribute("d", "M" + pts.join("L"))
+        // the slab hangs above the brain, and the band starts at the top of
+        // the screen: on a short screen that is under the fixed top bar. Push
+        // it down until it clears the bar. `translate`, not `transform`: the
+        // observatory centres this same box with a transform of its own.
+        descBox.style.translate = ""
+        if (!descBox.closest(".vb-expanded")) {
+          const bar = document.querySelector(".sidebar.left")?.getBoundingClientRect()
+          const top = descBox.getBoundingClientRect().top
+          const under = bar && bar.height < 120 ? bar.bottom + 8 - top : 0
+          if (under > 0) descBox.style.translate = `0 ${Math.ceil(under)}px`
         }
       }
-      const guide = TUNE ? svg.appendChild(document.createElementNS(NS, "path")) : null
-      if (guide) guide.setAttribute("style", "fill:none;stroke:#0ff;stroke-width:1;opacity:.7")
-      layout()
-      if (TUNE) tuneFrieze(BAND, SIDES, layout)
+      const defs = svg.appendChild(document.createElementNS(NS, "defs"))
+      const rect = (x, y, w, h) => {
+        const r = document.createElementNS(NS, "rect")
+        r.setAttribute("x", x)
+        r.setAttribute("y", y)
+        r.setAttribute("width", w)
+        r.setAttribute("height", h)
+        return r
+      }
+      for (const folder of folders) {
+        const key = folder.toLowerCase()
+        // ponytail: a room not carved into the image gets no word; carve it
+        // into the picture and re-run extract.py to give it one
+        if (!CARVED[key]) continue
+        const [x, y, w, h] = CARVED[key]
+        const mask = document.createElementNS(NS, "mask")
+        mask.id = "vb-carve-" + key
+        mask.setAttribute("maskUnits", "userSpaceOnUse")
+        const img = mask.appendChild(document.createElementNS(NS, "image"))
+        img.setAttribute("href", `/static/frieze/${key}.png`)
+        img.setAttribute("x", x)
+        img.setAttribute("y", y)
+        img.setAttribute("width", w)
+        img.setAttribute("height", h)
+        defs.appendChild(mask)
+        const a = document.createElementNS(NS, "a")
+        a.setAttribute("href", "/" + folder + "/")
+        a.setAttribute("class", "frieze-word")
+        a.setAttribute("aria-label", folder.replace(/-/g, " "))
+        a.dataset.folder = folder
+        a.style.setProperty("--tint", folderColor(folder))
+        // same touch-contact-reads-as-hover issue as onMove above: a tap on
+        // the word must not flash its description before the click navigates
+        a.addEventListener("pointerenter", (e) => {
+          if (e.pointerType !== "touch") hlEmit(folder)
+        })
+        a.addEventListener("pointerleave", (e) => {
+          if (e.pointerType !== "touch") hlEmit(null)
+        })
+        // the glyphs: a box of the word's colour, cut to the carving
+        const glyphs = a.appendChild(rect(x, y, w, h))
+        glyphs.setAttribute("mask", `url(#${mask.id})`)
+        // the hit area: the whole box, so the pointer need not land in a groove.
+        // A fill attribute beats the colour the <a> hands down; transparent
+        // still counts as painted, so it takes the pointer.
+        a.appendChild(rect(x, y, w, h)).setAttribute("fill", "transparent")
+        svg.appendChild(a)
+      }
       // the brain echoes back: hovering a section star lights its word — and
       // rides the same bus, so a star and its room name both raise the panel
       const onHl = (e) => {
@@ -1570,12 +1655,6 @@
     }
   }
 
-  // homepage "what this place is": Vault Map down to its rooms section, via
-  // static/vaultmap.json. Everything above "The rooms" — what this place is and
-  // how to get around it — belongs on the home page; the rooms themselves are
-  // the doors below, and the sections after them have their own homes.
-  // First paragraph shows; "Read more" swaps in the rest plus the way through
-  // to the full map — same teaser mechanic as the whoami card above.
   // the home page carries Vault Map itself, section by section, in the note's
   // own order: heading and body render plainly, the rooms section is dropped
   // because the doors below already render it, and whatever follows the rooms
@@ -1583,8 +1662,12 @@
   //
   // Two exceptions, neither of which the note has syntax for:
   //   - a section named here shows only its first N blocks, the rest behind a
-  //     "Read more" — the Palace prose opens the page, but the paragraph on
-  //     evergreen notes is detail nobody needs before they have walked in.
+  //     "Read more" — the Palace prose opens the page, but anything past the
+  //     teaser is detail nobody needs before they have walked in. The cut is
+  //     by block position, not node type: a collapsible callout (below) is
+  //     turned into a <details> in place, as one more node of the running
+  //     section, so it still lands in the same teaser's "rest" rather than
+  //     escaping into its own, separately-collapsed fold.
   //   - a collapsible callout becomes a <details>. That is also the only thing
   //     that works: the callout script binds on nav, so a callout injected
   //     after it would render but never toggle.
@@ -1607,27 +1690,27 @@
     // the heading anchors are for a note page, not a hero
     tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
 
-    // group the note by heading; a collapsible callout is a section of its own,
-    // titled by its callout title
+    // group the note by heading. A collapsible callout becomes a <details>
+    // right where it sits — a node like any other — rather than splitting off
+    // into a section of its own: split it off instead and a callout sitting
+    // among a teaser's "rest" blocks would escape into its own, separately
+    // collapsed fold, outside the one "Read more" is supposed to gate.
     const sections = []
-    let cur = { id: "", title: "", fold: false, nodes: [] }
+    let cur = { id: "", title: "", nodes: [] }
     const flush = () => {
       if (cur.title || cur.nodes.length) sections.push(cur)
     }
     for (const el of [...tmp.children]) {
       if (/^H[1-6]$/.test(el.tagName)) {
         flush()
-        cur = { id: el.id, title: el.textContent.trim(), fold: false, nodes: [] }
+        cur = { id: el.id, title: el.textContent.trim(), nodes: [] }
       } else if (el.matches("blockquote.callout.is-collapsible")) {
-        flush()
-        cur = {
-          id: "",
-          title: el.querySelector(".callout-title-inner")?.textContent.trim() ?? "",
-          fold: true,
-          nodes: [...(el.querySelector(".callout-content")?.children ?? [])],
-        }
-        flush()
-        cur = { id: "", title: "", fold: false, nodes: [] }
+        const fold = document.createElement("details")
+        fold.className = "vault-intro-fold"
+        const sum = document.createElement("summary")
+        sum.textContent = el.querySelector(".callout-title-inner")?.textContent.trim() ?? ""
+        fold.append(sum, ...(el.querySelector(".callout-content")?.children ?? []))
+        cur.nodes.push(fold)
       } else {
         cur.nodes.push(el)
       }
@@ -1637,20 +1720,15 @@
 
     const put = (target, s) => {
       if (!target) return
-      if (s.fold) {
-        const fold = document.createElement("details")
-        fold.className = "vault-intro-fold"
-        const sum = document.createElement("summary")
-        sum.textContent = s.title
-        fold.append(sum, ...s.nodes)
-        target.appendChild(fold)
-        return
-      }
       if (s.title) {
         const h = document.createElement("h2")
         h.textContent = s.title
         target.appendChild(h)
       }
+      // teaser cut: a section named in INTRO_TEASER shows only its first N
+      // blocks, the rest behind "Read more" — by position, not node type, so
+      // whatever the note adds past the cut (a paragraph, a list, a callout
+      // already turned <details> above) lands in the one hidden "rest" div.
       const cut = INTRO_TEASER[s.id]
       if (!cut || s.nodes.length <= cut) {
         target.append(...s.nodes)
@@ -2029,8 +2107,8 @@
     const rail = document.querySelector(".sidebar.right")
     if (!rail || document.body.dataset.slug === "index") return
     // the panel itself is desktop-only (CSS), but the markup goes in at every
-    // width: on a phone ✦ expands this same wrapper into the observatory
-    if (document.body.classList.contains("brain-off") && wide()) return
+    // width: on a phone ✦ expands this same wrapper into the observatory.
+    // ✦ off leaves it in place and sends the shelf to the page foot (placeShelf)
     const slug = document.body.dataset.slug || ""
     const folder = slug.includes("/") ? slug.split("/")[0] : null
     const box = document.createElement("div")
@@ -2070,7 +2148,7 @@
     const rail = document.querySelector(".sidebar.right")
     const list = document.querySelector(".page-listing")
     if (!rail || !list || rail.contains(list) || !wide()) return
-    // moved even while ✦ is off: it then hides with the column (custom.scss)
+    // moved even while ✦ is off: placeShelf then carries it to the page foot
     rail.append(list)
     // the dates alone read as a feed with no name; this one says it is one.
     // No count: initFolderAssets' bump of the first number finds none here.
@@ -2093,6 +2171,33 @@
       .catch(() => {})
     tagFolderLinks(list)
     document.body.classList.add("has-rail")
+  }
+
+  // ✦ off on desktop: everything in the right column under the map — latest
+  // edits, recent notes, backlinks — moves to the foot of the text, so the
+  // map stays and the column stops competing with the page. On again moves
+  // it back in the same order. The SPA morph drops the foot box with the old
+  // page and refills the column, so this runs again on every nav.
+  // ponytail: checked on toggle and nav only, resizing across 1200px keeps the old place
+  function placeShelf() {
+    const rail = document.querySelector(".sidebar.right")
+    const center = document.querySelector(".center")
+    if (!rail || !center) return
+    let foot = document.getElementById("vb-shelf-foot")
+    // home hides its column outright (custom.scss); moving the shelf out
+    // from under that rule would put recent notes under the rotunda
+    const home = document.body.dataset.slug === "index"
+    if (document.body.classList.contains("brain-off") && wide() && !home) {
+      if (!foot) {
+        foot = document.createElement("div")
+        foot.id = "vb-shelf-foot"
+        center.append(foot)
+      }
+      foot.append(...[...rail.children].filter((el) => el.id !== "vb-side"))
+    } else if (foot) {
+      rail.append(...foot.children)
+      foot.remove()
+    }
   }
 
   // a folder is a link ending in "/"; it takes its top section's color,
@@ -2123,8 +2228,9 @@
     if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
 
-  // ✦ in the top bar, mirroring the explorer's ☰ on the left: shows or hides
-  // the side brain. Choice persists across pages and visits; default on.
+  // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it
+  // keeps the side brain and moves the shelf under it to the page foot
+  // (placeShelf). Choice persists across pages and visits; default on.
   function initBrainToggle() {
     const off = localStorage.getItem("vb-brain-off") === "1"
     document.body.classList.toggle("brain-off", off)
@@ -2146,10 +2252,7 @@
         const nowOff = document.body.classList.toggle("brain-off")
         localStorage.setItem("vb-brain-off", nowOff ? "1" : "")
         btn.classList.toggle("on", !nowOff)
-        if (cleanup) cleanup()
-        initSideBrain()
-        init()
-        initExpand()
+        placeShelf()
       })
       const bar = document.querySelector(".sidebar.left")
       ;(bar || document.body).append(btn)
@@ -2157,8 +2260,10 @@
     btn.classList.toggle("on", !off)
   }
 
-  // explorer toggle: ☰ in the top bar hides the fixed explorer panel and
-  // the layout reflows into its space (CSS body.nav-off in custom.scss).
+  // explorer toggle: ☰ in the top bar hides the fixed explorer panel (CSS
+  // body.nav-off in custom.scss). On tablet the text reflows into its
+  // space; on desktop the text never moves — the panel's space is already
+  // reserved or it overlays, so this toggle only shows/hides it there.
   // Choice persists across pages and visits.
   function initNavToggle() {
     // home is a hall, not a document: explorer always starts closed there.
@@ -2187,6 +2292,169 @@
     btn.classList.toggle("on", !off)
   }
 
+  // phone top bar, LessWrong's header pattern — hides on scroll down,
+  // reappears on scroll up. Pulled out pure so topbar.test.ts can break it on
+  // its own, no DOM involved; the glue below just feeds it scrollY and reads
+  // the result back onto body.topbar-hidden (custom.scss's transform).
+  function topbarScrollDecision(prevY, y, hidden, barH) {
+    if (y < barH) return false // top of the page: the bar always shows here
+    const dy = y - prevY
+    if (dy > 8) return true // scrolling down past the threshold
+    if (dy < -8) return false // scrolling up past the threshold
+    return hidden // inside the dead zone: keep whatever it already was
+  }
+
+  // where the next scroll delta is measured from. It moves only once a
+  // delta clears the threshold, so a slow drag (a few px per frame) still
+  // adds up to a direction instead of resetting every frame in the dead zone
+  function topbarScrollAnchor(prevY, y, barH) {
+    return y < barH || Math.abs(y - prevY) > 8 ? y : prevY
+  }
+
+  let tbPrevY = 0
+  let tbHidden = false
+
+  function initTopbarScroll() {
+    // every nav resets the state (a swapped page can land anywhere), but the
+    // listener itself binds once — it reads live DOM each tick, so it never
+    // goes stale across a page swap the way a cached element reference would
+    tbPrevY = window.scrollY
+    tbHidden = false
+    document.body.classList.remove("topbar-hidden")
+    if (window.__vbTopbarWired) return
+    window.__vbTopbarWired = true
+    let queued = false
+    const apply = () => {
+      queued = false
+      const bar = document.querySelector(".sidebar.left")
+      const y = window.scrollY
+      // never hide while a drawer anchored to the bar's top is open under
+      // it — the explorer, search, or the observatory overlay — and only on
+      // the phone width custom.scss actually makes the bar sticky
+      const blocked =
+        !bar ||
+        !matchMedia("(max-width: 800px)").matches ||
+        document.body.classList.contains("vb-open") ||
+        document.body.classList.contains("side-open") ||
+        document.querySelector(".explorer:not(.collapsed)") ||
+        document.querySelector(".search-container.active")
+      tbHidden = blocked
+        ? false
+        : topbarScrollDecision(tbPrevY, y, tbHidden, bar.getBoundingClientRect().height)
+      document.body.classList.toggle("topbar-hidden", tbHidden)
+      tbPrevY = topbarScrollAnchor(tbPrevY, y, bar ? bar.getBoundingClientRect().height : 0)
+    }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (queued) return
+        queued = true
+        requestAnimationFrame(apply)
+      },
+      { passive: true },
+    )
+  }
+
+  // phone edge-swipe for the explorer drawer, native-app style —
+  // swipe right starting near the left edge opens it, swipe left anywhere
+  // closes it. Pulled out pure like topbarScrollDecision so swipe.test.ts can
+  // cover the thresholds without a browser; the glue below only reads touch
+  // points (passive, never preventDefault — vertical scroll is untouched)
+  // and replays the ☰ click so state/aria/topbar-blocked stay consistent.
+  const SWIPE_MIN_DIST = 60 // px, must clear this to count as a swipe at all
+  const SWIPE_EDGE_ZONE = 120 // px from the left edge a swipe-to-open must start in
+
+  function swipeDrawerDecision(startX, dx, dy, explorerOpen) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null // too short
+    if (Math.abs(dx) <= Math.abs(dy)) return null // mostly vertical: leave it to scroll
+    if (explorerOpen) return dx < 0 ? "close" : null
+    return dx > 0 && startX < SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  // the mirror on the right edge: swipe left from there pulls out the right
+  // column (side brain, recent notes, backlinks) as a drawer; swipe right closes it
+  function swipeSideDecision(startX, dx, dy, sideOpen, width) {
+    if (Math.abs(dx) < SWIPE_MIN_DIST) return null
+    if (Math.abs(dx) <= Math.abs(dy)) return null
+    if (sideOpen) return dx > 0 ? "close" : null
+    return dx < 0 && startX > width - SWIPE_EDGE_ZONE ? "open" : null
+  }
+
+  // the right drawer: body.side-open slides .sidebar.right in (custom.scss).
+  // The brain is display:none while it is shut, so init() only finds a box to
+  // mount into once the class is on, and the sim stops again when it closes
+  function setSideDrawer(open) {
+    if (document.body.classList.contains("vb-open")) return // observatory owns the brain
+    document.body.classList.toggle("side-open", open)
+    if (cleanup) cleanup()
+    if (open) init()
+  }
+
+  let swStartX = 0
+  let swStartY = 0
+  let swTracking = false
+
+  function initSwipeDrawer() {
+    if (window.__vbSwipeWired) return
+    window.__vbSwipeWired = true
+    // never hijack horizontal scrolling that belongs to something else: code
+    // blocks, tables, math, the search overlay, or the brain canvas (its own
+    // pointer handlers already pan it, mini/side/observatory alike)
+    const excluded = (target) =>
+      document.body.classList.contains("vb-open") ||
+      target.closest("#vault-brain, pre, .table-container, .katex-display, .search-container")
+    document.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0]
+        swTracking = !!t && matchMedia("(max-width: 800px)").matches && !excluded(e.target)
+        if (swTracking) {
+          swStartX = t.clientX
+          swStartY = t.clientY
+        }
+      },
+      { passive: true },
+    )
+    document.addEventListener(
+      "touchend",
+      (e) => {
+        if (!swTracking) return
+        swTracking = false
+        const t = e.changedTouches[0]
+        if (!t) return
+        const dx = t.clientX - swStartX
+        const dy = t.clientY - swStartY
+        const explorer = document.querySelector(".explorer")
+        const explorerOpen = !!explorer && !explorer.classList.contains("collapsed")
+        const sideOpen = document.body.classList.contains("side-open")
+        // one drawer at a time: an open one only listens for its own close
+        if (!sideOpen && explorer && swipeDrawerDecision(swStartX, dx, dy, explorerOpen)) {
+          explorer.querySelector(".mobile-explorer")?.click()
+          return
+        }
+        // home has no right column (custom.scss hides it there)
+        if (explorerOpen || !document.getElementById("vb-side")) return
+        const side = swipeSideDecision(swStartX, dx, dy, sideOpen, innerWidth)
+        if (side) setSideDrawer(side === "open")
+      },
+      { passive: true },
+    )
+    // a tap beside the open drawer closes it and goes no further, so it never
+    // lands on a link in the page behind
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!document.body.classList.contains("side-open")) return
+        if (e.target.closest(".sidebar.right")) return
+        if (document.body.classList.contains("vb-open")) return
+        e.preventDefault()
+        e.stopPropagation()
+        setSideDrawer(false)
+      },
+      true,
+    )
+  }
+
   if (!window.__vaultbrainWired) {
     window.__vaultbrainWired = true
     // home's track depends on day/night, so a toggle mid-visit must re-pick it
@@ -2194,13 +2462,17 @@
     document.addEventListener("nav", () => {
       if (cleanup) cleanup()
       document.body.classList.remove("vb-open") // overlay can't survive a page swap
+      document.body.classList.remove("side-open") // nor can the right drawer
       markSeen() // Task 2: record this pageview before init() paints the brain from it
       paintSeenLinks()
       initNavToggle()
+      initTopbarScroll()
+      initSwipeDrawer()
       initSidebarResize()
       initBrainToggle()
       initSideBrain()
       initFolderRail()
+      placeShelf()
       document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
       init()
@@ -2220,10 +2492,13 @@
   markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
   paintSeenLinks()
   initNavToggle()
+  initTopbarScroll()
+  initSwipeDrawer()
   initSidebarResize()
   initBrainToggle()
   initSideBrain()
   initFolderRail()
+  placeShelf()
   document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
   init()
