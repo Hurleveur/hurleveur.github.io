@@ -71,14 +71,6 @@
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
-  // lerp a hex toward black by t — the pearls' rim
-  function darken(hex, t) {
-    const n = parseInt(hex.slice(1), 16)
-    const r = n >> 16, g = (n >> 8) & 255, b = n & 255
-    const f = (v) => Math.round(v * (1 - t))
-    return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
-  }
-
   // lerp a hex toward its own grayscale value by t — real desaturation, not a
   // wash of white, so a seen star (Task 2) goes near-grey and a colorful
   // unseen one still pops next to it.
@@ -193,6 +185,7 @@
     const day = !mini && document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
+          day: true,
           star: "#333c5c",
           link: "rgba(51,60,92,.18)",
           label: "rgba(32,39,65,.92)",
@@ -943,18 +936,19 @@
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
         ctx.globalAlpha = dim
-        // pearls: a highlight up-left, the room's pigment through the body and
-        // a slightly darker rim. The rim is what lets the same pearl hold on
-        // the pale day sky, where a lit centre alone reads as a hollow ring.
-        const pr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1)
-        const pg = ctx.createRadialGradient(n.x - pr * 0.35, n.y - pr * 0.35, 0, n.x, n.y, pr)
-        pg.addColorStop(0, lighten(col, 0.8))
-        pg.addColorStop(0.3, lighten(col, 0.3))
-        pg.addColorStop(0.75, col)
-        pg.addColorStop(1, darken(col, 0.25))
-        ctx.fillStyle = pg
+        // at night a star burns white-hot at its centre and takes the room's
+        // hue at the rim, like starlight; on the pale day sky a lit centre
+        // reads as a hollow ring, so day keeps the flat pigment disc
+        if (sky.day) ctx.fillStyle = col
+        else {
+          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * pulse * 1.15)
+          cg.addColorStop(0, lighten(col, 0.7))
+          cg.addColorStop(0.45, lighten(col, 0.25))
+          cg.addColorStop(1, col)
+          ctx.fillStyle = cg
+        }
         ctx.beginPath()
-        ctx.arc(n.x, n.y, pr, 0, 7)
+        ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
