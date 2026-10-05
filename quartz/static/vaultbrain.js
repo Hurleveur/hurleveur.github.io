@@ -932,23 +932,30 @@
         g.addColorStop(1, "transparent")
         ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
+        // at night overlapping halos add their light, so a dense room glows
+        // like a nebula instead of stacking flat tints
+        if (!sky.day) ctx.globalCompositeOperation = "lighter"
         ctx.beginPath()
         ctx.arc(n.x, n.y, glowR, 0, 7)
         ctx.fill()
+        ctx.globalCompositeOperation = "source-over"
         ctx.globalAlpha = dim
-        // at night a star burns white-hot at its centre and takes the room's
-        // hue at the rim, like starlight; on the pale day sky a lit centre
-        // reads as a hollow ring, so day keeps the flat pigment disc
+        // at night a star is a point of light: white at the centre, the
+        // room's hue around it, fading out with no edge — a hard rim is what
+        // makes a star read as a token. On the pale day sky a lit centre reads
+        // as a hollow ring, so day keeps the flat pigment disc.
+        const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1)
         if (sky.day) ctx.fillStyle = col
         else {
-          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * pulse * 1.15)
-          cg.addColorStop(0, lighten(col, 0.7))
-          cg.addColorStop(0.45, lighten(col, 0.25))
-          cg.addColorStop(1, col)
+          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
+          cg.addColorStop(0, "#fffaf2")
+          cg.addColorStop(0.15, lighten(col, 0.7))
+          cg.addColorStop(0.45, col)
+          cg.addColorStop(1, col + "00")
           ctx.fillStyle = cg
         }
         ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1), 0, 7)
+        ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
