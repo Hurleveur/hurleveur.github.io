@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 
 HERE = Path(__file__).parent
 R = HERE / "renders"
-V = ["0-current", "1-pigment", "2-starlight", "3-pigment-core", "4-gilded", "5-ember"]
+V = ["0-current", "1-pigment", "2-starlight", "3-pigment-core", "4-gilded", "5-ember", "6-pearls"]
 
 
 def save(img, name):
@@ -33,6 +33,21 @@ def grid(views, name, h):
 
 grid(["phone-home", "side-dark", "side-light"], "sheet-panels.webp", 420)
 grid(["obs-dark"], "sheet-observatory.webp", 380)
+
+# pearls, as shipped, on every sky: rotunda, observatory night and day, side panel by day
+cells = [("phone-home-6-pearls.png", None), ("obs-dark-6-pearls.png", (1500, 100, 2300, 800)),
+         ("obs-light-6-pearls.png", (1500, 100, 2300, 800)), ("side-light-6-pearls.png", None)]
+ims = []
+for f, box in cells:
+    i = Image.open(R / f).convert("RGB")
+    i = i.crop(box) if box else i
+    ims.append(i.resize((int(i.width * 700 / i.height), 700)))
+s = Image.new("RGB", (sum(i.width + 10 for i in ims) - 10, 700), "white")
+x = 0
+for i in ims:
+    s.paste(i, (x, 0))
+    x += i.width + 10
+save(s, "pearls.webp")
 
 # close-up: one room in the observatory, current vs lit core vs ember
 zoom = [Image.open(R / f"obs-dark-{v}.png").convert("RGB").crop((1500, 100, 2300, 800)) for v in ["0-current", "3-pigment-core", "5-ember"]]

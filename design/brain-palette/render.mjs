@@ -1,15 +1,19 @@
 // Renders the vault brain under each palette/star-drawing variant, without
 // touching the repo: vaultbrain.js is rewritten in flight per variant.
 // Needs the dev server on :8050 and playwright-core (npm i --no-save playwright-core).
-// Run from the repo root: node design/brain-palette/render.mjs, then sheets.py.
+// Run from the repo root: node design/brain-palette/render.mjs [variant ...], then
+// sheets.py. Variants 0-5 patch vaultbrain.js as it stood before any of them
+// shipped (BASE); 6-pearls is the working tree as it ships now, unpatched.
 import { chromium } from "playwright-core"
 import fs from "fs"
 import path from "path"
+import { execFileSync } from "child_process"
 
 const HERE = path.dirname(new URL(import.meta.url).pathname)
 const OUT = path.join(HERE, "renders")
 fs.mkdirSync(OUT, { recursive: true })
-const SRC = fs.readFileSync(path.join(HERE, "../../quartz/static/vaultbrain.js"), "utf8")
+const BASE = execFileSync("git", ["show", "7589b1f1:quartz/static/vaultbrain.js"], { encoding: "utf8" })
+const LIVE = fs.readFileSync(path.join(HERE, "../../quartz/static/vaultbrain.js"), "utf8")
 
 const PIGMENT = ["#b8513f", "#c47a3c", "#c9a24a", "#6e9468", "#4f7aa6", "#53579a", "#86679f"]
 const STARLIGHT = ["#e39a8a", "#e8b48a", "#e6cf8f", "#a9c79a", "#93bcd9", "#9aa3dc", "#bba4dc"]
@@ -25,12 +29,14 @@ const VARIANTS = {
   "3-pigment-core": { p: PIGMENT, star: CORE },
   "4-gilded": { p: GILDED, star: CORE },
   "5-ember": { p: GILDED, star: EMBER },
+  "6-pearls": { live: true },
 }
 const VIEWS = [
   ["phone-home", 390, 844, true, "dark", "/", { x: 0, y: 250, width: 390, height: 420 }],
   ["side-dark", 1600, 900, false, "dark", "/library/", { x: 1200, y: 40, width: 400, height: 320 }],
   ["side-light", 1600, 900, false, "light", "/library/", { x: 1200, y: 40, width: 400, height: 320 }],
   ["obs-dark", 1600, 900, false, "dark", "/", null],
+  ["obs-light", 1600, 900, false, "light", "/", null],
 ]
 
 const pal = (a) =>
@@ -41,8 +47,10 @@ const b = await chromium.launch({
   executablePath: `${pw}/${shell}/chrome-headless-shell-linux64/chrome-headless-shell`,
   args: ["--no-sandbox"], // a browser under ~/.cache has no AppArmor profile
 })
+const only = process.argv.slice(2)
 for (const [name, v] of Object.entries(VARIANTS)) {
-  let js = SRC
+  if (only.length && !only.includes(name)) continue
+  let js = v.live ? LIVE : BASE
   if (v.p) js = js.replace("const COLORS = {", pal(v.p))
   if (v.star) js = js.replace(/ctx\.fillStyle = col\n/, v.star + "\n")
   for (const [tag, w, h, mobile, theme, url, clip] of VIEWS) {
@@ -52,7 +60,7 @@ for (const [name, v] of Object.entries(VARIANTS)) {
     const p = await ctx.newPage()
     await p.goto("http://localhost:8050" + url, { waitUntil: "networkidle" })
     await p.waitForTimeout(2500)
-    if (tag === "obs-dark") {
+    if (tag.startsWith("obs-")) {
       await p.evaluate(() => document.getElementById("vb-expand").click())
       await p.waitForTimeout(4000)
     }
