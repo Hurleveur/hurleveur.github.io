@@ -116,9 +116,11 @@ function main() {
     .map((f) => {
       const raw = fs.readFileSync(f, "utf8")
       const { fm } = readFrontmatter(raw)
-      return { name: path.basename(f, ".md"), published: isPublished(fm) }
+      const name = path.basename(f, ".md")
+      // a folder note (People/People.md) names a folder, not a person
+      return { name, published: isPublished(fm), folderNote: name === path.basename(path.dirname(f)) }
     })
-    .filter((p) => !p.published && p.name.length >= 4)
+    .filter((p) => !p.published && !p.folderNote && p.name.length >= 4)
 
   // index for check 4: resolve a wikilink target to a file, by vault-relative
   // path or by basename (Obsidian's own fallback when no path is given).
