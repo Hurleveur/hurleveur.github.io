@@ -52,6 +52,11 @@ rsync -a --delete \
   --exclude '/index.md' --exclude '/brain.md' \
   "$VAULT/" "$SITE/content/"
 
+# 1a. Pre-deploy content check: prints warnings (unfinished notes, leaked
+#     private names, secret-shaped strings, links to now-private notes) and
+#     never affects the deploy's outcome, by design.
+node "$SITE/scripts/predeploy-warn.mjs" "$SITE/content" || true
+
 # 1b. Skip the build+push entirely if nothing that determines the output has
 #     changed since the last successful push. --force / FORCE=1 bypasses this.
 FINGERPRINT="$(compute_fingerprint)"
