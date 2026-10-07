@@ -473,10 +473,20 @@ export async function loadQuartzConfig(
 
   // Import built-in plugins
   const builtinPlugins = await import("../index")
-  const builtinTransformers: unknown[] = [builtinPlugins.HideLlmMarks()]
-  // Runs after every configured transformer (crawl-links included) so it can
-  // read the `data-slug` crawl-links resolves onto each internal link, rather
-  // than re-deriving link resolution itself. See hidePrivateLinks.ts.
+  // HideCommentTail must run before any markdown parsing, so it sits first —
+  // it only ever rewrites raw file text (textTransform), never touches the
+  // tree, so its position relative to the others doesn't otherwise matter.
+  const builtinTransformers: unknown[] = [
+    builtinPlugins.HideCommentTail(),
+    builtinPlugins.HideLlmMarks(),
+  ]
+  // Must run after crawl-links (reads the `data-slug` it resolves onto every
+  // internal link) but before Description (order 70) snapshots the note's
+  // rendered text into file.data.text/description — running after that would
+  // leak a stripped private link's name into contentIndex.json, the RSS feed,
+  // and an og-image even with the visible link gone. Spliced in right after
+  // crawl-links's "LinkProcessing" transformer below, instead of appended at
+  // the very end. See hidePrivateLinks.ts.
   const builtinPostTransformers: unknown[] = [builtinPlugins.HidePrivateLinks()]
   const builtinEmitters = [
     builtinPlugins.ComponentResources(),
@@ -489,12 +499,18 @@ export async function loadQuartzConfig(
   ]
   const builtinPageTypes = [builtinPlugins.PageTypes.NotFoundPageType()]
 
+  const configuredTransformers = await instantiate(transformers, "transformer")
+  const linkProcessingIdx = configuredTransformers.findIndex(
+    (p) => (p as { name?: string }).name === "LinkProcessing",
+  )
+  configuredTransformers.splice(
+    linkProcessingIdx === -1 ? configuredTransformers.length : linkProcessingIdx + 1,
+    0,
+    ...builtinPostTransformers,
+  )
+
   const plugins: PluginTypes = {
-    transformers: [
-      ...builtinTransformers,
-      ...(await instantiate(transformers, "transformer")),
-      ...builtinPostTransformers,
-    ],
+    transformers: [...builtinTransformers, ...configuredTransformers],
     filters: await instantiate(filters, "filter"),
     emitters: [...builtinEmitters, ...(await instantiate(emitters, "emitter"))],
     pageTypes: [...(await instantiate(pageTypes, "pageType")), ...builtinPageTypes],

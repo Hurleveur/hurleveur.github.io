@@ -136,11 +136,13 @@ a {
   }
 }
 
-// A link to an unpublished note (HidePrivateLinks transformer) — no href, so
-// styled to read as deliberately withheld rather than a broken/dead link.
-span.private-page {
+// A link/embed into an unpublished note (HidePrivateLinks transformer) — no
+// href, so styled to read as deliberately withheld rather than a broken/dead
+// link. Small and muted, consistent with the site's existing link styling.
+span.private-link {
   color: var(--gray);
   font-style: italic;
+  font-size: 0.85em;
   cursor: default;
   user-select: none;
 }

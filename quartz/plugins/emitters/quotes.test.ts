@@ -71,4 +71,24 @@ describe("linkify", () => {
   test("an unresolvable link degrades to plain text, and text is escaped", () => {
     assert.strictEqual(linkify("a < b and [[No such note]]", slugs), "a &lt; b and No such note")
   })
+
+  describe("a target that exists but isn't published", () => {
+    const privateSlugs = ["women/dating", "people/vishal-nath"]
+
+    test("unaliased: the marker, name gone", () => {
+      const out = linkify("ask [[Vishal Nath]] about it", slugs, privateSlugs)
+      assert.strictEqual(out, 'ask <span class="private-link">private</span> about it')
+      assert.ok(!out.includes("Vishal"))
+    })
+
+    test("aliased: the alias words stay as plain text, no link, no target name", () => {
+      const out = linkify("see [[Women/dating|dating]]", slugs, privateSlugs)
+      assert.strictEqual(out, "see dating")
+      assert.ok(!out.toLowerCase().includes("women"))
+    })
+
+    test("a genuinely missing note (not in privateSlugs either) keeps today's behaviour", () => {
+      assert.strictEqual(linkify("[[No such note]]", slugs, privateSlugs), "No such note")
+    })
+  })
 })

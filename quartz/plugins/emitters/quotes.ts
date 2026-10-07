@@ -4,6 +4,12 @@ import { ProcessedContent } from "../vfile"
 import { BuildCtx } from "../../util/ctx"
 import path from "path"
 import fs from "fs"
+import { stripObsidianComments } from "../../util/obsidianComments"
+import {
+  noteSlugs,
+  PRIVATE_MARKER_CLASS,
+  PRIVATE_MARKER_TEXT,
+} from "../transformers/hidePrivateLinks"
 
 // Emits static/quotes.json ([text, source, url?]) for the palace quote slab;
 // url (the note's slug) is only set for lines carrying an inline #quote tag
@@ -44,8 +50,28 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ESCAPES[c]!)
 //
 // Resolution mirrors markdownLinkResolution: shortest — the exact slug, then
 // the "<slug>/index" spelling a folder note takes, then any slug ending in
-// either. An unresolvable link degrades to its label as plain text.
-export function linkify(text: string, slugs: string[]): string {
+// either. An unresolvable link degrades to its label as plain text — unless
+// it resolves against the vault-wide (not just published) slug set, in which
+// case the target exists but isn't published: same rule as the main page
+// body (HidePrivateLinks) — an unaliased link hides the name behind the
+// marker, an aliased one keeps the alias words since they're his own prose. A
+// link that resolves against neither set is genuinely missing and keeps its
+// current, unlinked-label behaviour.
+function resolveSlug(
+  candidates: Iterable<string>,
+  wanted: string,
+  asIndex: string,
+): string | undefined {
+  for (const s of candidates) if (s === wanted || s === asIndex) return s
+  for (const s of candidates) if (s.endsWith(`/${wanted}`) || s.endsWith(`/${asIndex}`)) return s
+  return undefined
+}
+
+export function linkify(
+  text: string,
+  slugs: string[],
+  privateSlugs: Iterable<string> = [],
+): string {
   const out: string[] = []
   let last = 0
   for (const m of text.matchAll(/\[\[([^\]]+)\]\]/g)) {
@@ -56,11 +82,15 @@ export function linkify(text: string, slugs: string[]): string {
     const name = ((target ?? "").split("#")[0] ?? "").trim()
     const wanted = slugifyFilePath(name as FilePath) as string
     const asIndex = `${wanted}/index`
-    const hit =
-      slugs.find((s) => s === wanted || s === asIndex) ??
-      slugs.find((s) => s.endsWith(`/${wanted}`) || s.endsWith(`/${asIndex}`))
+    const hit = resolveSlug(slugs, wanted, asIndex)
     const label = esc((alias ?? name).trim())
-    out.push(hit ? `<a href="/${hit}">${label}</a>` : label)
+    if (hit) {
+      out.push(`<a href="/${hit}">${label}</a>`)
+    } else if (alias === undefined && resolveSlug(privateSlugs, wanted, asIndex)) {
+      out.push(`<span class="${PRIVATE_MARKER_CLASS}">${PRIVATE_MARKER_TEXT}</span>`)
+    } else {
+      out.push(label)
+    }
   }
   out.push(esc(text.slice(last)))
   return out.join("")
@@ -96,6 +126,12 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
   const slugs = content
     .map(([, v]) => v.data.slug as string | undefined)
     .filter(Boolean) as string[]
+  // This emitter reads every note's raw file straight off disk — the only
+  // reader here that never goes through the OFM/HidePrivateLinks pipeline —
+  // so both the %%-comment and the private-link rules have to be re-applied
+  // by hand instead of inherited from the tree.
+  const { all, published } = await noteSlugs(ctx)
+  const privateSlugs = [...all].filter((s) => !published.has(s))
   for (const [, vfile] of content) {
     // filePath is the full openable path; relativePath is relative to content/
     const filePath = vfile.data.filePath as string | undefined
@@ -109,9 +145,10 @@ async function build(ctx: BuildCtx, content: ProcessedContent[]): Promise<FilePa
     } catch {
       continue
     }
+    raw = stripObsidianComments(raw)
     const url = "/" + ((vfile.data.slug as string | undefined) ?? "")
     for (const [text, src, tagged] of extract(raw, isQuoteFile(relPath, vfile.data), source)) {
-      const html = linkify(text, slugs)
+      const html = linkify(text, slugs, privateSlugs)
       quotes.push(tagged ? [html, src, url] : [html, src])
     }
   }
