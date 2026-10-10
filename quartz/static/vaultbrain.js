@@ -184,17 +184,14 @@
   // The home rotunda follows too: by day its brain is the white glass one
   // (rotunda.webp), where bright stars wash out, so it takes the day discs;
   // at night the dark brain (rotunda-night.webp) is their sky.
-  // On that white glass the side panel's near-black ink cut hard lines
-  // through the brain, so the rotunda inks its threads and rings in a faint
-  // bronze instead, like the glass's own lit veins.
-  function skyColors(mini) {
+  function skyColors() {
     const day = document.documentElement.getAttribute("saved-theme") === "light"
     return day
       ? {
           day: true,
           star: "#333c5c",
-          link: mini ? "rgba(140,110,60,.12)" : "rgba(51,60,92,.18)",
-          label: mini ? "rgba(140,105,50,.5)" : "rgba(32,39,65,.92)",
+          link: "rgba(51,60,92,.18)",
+          label: "rgba(32,39,65,.92)",
           sub: "rgba(95,107,142,.95)",
           root: "#5f6b8e",
         }
@@ -325,7 +322,7 @@
       console.error("vaultbrain: could not load contentIndex.json", e)
       return
     }
-    let sky = skyColors(mini)
+    let sky = skyColors()
     // Task 2: which stars are pages already opened — read once per init, same
     // set paintSeenLinks() reads for in-article links.
     const seenSlugs = loadSeen()
@@ -894,6 +891,10 @@
     let heat = 1
     function draw() {
       ctx.clearRect(0, 0, W, H)
+      // a missed themechange left a panel painting day ink on the night page;
+      // reading the attribute each frame means the sky can never drift from it
+      const dayNow = document.documentElement.getAttribute("saved-theme") === "light"
+      if (dayNow !== !!sky.day) onTheme()
       t += 0.008
       easeHl()
       ctx.save()
@@ -902,7 +903,9 @@
       // everything below reads the eased strengths, never hlFolder itself: at
       // full strength the numbers are the old on/off values, and in between
       // they are what makes the swap between two rooms a fade
-      links.forEach(([a, b]) => {
+      // the rotunda draws no resting threads: over the painted brain they read
+      // as a net, so its only lines are the hovered star's own (below)
+      ;(mini ? [] : links).forEach(([a, b]) => {
         // in a neighbourhood the page's own threads are the point: each one
         // takes the colour of the room at its far end
         const mine = local && (a.you || b.you)
@@ -933,9 +936,12 @@
         const litG = mini ? Math.min(1, lit / hlAmp) : lit
         const glow = local ? Math.max(lit, near) : Math.max(0.5 * litG, near)
         const glowR = n.r * (n.hub ? 3 : 4) * pulse * (1 + 0.5 * glow)
-        // by day on the rotunda a lit room turns vivid rather than lighter:
-        // a pale tint vanishes into the white glass, saturation does not
-        const pig = mini && sky.day ? desat(col, -0.8 * Math.max(litG, near)) : col
+        // on the rotunda and in the observatory a lit star must outshine the
+        // muted pigments: by day it turns vivid (a pale tint vanishes into the
+        // white glass), at night it lightens toward starlight
+        const pop = !side
+        const litS = Math.max(litG, near)
+        const pig = !pop ? col : sky.day ? desat(col, -0.8 * litS) : lighten(col, 0.45 * litS)
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
         g.addColorStop(1, "transparent")
@@ -953,14 +959,16 @@
         // room's hue around it, fading out with no edge — a hard rim is what
         // makes a star read as a token. On the pale day sky a lit centre reads
         // as a hollow ring, so day keeps the flat pigment disc.
-        const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1)
+        // the star under the pointer swells, so the pick reads at a glance
+        const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
+        const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
         if (sky.day) ctx.fillStyle = pig
         else {
           const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
           cg.addColorStop(0, "#fffaf2")
-          cg.addColorStop(0.15, lighten(col, 0.7))
-          cg.addColorStop(0.45, col)
-          cg.addColorStop(1, col + "00")
+          cg.addColorStop(0.15, lighten(pig, 0.7))
+          cg.addColorStop(0.45, pig)
+          cg.addColorStop(1, pig + "00")
           ctx.fillStyle = cg
         }
         ctx.beginPath()
@@ -972,9 +980,9 @@
         // zoom so the ring stays the same thickness at every scale)
         if (n === hovered) {
           ctx.strokeStyle = sky.label
-          ctx.lineWidth = 1.5 / view.s
+          ctx.lineWidth = (pop ? 2 : 1.5) / view.s
           ctx.beginPath()
-          ctx.arc(n.x, n.y, n.r * pulse + 5 / view.s, 0, 7)
+          ctx.arc(n.x, n.y, rr + 5 / view.s, 0, 7)
           ctx.stroke()
         } else if (near > 0.01 && !local) {
           // what the hovered star touches: a thinner ring in the same ink, and
@@ -1084,7 +1092,7 @@
 
     // theme toggle flips the sky between day ink and night starlight
     function onTheme() {
-      sky = skyColors(mini)
+      sky = skyColors()
       paintStars()
       nodes.forEach((n) => {
         if (n.folder === "~" && !n.hub) n.color = sky.root
