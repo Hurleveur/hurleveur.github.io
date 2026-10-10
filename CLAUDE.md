@@ -117,7 +117,7 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   kind of link previews by joining `POPOVER_LINKS`; a canvas star calls `window.quartzPopover`.
 - Frieze words never preview (kept out of `POPOVER_LINKS`); a brain star (any mode) opens its
   preview only after `PREVIEW_DELAY` in `vaultbrain.js`, an explorer link after
-  `EXPLORER_DELAY` in `popover.inline.ts` (both 500ms, 0.7s with the CSS delay).
+  `EXPLORER_DELAY` in `popover.inline.ts` (780ms and 500ms, plus the CSS's 0.2s).
 - The panel is DOM the build never emits, so nothing typechecks it —
   `quartz/static/sidebrain.test.ts` guards the seams that fail silently,
   including the `:not(.vb-expanded)` the overlay needs to outrank two ids.
