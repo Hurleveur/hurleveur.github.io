@@ -360,6 +360,22 @@
         backlinks[l] = (backlinks[l] || 0) + 1
       }
     }
+    const inSky = new Set(slugs)
+    // a note under a folder is connected to that folder's note: the nearest one
+    // above it, so a sub-folder's notes hang off the sub-folder's own note
+    const folderNoteOf = (slug) => {
+      const p = slug.split("/").slice(0, -1)
+      if (slug.endsWith("/index")) p.pop()
+      for (; p.length; p.pop()) if (inSky.has(p.join("/") + "/index")) return p.join("/") + "/index"
+      return null
+    }
+    const shelf = []
+    for (const slug of slugs) {
+      const f = folderNoteOf(slug)
+      if (!f) continue
+      const linked = (data[slug].links || []).includes(f) || (data[f].links || []).includes(slug)
+      if (!linked) shelf.push([slug, f])
+    }
 
     // group notes by top-level folder; folder hubs sit on a brain-lobe ellipse
     const folders = [...new Set(slugs.map((s) => (s.includes("/") ? s.split("/")[0] : "~")))]
@@ -405,9 +421,7 @@
         folder,
         sub,
         color: sub ? lighten(base, subTint[folder + "/" + sub]) : base,
-        r: mini
-          ? Math.min(1.5 + Math.sqrt(backlinks[slug] || 0) * 0.8, 4)
-          : Math.min(2 + Math.sqrt(backlinks[slug] || 0) * 1.1, 5.5) * rs,
+        r: 0, // set from its connections once the links are known
         hubWeight: backlinks[slug] || 0,
         seen: !isRoom(slug) && seenSlugs.has(normSlug(slug)),
         x: 0, y: 0, vx: 0, vy: 0,
@@ -439,18 +453,34 @@
       const f = s.includes("/") ? s.split("/")[0] : "~"
       counts[f] = (counts[f] || 0) + 1
     })
+    // a folder note's tip says how much it holds: its folder and all below it
+    if (!local) {
+      for (const n of nodes) {
+        if (!n.slug.endsWith("/index")) continue
+        const dir = n.slug.slice(0, -5)
+        n.count = slugs.filter((t) => t.startsWith(dir) && t !== n.slug).length
+        n.label += " · " + n.count + (n.count === 1 ? " note" : " notes")
+      }
+    }
+    // A folder's own note is its room star: a separate star beside it was the
+    // same page drawn twice. Only a folder with no note gets a stand-in.
     folders.forEach((f) => {
       if (f === "~" || local) return
-      nodes.push({
-        slug: f + "/",
+      const room = {
         hub: true,
         name: f.replace(/-/g, " "),
-        label: f.replace(/-/g, " ") + " · " + counts[f] + " notes",
-        folder: f,
         color: folderColor(f),
-        r: ((mini ? 4 : 9) + Math.sqrt(counts[f]) * (mini ? 0.5 : 1.2)) * rs,
-        hubWeight: 0,
         seen: false, // a room never washes out (isRoom)
+      }
+      const own = bySlug[f + "/index"]
+      if (own) return Object.assign(own, room)
+      nodes.push({
+        ...room,
+        slug: f + "/",
+        label: room.name + " · " + counts[f] + " notes",
+        folder: f,
+        r: 0,
+        hubWeight: 0,
         x: 0, y: 0, vx: 0, vy: 0,
       })
     })
@@ -473,6 +503,29 @@
       for (const l of data[slug].links || []) {
         if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l]])
       }
+    }
+    // folder edges (marked) light on hover only: as resting threads, ~300 of
+    // them drew every folder note as a starburst, and they pull no one around
+    for (const [a, b] of shelf) links.push([bySlug[a], bySlug[b], true])
+    // a stand-in room star has no folder note to inherit edges from: it reaches
+    // every note no folder note claims (centerHub is no star)
+    for (const n of nodes) {
+      const hub = hubByFolder[n.folder]
+      const standIn = hub?.hub && hub.slug === n.folder + "/"
+      if (standIn && !n.hub && !folderNoteOf(n.slug)) links.push([n, hub, true])
+    }
+    // a star's size is how connected it is, links and folders alike, rooms
+    // included: one scale, so the best-connected stars read biggest at a glance
+    const reach = new Map(nodes.map((n) => [n, new Set()]))
+    for (const [a, b] of links) {
+      reach.get(a).add(b)
+      reach.get(b).add(a)
+    }
+    // steeper than a square root and from a small base: the lone notes shrink
+    // to dust so the well-connected ones can grow without crowding the sky
+    for (const n of nodes) {
+      const k = reach.get(n).size ** 0.6
+      n.r = mini ? Math.min(0.6 + k * 0.85, 11) : Math.min(1 + k * 1.7, 22) * rs
     }
 
     // a neighbourhood small enough to read gets every title drawn; past that
@@ -631,7 +684,8 @@
         }
       })
       // links pull their ends together a little
-      links.forEach(([a, b]) => {
+      links.forEach(([a, b, folderEdge]) => {
+        if (folderEdge) return
         const dx = b.x - a.x, dy = b.y - a.y
         a.vx += dx * 0.0006; a.vy += dy * 0.0006
         b.vx -= dx * 0.0006; b.vy -= dy * 0.0006
@@ -679,11 +733,12 @@
       adj.get(a).add(b)
       adj.get(b).add(a)
     }
-    function easeHl() {
+    function easeHl(dt) {
       // reduced motion asked for no animation: land on the target in one frame.
       // 0.12 (the old rate) crossed a room in a handful of frames — barely a
-      // fade, closer to a swap. 0.06 halves it so leaving a room is readable.
-      const k = reduceMotion ? 1 : 0.06
+      // fade, closer to a swap; 0.045 per 60Hz frame lets a room breathe in.
+      // Scaled by dt so a 144Hz screen fades at the same pace, not 2.4x faster.
+      const k = reduceMotion ? 1 : 1 - Math.pow(1 - 0.045, dt)
       hlMax = 0
       const near = hovered ? adj.get(hovered) : null
       for (const n of nodes) {
@@ -743,8 +798,8 @@
     // pointer-events flipped on for coarse pointers in custom.scss), so onClick
     // never navigates on touch either.
     // links preview after popover.scss's 0.2s animation-delay; a star waits
-    // this on top, so its card comes up about 3.5x later
-    const PREVIEW_DELAY = 500
+    // this on top, so its card comes up about 1s after the pointer lands
+    const PREVIEW_DELAY = 780
     let previewTimer = 0
     function onTouchDown(e) {
       if (e.pointerType === "touch") onMove(e)
@@ -886,7 +941,11 @@
     }
 
     let t = 0
+    let lastT = 0
     let raf = 0
+    let acc = 0
+    // a rotunda scrolled out of view stops drawing and simulating altogether
+    let onScreen = true
     // stars drift into place then cool to a faint perpetual drift — never a hard freeze
     let heat = 1
     function draw() {
@@ -895,8 +954,12 @@
       // reading the attribute each frame means the sky can never drift from it
       const dayNow = document.documentElement.getAttribute("saved-theme") === "light"
       if (dayNow !== !!sky.day) onTheme()
-      t += 0.008
-      easeHl()
+      // frames measured in 60Hz units, capped so a background tab resumes calmly
+      const now = performance.now()
+      const dt = lastT ? Math.min(4, (now - lastT) / 16.7) : 1
+      lastT = now
+      t += 0.008 * dt
+      easeHl(dt)
       ctx.save()
       ctx.translate(view.x, view.y)
       ctx.scale(view.s, view.s)
@@ -905,7 +968,8 @@
       // they are what makes the swap between two rooms a fade
       // the rotunda draws no resting threads: over the painted brain they read
       // as a net, so its only lines are the hovered star's own (below)
-      ;(mini ? [] : links).forEach(([a, b]) => {
+      ;(mini ? [] : links).forEach(([a, b, folderEdge]) => {
+        if (folderEdge) return
         // in a neighbourhood the page's own threads are the point: each one
         // takes the colour of the room at its far end
         const mine = local && (a.you || b.you)
@@ -942,9 +1006,12 @@
         const pop = !side
         const litS = Math.max(litG, near)
         const pig = !pop ? col : sky.day ? desat(col, -0.8 * litS) : lighten(col, 0.45 * litS)
+        // by day the rotunda's halos warm to the veins' gold (see the threads)
+        const gild = mini && sky.day
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
-        g.addColorStop(1, "transparent")
+        if (gild) g.addColorStop(0.45, "rgba(222,164,84,.7)")
+        g.addColorStop(1, gild ? "rgba(222,164,84,0)" : "transparent")
         ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
         // at night overlapping halos add their light, so a dense room glows
@@ -974,17 +1041,30 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
+        // a folder wears a thin gold ring, the palace's gold, so it reads as a
+        // room among the notes before anything is hovered
+        if (n.hub || n.slug.endsWith("/index")) {
+          ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
+          ctx.lineWidth = 1.2 / view.s
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
+          ctx.stroke()
+        }
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
         // the pick is readable before the tip is (widths are divided by the
         // zoom so the ring stays the same thickness at every scale)
-        if (n === hovered) {
+        // it fades with the eased n.cw, so a pick in and out is a fade, not a pop
+        if ((n.cw || 0) > 0.01) {
           ctx.strokeStyle = sky.label
           ctx.lineWidth = (pop ? 2 : 1.5) / view.s
+          ctx.globalAlpha = n.cw
           ctx.beginPath()
           ctx.arc(n.x, n.y, rr + 5 / view.s, 0, 7)
           ctx.stroke()
-        } else if (near > 0.01 && !local) {
+          ctx.globalAlpha = 1
+        }
+        if (n !== hovered && near > 0.01 && !local) {
           // what the hovered star touches: a thinner ring in the same ink, and
           // in the observatory its name, so the group and the links read apart
           ctx.strokeStyle = sky.label
@@ -1038,7 +1118,8 @@
           if (!side) {
             ctx.font = "400 10px IBM Plex Sans, sans-serif"
             ctx.fillStyle = sky.sub
-            ctx.fillText(counts[n.folder] + (counts[n.folder] === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
+            const c = n.count ?? counts[n.folder]
+            ctx.fillText(c + (c === 1 ? " note" : " notes"), n.x, n.y - n.r - 4)
           }
         }
       })
@@ -1061,32 +1142,52 @@
         // over the dust, the hovered star's own are the one bold line
         ctx.lineWidth = 1 / view.s
         if (!mini && !local) {
-          links.forEach(([a, b]) => {
+          links.forEach(([a, b, folderEdge]) => {
             const w = linkLit(a, b)
-            if (w < 0.01) return
+            if (w < 0.01 || folderEdge) return
             const f = hlOf(a.folder) >= hlOf(b.folder) ? a.folder : b.folder
             ctx.strokeStyle = f === "~" ? sky.root : folderColor(f)
             ctx.globalAlpha = 0.4 * w
             thread(a, b)
           })
         }
+        // by day the rotunda draws them as light, not ink: the gold of the
+        // painted brain's own veins (sampled ~#e4ceb1, deepened to read on the
+        // white glass), a blurred halo under a pale core
+        const gold = mini && sky.day
         ctx.lineWidth = 2.4 / view.s
         links.forEach(([a, b]) => {
           const own = Math.max(a.cw || 0, b.cw || 0)
           if (own < 0.01) return
+          ctx.globalAlpha = own
+          if (gold) {
+            ctx.shadowColor = "rgba(222,164,84,.9)"
+            ctx.shadowBlur = 8
+            ctx.strokeStyle = "rgba(230,182,112,.8)"
+            ctx.lineWidth = 3 / view.s
+            thread(a, b)
+            ctx.shadowBlur = 0
+            ctx.strokeStyle = "rgba(255,246,226,.95)"
+            ctx.lineWidth = 1.1 / view.s
+            thread(a, b)
+            return
+          }
           // in the sky's ink, not the room's hue: over the room's own tinted
           // threads a same-hue line was only a little thicker
           ctx.strokeStyle = local ? ((a.cw || 0) >= (b.cw || 0) ? a : b).color : sky.label
-          ctx.globalAlpha = own
           thread(a, b)
         })
         ctx.globalAlpha = 1
       }
       ctx.restore()
       if (!reduceMotion) {
-        step()
-        heat = Math.max(heat * 0.997, 0.04)
-        raf = requestAnimationFrame(draw)
+        // the sim steps in 60Hz frames whatever the display's rate: a 144Hz
+        // screen used to settle (and burn CPU) 2.4x faster than a 60Hz one
+        for (acc = Math.min(acc + dt, 4); acc >= 1; acc--) {
+          step()
+          heat = Math.max(heat * 0.997, 0.04)
+        }
+        if (onScreen) raf = requestAnimationFrame(draw)
       }
     }
 
@@ -1106,6 +1207,15 @@
       // touch has no hover to fall back to — clearing here would un-stick the
       // highlight the instant the tap ends, so touch just keeps what it had.
       if (e && e.pointerType === "touch") return
+      // into the star's own preview card: the pick stays lit while it is being
+      // read, and lets go when the pointer leaves the card for anywhere but here
+      const card = e?.relatedTarget?.closest?.(".popover")
+      if (card && hovered) {
+        tip.style.opacity = 0
+        const off = (ev) => ev.relatedTarget !== cv && onLeave(ev)
+        card.addEventListener("pointerleave", off, { once: true })
+        return
+      }
       hovered = null
       tip.style.opacity = 0
       clearTimeout(previewTimer)
@@ -1135,6 +1245,16 @@
     const ro = new ResizeObserver(size)
     ro.observe(wrap)
 
+    const io = new IntersectionObserver(([e]) => {
+      const back = e.isIntersecting && !onScreen
+      onScreen = e.isIntersecting
+      if (!back || reduceMotion) return
+      cancelAnimationFrame(raf)
+      lastT = 0
+      draw()
+    })
+    io.observe(wrap)
+
     size()
     initPositions()
     if (reduceMotion) for (let i = 0; i < 300; i++) step()
@@ -1142,6 +1262,7 @@
 
     cleanup = () => {
       cancelAnimationFrame(raf)
+      io.disconnect()
       document.removeEventListener("themechange", onTheme)
       window.removeEventListener("vb-folder-hl", onHl)
       cv.removeEventListener("pointerdown", onTouchDown)
