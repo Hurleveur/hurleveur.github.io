@@ -27,6 +27,7 @@ The vault is `~/Documents/private`. `content/` is an rsync copy that refreshes *
 - Reading deploy history: `journalctl --user -u loci-deploy.service | grep -E 'Finished|Failed|gh-pages ->'` is honest. `git log origin/gh-pages -1` is not — a plain `git fetch origin gh-pages` writes FETCH_HEAD and leaves the tracking ref stale, which once made a 3-day gap look like an 11-day outage. Use `git ls-remote origin gh-pages`.
 - `deploy.sh` force-resets `gh-pages` to `origin/gh-pages` before building, so a local ref left behind by an aborted run can't make the push non-fast-forward.
 - `npm ci` needs `--allow-git=root`: npm 12 blocks git deps by default and `@quartz-community/{types,utils}` are `github:` specs. `root` allows only the two direct ones. The blocked `esbuild`/`@parcel/watcher` install scripts are fine to leave blocked — both resolve prebuilt binaries through optional deps.
+- Any vault note with invalid YAML frontmatter fails the whole build, `publish: false` or not — usually an unquoted `: ` in an AI-written `description:`. Quote the value in the vault, then rerun.
 - Every run rewrites ~275 files even with zero content change (build nondeterminism), so a fat `deploy` commit means nothing on its own.
 
 ## Plugin forks live in local-plugins/
