@@ -947,8 +947,11 @@ body[data-slug="index"] {
       pointer-events: auto;
       /* at rest every groove is gilded the same pale gold, so the frieze
          reads as one inscription and draws the eye to the room names */
-      fill: #e9c97a;
-      filter: drop-shadow(0 0 2px rgba(255, 226, 150, 0.7));
+      /* deep enough to read where a groove is only half gilded: a pale gold
+         blends into the pale stone there and the letter looks unfinished.
+         The 3px halo is the hover's shape, which fills the same seams */
+      fill: #d9a93f;
+      filter: drop-shadow(0 0 3px rgba(225, 170, 60, 0.85));
       transition:
         fill 0.25s ease,
         filter 0.25s ease;
