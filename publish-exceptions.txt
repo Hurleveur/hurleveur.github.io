@@ -14,7 +14,7 @@
 # images/pdfs embedded or linked from a published note publish automatically —
 # only assets nothing published points at need a line here.
 
-Work/Guides/prompting guide.pdf
+Work/Experience/prompting guide.pdf
 knowledge-compendium.html
 Alignment/Life structure/overview.excalidraw.md
 Shared/Naur.pdf
