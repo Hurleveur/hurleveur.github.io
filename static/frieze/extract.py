@@ -9,7 +9,7 @@ Writes ``<folder>.png`` (white glyphs on black, a luminance mask cropped to the
 word) beside this script and prints the ``CARVED`` table for vaultbrain.js.
 
     uv run --with pillow --with numpy --with scipy python extract.py \
-        ../../../new_marble.jpeg ../../../marble_new_names.jpeg
+        ../../../design/rotunda/new_marble.jpeg ../../../design/rotunda/marble_new_names.jpeg
 """
 
 import sys
