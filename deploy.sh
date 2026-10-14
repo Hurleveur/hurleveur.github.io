@@ -21,6 +21,15 @@ done
 
 cd "$SITE"
 
+# 0. Build what origin has, not what this box last pulled — the other box may have
+#    pushed source since. --ff-only never merges; on failure (diverged, dirty
+#    conflict, offline) deploy the local tree rather than nothing, and say so.
+#    Re-exec once so a pull that changed this very script runs the new copy.
+if [ -z "${LOCI_PULLED:-}" ]; then
+  git pull --ff-only origin v5 || echo "WARNING: git pull failed; building the local v5 as is" >&2
+  LOCI_PULLED=1 exec "$SITE/deploy.sh" "$@"
+fi
+
 # Fingerprint of everything that decides the build's output, so a night with
 # zero vault/source change skips the build and the ~275-file no-op commit that
 # build nondeterminism produces even then. Covers: content/ (paths+bytes, hashed
@@ -52,12 +61,20 @@ rsync -a --delete \
   --exclude '/index.md' --exclude '/brain.md' \
   "$VAULT/" "$SITE/content/"
 
-# 1a. Pre-deploy content check: prints warnings (unfinished notes, leaked
+# 1a. Drop notes whose frontmatter does not parse — one of them, published or not,
+#     fails the whole build. The vault keeps the note; the desktop gets told.
+dropped="$(node "$SITE/scripts/drop-bad-frontmatter.mjs" "$SITE/content")"
+if [ -n "$dropped" ]; then
+  printf 'WARNING: dropped notes with invalid frontmatter:\n%s\n' "$dropped" >&2
+  notify-send "Loci: notes skipped (bad frontmatter)" "$dropped" 2>/dev/null || true
+fi
+
+# 1b. Pre-deploy content check: prints warnings (unfinished notes, leaked
 #     private names, secret-shaped strings, links to now-private notes) and
 #     never affects the deploy's outcome, by design.
 node "$SITE/scripts/predeploy-warn.mjs" "$SITE/content" || true
 
-# 1b. Skip the build+push entirely if nothing that determines the output has
+# 1c. Skip the build+push entirely if nothing that determines the output has
 #     changed since the last successful push. --force / FORCE=1 bypasses this.
 FINGERPRINT="$(compute_fingerprint)"
 if [ -z "$FORCE" ] && [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$FINGERPRINT" ]; then
