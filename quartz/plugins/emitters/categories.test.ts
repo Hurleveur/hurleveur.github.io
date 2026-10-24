@@ -35,6 +35,13 @@ describe("categoriesOf", () => {
     assert.deepStrictEqual(categoriesOf({ frontmatter: {} }), [])
   })
 
+  test("an unlisted note joins no category", () => {
+    assert.deepStrictEqual(
+      categoriesOf({ unlisted: true, frontmatter: { categories: ["[[Meaning]]"] } }),
+      [],
+    )
+  })
+
   test("dedupes so a doubled category doesn't double the listing", () => {
     assert.deepStrictEqual(
       categoriesOf({ frontmatter: { categories: ["[[Library]]", "library"] } }),

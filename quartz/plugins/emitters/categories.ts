@@ -40,6 +40,8 @@ export function categorySlug(raw: string): string {
 }
 
 export function categoriesOf(data: any): string[] {
+  // unlisted wins over categories: the same flag content-index skips on
+  if (data?.unlisted === true) return []
   const cats = data?.frontmatter?.categories
   if (!cats) return []
   const list = Array.isArray(cats) ? cats : [cats]
