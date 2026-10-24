@@ -2004,9 +2004,18 @@ body.vb-open #quartz-body .sidebar.right {
 #vb-side #vb-expand {
   top: 0.2rem;
   right: 0.2rem;
+  /* undo the phone entrance (max-width: 640px) or, in the phone drawer, the
+     button stretches from these insets to its left/bottom ones */
+  left: auto;
+  bottom: auto;
+  transform: none;
   min-height: 32px;
   padding: 0 0.5rem;
   z-index: 3;
+
+  .vb-expand-txt {
+    display: none;
+  }
 }
 
 /* folder and tag pages: their listing moves here under the map

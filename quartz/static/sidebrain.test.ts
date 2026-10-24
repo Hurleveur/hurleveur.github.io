@@ -31,6 +31,16 @@ test("side brain", async (t) => {
     assert.match(scss, /#vb-side \{[\s\S]*?#vault-brain:not\(\.vb-expanded\)/)
   })
 
+  await t.test("⤢ in the phone drawer stays a corner button", () => {
+    // the phone entrance rule sets left/bottom/transform; without the reset the
+    // drawer's button spans from its top/right insets to those
+    const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
+    const rule = scss.match(/#vb-side #vb-expand \{([\s\S]*?)\n\}/)?.[1] ?? ""
+    for (const decl of ["left: auto", "bottom: auto", "transform: none"]) {
+      assert.ok(rule.includes(decl), `#vb-side #vb-expand lacks ${decl}`)
+    }
+  })
+
   await t.test("a hover in the neighbourhood lights stars, not a section", () => {
     // hlEmit lights a whole room; inside a neighbourhood that is most of the
     // panel, so the hover path must skip it there and light by adjacency
