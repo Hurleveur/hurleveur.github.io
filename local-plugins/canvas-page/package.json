@@ -89,7 +89,7 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vfile": "^6.0.3",
-    "vitest": "^3.2.6"
+    "vitest": "^5.0.5"
   },
   "quartz": {
     "name": "canvas-page",
