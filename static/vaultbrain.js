@@ -2401,7 +2401,18 @@
       btn.textContent = "✦"
       btn.setAttribute("aria-label", "Toggle the vault map")
       btn.addEventListener("click", () => {
-        // no column to toggle on a phone: ✦ opens the whole vault over the
+        // phone or tablet note page: ✦ pulls out the right drawer, the same as
+        // the edge swipe — mini map first, ⤢ there for the whole vault
+        if (!wide() && document.getElementById("vb-side")) {
+          // one drawer at a time, as with the swipes; the explorer is a drawer
+          // only on a phone, on tablet it is the panel beside the text
+          const explorer = document.querySelector(".explorer:not(.collapsed)")
+          if (matchMedia("(max-width: 800px)").matches)
+            explorer?.querySelector(".mobile-explorer")?.click()
+          setSideDrawer(!document.body.classList.contains("side-open"))
+          return
+        }
+        // home (no right column): ✦ opens the whole vault over the
         // page, and ✕ or Esc puts you back on the note you were reading
         if (!wide()) {
           const wrap = document.getElementById("vault-brain")
@@ -2566,7 +2577,7 @@
       "touchstart",
       (e) => {
         const t = e.touches[0]
-        swTracking = !!t && matchMedia("(max-width: 800px)").matches && !excluded(e.target)
+        swTracking = !!t && !wide() && !excluded(e.target)
         if (swTracking) {
           swStartX = t.clientX
           swStartY = t.clientY
@@ -2583,7 +2594,10 @@
         if (!t) return
         const dx = t.clientX - swStartX
         const dy = t.clientY - swStartY
-        const explorer = document.querySelector(".explorer")
+        // the explorer is a swipeable drawer on a phone only; on tablet it is
+        // the panel beside the text, and only the right drawer swipes
+        const phone = matchMedia("(max-width: 800px)").matches
+        const explorer = phone && document.querySelector(".explorer")
         const explorerOpen = !!explorer && !explorer.classList.contains("collapsed")
         const sideOpen = document.body.classList.contains("side-open")
         // one drawer at a time: an open one only listens for its own close
