@@ -2279,8 +2279,8 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
 }
 
 /* below $desktop the panel has no column to live in: the markup is still
-   injected (vaultbrain.js needs a wrapper to expand) but nothing of it shows,
-   and ✦ in the bar opens the observatory over the page instead. display:
+   injected (vaultbrain.js needs a wrapper to expand) but nothing of it shows
+   until ✦ or a swipe pulls out the drawer below. display:
    contents rather than none — the expanded wrapper is a child of this box. */
 @media all and not ($desktop) {
   #vb-side {
@@ -2294,12 +2294,12 @@ $explorerFitsAt: math.div(32px + 19.2px + 5px + $readWidth + $sidePanelWidth + 1
   }
 }
 
-/* phone: the right column becomes a drawer off the right edge, pulled out by
-   a swipe left from there (vaultbrain.js swipeSideDecision) — the desktop
-   column in miniature: side brain, recent notes, backlinks. Slid with right
-   rather than transform: a transform would make it the containing block of
-   the observatory that ⤢ expands out of it. */
-@media all and ($mobile) {
+/* phone and tablet: the right column becomes a drawer off the right edge,
+   pulled out by ✦ or a swipe left from there (vaultbrain.js swipeSideDecision)
+   — the desktop column in miniature: side brain, recent notes, backlinks.
+   Slid with right rather than transform: a transform would make it the
+   containing block of the observatory that ⤢ expands out of it. */
+@media all and not ($desktop) {
   body:not([data-slug="index"]) #quartz-body .sidebar.right {
     --side-w: min(85vw, 340px);
     position: fixed;
