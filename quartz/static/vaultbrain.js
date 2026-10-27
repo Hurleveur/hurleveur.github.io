@@ -2401,7 +2401,16 @@
       btn.textContent = "✦"
       btn.setAttribute("aria-label", "Toggle the vault map")
       btn.addEventListener("click", () => {
-        // no column to toggle on a phone: ✦ opens the whole vault over the
+        // phone note page: ✦ pulls out the right drawer, the same as the edge
+        // swipe — mini map first, ⤢ there for the whole vault
+        if (matchMedia("(max-width: 800px)").matches && document.getElementById("vb-side")) {
+          // one drawer at a time, as with the swipes
+          const explorer = document.querySelector(".explorer:not(.collapsed)")
+          explorer?.querySelector(".mobile-explorer")?.click()
+          setSideDrawer(!document.body.classList.contains("side-open"))
+          return
+        }
+        // tablet, or home (no right column): ✦ opens the whole vault over the
         // page, and ✕ or Esc puts you back on the note you were reading
         if (!wide()) {
           const wrap = document.getElementById("vault-brain")

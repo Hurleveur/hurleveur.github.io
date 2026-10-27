@@ -31,6 +31,13 @@ test("side brain", async (t) => {
     assert.match(scss, /#vb-side \{[\s\S]*?#vault-brain:not\(\.vb-expanded\)/)
   })
 
+  await t.test("✦ on a phone note page opens the drawer, not the overlay", () => {
+    // the drawer's mini map is the way in; ✦ jumping straight to the whole
+    // vault read as the drawer having been replaced by the observatory
+    const click = js.match(/btn\.id = "vb-brain-btn"[\s\S]*?toggleExpand\(wrap, btn\)/)?.[0] ?? ""
+    assert.match(click, /max-width: 800px[\s\S]*?setSideDrawer\(/)
+  })
+
   await t.test("⤢ in the phone drawer stays a corner button", () => {
     // the phone entrance rule sets left/bottom/transform; without the reset the
     // drawer's button spans from its top/right insets to those

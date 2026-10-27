@@ -99,7 +99,8 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   sends the close back to the right mode.
 - Below `$desktop` the panel's markup is still injected but hidden (the wrapper
   is what `toggleExpand` expands, so `#vb-side` is `display: contents`, never
-  `none`), and `✦` opens the overlay directly.
+  `none`). On a phone note page (≤800px) `✦` pulls out the right drawer, the same
+  `setSideDrawer()` as the edge swipe; on tablet, and on home, it opens the overlay.
 - `init()` bails on a wrapper with no box. That is what keeps the hidden phone
   panel from mounting a zero-size canvas; hide `#vault-brain` under 640px and the
   portrait home brain silently shows only "Enter the mind".
