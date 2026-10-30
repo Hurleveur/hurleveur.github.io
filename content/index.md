@@ -25,7 +25,7 @@ publish: true
   <div class="intro-row">
     <div class="vault-intro" id="vault-intro"></div>
     <aside class="pauseai">
-      <a class="pauseai-badge" href="/alignment/i-think-ai-is-the-most-pressing-issue-of-our-time" title="I think AI is the most pressing issue of our time" aria-label="I think AI is the most pressing issue of our time">
+      <a class="pauseai-badge" href="https://pauseai.be" target="_blank" rel="noopener" title="PauseAI Belgium" aria-label="PauseAI Belgium">
         <svg viewBox="0 0 64 64" aria-hidden="true">
           <circle cx="32" cy="32" r="29" fill="currentColor" />
           <rect x="21" y="19" width="8" height="26" rx="2" fill="#fff" />
