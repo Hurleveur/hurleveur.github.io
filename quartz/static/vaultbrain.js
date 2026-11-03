@@ -1231,11 +1231,29 @@
         card.addEventListener("pointerleave", off, { once: true })
         return
       }
+      letGo()
+    }
+    function letGo() {
       hovered = null
       tip.style.opacity = 0
       clearTimeout(previewTimer)
       window.quartzPopover?.close()
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
+    }
+    // Task 1: the stars crowd the brain's edges, so the empty sky a finger can
+    // let go on inside the box is thin; a band of a quarter of its height above
+    // and below it lets go too. The tip can stand in that band and opens a page,
+    // so a tap on it is left alone.
+    const LET_GO_BAND = 0.25
+    function inLetGoBand(r, x, y) {
+      const m = r.height * LET_GO_BAND
+      const above = y < r.top && y >= r.top - m
+      const below = y > r.bottom && y <= r.bottom + m
+      return x >= r.left && x <= r.right && (above || below)
+    }
+    function onTouchNear(e) {
+      if (e.pointerType !== "touch" || !hovered || tip.contains(e.target)) return
+      if (inLetGoBand(cv.getBoundingClientRect(), e.clientX, e.clientY)) letGo()
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS
     // turns its pointer-events on for coarse pointers only, so this never
@@ -1248,6 +1266,7 @@
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
     tip.addEventListener("click", onTipClick)
+    window.addEventListener("pointerdown", onTouchNear, true)
     if (!mini && !side) {
       cv.addEventListener("wheel", onWheel, { passive: false })
       cv.addEventListener("pointerdown", onDown)
@@ -1285,6 +1304,7 @@
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
       tip.removeEventListener("click", onTipClick)
+      window.removeEventListener("pointerdown", onTouchNear, true)
       if (!mini && !side) {
         cv.removeEventListener("wheel", onWheel)
         cv.removeEventListener("pointerdown", onDown)

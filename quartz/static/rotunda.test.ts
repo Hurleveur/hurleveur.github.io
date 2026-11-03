@@ -177,6 +177,41 @@ describe("touch sticks the hover before it navigates", () => {
     )
   })
 
+  test("a finger a quarter of the brain's height above or below it lets go", () => {
+    const src = js.slice(js.indexOf("const LET_GO_BAND"), js.indexOf("function onTouchNear("))
+    const inBand = new Function(`${src}; return inLetGoBand`)() as (
+      r: { left: number; right: number; top: number; bottom: number; height: number },
+      x: number,
+      y: number,
+    ) => boolean
+    const r = { left: 0, right: 200, top: 100, bottom: 300, height: 200 }
+    assert.equal(inBand(r, 100, 60), true, "just above the brain keeps the star")
+    assert.equal(inBand(r, 100, 340), true, "just below the brain keeps the star")
+    assert.equal(inBand(r, 100, 50), true, "the band's top edge keeps the star")
+    assert.equal(inBand(r, 100, 49), false, "past a quarter of the height above still lets go")
+    assert.equal(inBand(r, 100, 351), false, "past a quarter of the height below still lets go")
+    assert.equal(
+      inBand(r, 100, 200),
+      false,
+      "the brain itself is in the band — taps on stars would let go",
+    )
+    assert.equal(inBand(r, 250, 60), false, "beside the band, outside the brain's width, lets go")
+  })
+
+  test("a tap on the tip is never taken as letting go", () => {
+    const onTouchNear = js.slice(
+      js.indexOf("function onTouchNear("),
+      js.indexOf("function onTipClick("),
+    )
+    assert.match(
+      onTouchNear,
+      /tip\.contains\(e\.target\)/,
+      "the band clears the star before the tip can open it",
+    )
+    assert.match(js, /window\.addEventListener\("pointerdown", onTouchNear, true\)/)
+    assert.match(js, /window\.removeEventListener\("pointerdown", onTouchNear, true\)/)
+  })
+
   test("the lift that ends a slide never opens a page", () => {
     assert.match(
       onClick,
