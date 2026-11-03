@@ -71,7 +71,7 @@ describe("rotunda frieze over the brain canvas", () => {
 // it, because pointerleave fires on finger-lift same as it would for a mouse
 // and would otherwise wipe the highlight the instant the tap ends. None of
 // this shows up in a build, and none of it is reachable from a desktop browser.
-describe("touch sticks the hover instead of navigating", () => {
+describe("touch sticks the hover before it navigates", () => {
   const onMove = js.slice(js.indexOf("function onMove(e) {"), js.indexOf("function onClick(e) {"))
   const onClick = js.slice(js.indexOf("function onClick(e) {"), js.indexOf("function onWheel(e) {"))
   const onLeave = js.slice(
@@ -94,7 +94,7 @@ describe("touch sticks the hover instead of navigating", () => {
   test("a bare tap sticks the hover immediately, not only after a drag", () => {
     assert.match(
       onTouchDown,
-      /if \(e\.pointerType === "touch"\) onMove\(e\)/,
+      /if \(e\.pointerType !== "touch"\) return[\s\S]*onMove\(e\)/,
       "pointerdown no longer picks a star on contact — a stationary tap would show nothing",
     )
   })
@@ -136,11 +136,57 @@ describe("touch sticks the hover instead of navigating", () => {
     )
   })
 
-  test("the canvas never navigates from a touch", () => {
+  test("a tap opens the page only after a slide or on the lit star", () => {
+    const src = js.slice(js.indexOf("function tapOpens("), js.indexOf("function onTouchDown("))
+    const tapOpens = new Function(`${src}; return tapOpens`)() as (
+      prior: { node: object | null; slid: boolean } | null,
+      hit: object | null,
+    ) => boolean
+    const a = {},
+      b = {}
+    assert.equal(
+      tapOpens({ node: null, slid: false }, a),
+      false,
+      "a tap out of the blue opens its star",
+    )
+    assert.equal(tapOpens(null, a), false, "the first touch of the page opens its star")
+    assert.equal(
+      tapOpens({ node: b, slid: false }, a),
+      false,
+      "tapping a new star after a tap opens it",
+    )
+    assert.equal(
+      tapOpens({ node: a, slid: false }, a),
+      true,
+      "a second tap on the lit star does not open it",
+    )
+    assert.equal(
+      tapOpens({ node: b, slid: true }, a),
+      true,
+      "a tap after sliding the map does not open it",
+    )
+    assert.equal(
+      tapOpens({ node: null, slid: true }, a),
+      false,
+      "a slide that let go in empty sky still arms the tap",
+    )
+    assert.equal(
+      tapOpens({ node: a, slid: true }, null),
+      false,
+      "a tap on empty sky opens something",
+    )
+  })
+
+  test("the lift that ends a slide never opens a page", () => {
     assert.match(
       onClick,
-      /if \(e\.pointerType === "touch"\) return/,
-      "onClick can still navigate from a touch — that's the star, not the label, opening the page",
+      /if \(!touchSlid && tapOpens\(priorTouch, hovered\)\)/,
+      "onClick opens on the lift of a slide — exploring the map would open whatever it ends on",
+    )
+    assert.match(
+      onMove,
+      /touchSlid = true/,
+      "onMove no longer records that a touch slid across stars",
     )
   })
 })

@@ -793,22 +793,34 @@
     }
     // Task 1: a touch device has no hover to reveal the map, so any contact —
     // tap or drag — sticks the highlight to the nearest star and it stays put
-    // (onLeave below) until the next touch moves it. Opening a page then can't
-    // happen from a tap on the star itself (the label in the tip does that,
-    // pointer-events flipped on for coarse pointers in custom.scss), so onClick
-    // never navigates on touch either.
+    // (onLeave below) until the next touch moves it. A tap out of the blue only
+    // lights its star; it opens the page once the star was already lit by the
+    // touch before (a second tap on it) or the touch before was a slide across
+    // the map (tapOpens). The label in the tip opens it too (pointer-events
+    // flipped on for coarse pointers in custom.scss).
     // links preview after popover.scss's 0.2s animation-delay; a star waits
     // this on top, so its card comes up about 1s after the pointer lands
     const PREVIEW_DELAY = 780
     let previewTimer = 0
+    // what the previous touch left lit, and whether it got there by sliding
+    let touchSlid = false
+    let priorTouch = null
+    function tapOpens(prior, hit) {
+      return !!(hit && prior && prior.node && (prior.slid || prior.node === hit))
+    }
     function onTouchDown(e) {
-      if (e.pointerType === "touch") onMove(e)
+      if (e.pointerType !== "touch") return
+      priorTouch = { node: hovered, slid: touchSlid }
+      onMove(e)
+      touchSlid = false
     }
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
       hovered = e.pointerType === "touch" ? nearestNode(x, y) : nodeAt(e)
+      if (e.type === "pointermove" && e.pointerType === "touch" && hovered !== prevHover)
+        touchSlid = true
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub.
       // Not for touch: nothing un-hovers a finger, so a room lit from empty sky
@@ -856,9 +868,12 @@
       }
     }
     function onClick(e) {
-      // Task 1: a touch never navigates from the canvas — it only sticks the
-      // hover (onMove/onTouchDown above); opening a page is the tip's job.
-      if (e.pointerType === "touch") return
+      // Task 1: a touch opens a page only on a tap that follows a slide or
+      // repeats the lit star; the lift ending a slide is never a pick.
+      if (e.pointerType === "touch") {
+        if (!touchSlid && tapOpens(priorTouch, hovered)) window.location.href = "/" + hovered.slug
+        return
+      }
       if (dragged) return // pan release, not a pick
       const hit = nodeAt(e)
       if (hit) window.location.href = "/" + hit.slug
