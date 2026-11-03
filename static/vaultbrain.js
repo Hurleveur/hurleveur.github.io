@@ -793,22 +793,34 @@
     }
     // Task 1: a touch device has no hover to reveal the map, so any contact —
     // tap or drag — sticks the highlight to the nearest star and it stays put
-    // (onLeave below) until the next touch moves it. Opening a page then can't
-    // happen from a tap on the star itself (the label in the tip does that,
-    // pointer-events flipped on for coarse pointers in custom.scss), so onClick
-    // never navigates on touch either.
+    // (onLeave below) until the next touch moves it. A tap out of the blue only
+    // lights its star; it opens the page once the star was already lit by the
+    // touch before (a second tap on it) or the touch before was a slide across
+    // the map (tapOpens). The label in the tip opens it too (pointer-events
+    // flipped on for coarse pointers in custom.scss).
     // links preview after popover.scss's 0.2s animation-delay; a star waits
     // this on top, so its card comes up about 1s after the pointer lands
     const PREVIEW_DELAY = 780
     let previewTimer = 0
+    // what the previous touch left lit, and whether it got there by sliding
+    let touchSlid = false
+    let priorTouch = null
+    function tapOpens(prior, hit) {
+      return !!(hit && prior && prior.node && (prior.slid || prior.node === hit))
+    }
     function onTouchDown(e) {
-      if (e.pointerType === "touch") onMove(e)
+      if (e.pointerType !== "touch") return
+      priorTouch = { node: hovered, slid: touchSlid }
+      onMove(e)
+      touchSlid = false
     }
     function onMove(e) {
       const rect = cv.getBoundingClientRect()
       const [x, y] = toWorld(e.clientX - rect.left, e.clientY - rect.top)
       const prevHover = hovered
       hovered = e.pointerType === "touch" ? nearestNode(x, y) : nodeAt(e)
+      if (e.type === "pointermove" && e.pointerType === "touch" && hovered !== prevHover)
+        touchSlid = true
       // select an area when the pointer is on a star OR anywhere inside its
       // circle; overlapping areas (incl. the centre) resolve to the nearest hub.
       // Not for touch: nothing un-hovers a finger, so a room lit from empty sky
@@ -856,9 +868,12 @@
       }
     }
     function onClick(e) {
-      // Task 1: a touch never navigates from the canvas — it only sticks the
-      // hover (onMove/onTouchDown above); opening a page is the tip's job.
-      if (e.pointerType === "touch") return
+      // Task 1: a touch opens a page only on a tap that follows a slide or
+      // repeats the lit star; the lift ending a slide is never a pick.
+      if (e.pointerType === "touch") {
+        if (!touchSlid && tapOpens(priorTouch, hovered)) window.location.href = "/" + hovered.slug
+        return
+      }
       if (dragged) return // pan release, not a pick
       const hit = nodeAt(e)
       if (hit) window.location.href = "/" + hit.slug
@@ -1216,11 +1231,29 @@
         card.addEventListener("pointerleave", off, { once: true })
         return
       }
+      letGo()
+    }
+    function letGo() {
       hovered = null
       tip.style.opacity = 0
       clearTimeout(previewTimer)
       window.quartzPopover?.close()
       if (!local && hlFolder !== idleHl) hlEmit(idleHl, true)
+    }
+    // Task 1: the stars crowd the brain's edges, so the empty sky a finger can
+    // let go on inside the box is thin; a band of a quarter of its height above
+    // and below it lets go too. The tip can stand in that band and opens a page,
+    // so a tap on it is left alone.
+    const LET_GO_BAND = 0.25
+    function inLetGoBand(r, x, y) {
+      const m = r.height * LET_GO_BAND
+      const above = y < r.top && y >= r.top - m
+      const below = y > r.bottom && y <= r.bottom + m
+      return x >= r.left && x <= r.right && (above || below)
+    }
+    function onTouchNear(e) {
+      if (e.pointerType !== "touch" || !hovered || tip.contains(e.target)) return
+      if (inLetGoBand(cv.getBoundingClientRect(), e.clientX, e.clientY)) letGo()
     }
     // Task 1: the tip is the only thing a touch can open a page from. CSS
     // turns its pointer-events on for coarse pointers only, so this never
@@ -1233,6 +1266,7 @@
     cv.addEventListener("pointerleave", onLeave)
     cv.addEventListener("click", onClick)
     tip.addEventListener("click", onTipClick)
+    window.addEventListener("pointerdown", onTouchNear, true)
     if (!mini && !side) {
       cv.addEventListener("wheel", onWheel, { passive: false })
       cv.addEventListener("pointerdown", onDown)
@@ -1270,6 +1304,7 @@
       cv.removeEventListener("pointerleave", onLeave)
       cv.removeEventListener("click", onClick)
       tip.removeEventListener("click", onTipClick)
+      window.removeEventListener("pointerdown", onTouchNear, true)
       if (!mini && !side) {
         cv.removeEventListener("wheel", onWheel)
         cv.removeEventListener("pointerdown", onDown)
