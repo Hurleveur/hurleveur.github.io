@@ -126,8 +126,56 @@ a.internal.vb-seen {
   }
 
   [saved-theme="dark"] & {
+    --room-ink: color-mix(in srgb, var(--room, #a8843c) 65%, #ded6bf);
     color: #a89f8a;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+
+    &::before {
+      background: var(--room-ink);
+    }
+
+    &::after {
+      background: linear-gradient(90deg, var(--room-ink), transparent 70%);
+    }
+  }
+}
+
+/* a line the vault tagged #quote (InscribeQuotes wraps it): set apart in the
+   headings' serif italic under a hanging mark in the room's colour, its tag
+   kept small at the end, since the tag page is where the quotes gather */
+.inscribed {
+  display: block;
+  position: relative;
+  margin: 1.3rem 0;
+  padding-left: 2.2rem;
+  font-family: var(--headerFont);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.4em;
+  line-height: 1.35;
+  color: var(--dark);
+
+  &::before {
+    content: "\201C";
+    position: absolute;
+    left: 0;
+    top: -0.15em;
+    font-size: 2.6em;
+    font-style: normal;
+    line-height: 1;
+    color: var(--room, #a8843c);
+
+    [saved-theme="dark"] & {
+      color: color-mix(in srgb, var(--room, #a8843c) 65%, #ded6bf);
+    }
+  }
+
+  a.tag-link {
+    font-family: var(--bodyFont);
+    font-style: normal;
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin-left: 0.4em;
   }
 }
 

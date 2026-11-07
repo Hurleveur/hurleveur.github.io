@@ -33,7 +33,7 @@ function linkText(node: Element): string {
   return node.children.map((c) => (c.type === "text" ? c.value : "")).join("")
 }
 
-function tagOfLink(node: Element): string | undefined {
+export function tagOfLink(node: Element): string | undefined {
   if (node.tagName !== "a") return undefined
   const href = String(node.properties?.href ?? "")
   const m = href.match(/tags\/(.+)$/)

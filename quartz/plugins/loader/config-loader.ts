@@ -479,6 +479,7 @@ export async function loadQuartzConfig(
   const builtinTransformers: unknown[] = [
     builtinPlugins.HideCommentTail(),
     builtinPlugins.HideLlmMarks(),
+    builtinPlugins.InscribeQuotes(),
   ]
   // Must run after crawl-links (reads the `data-slug` it resolves onto every
   // internal link) but before Description (order 70) snapshots the note's

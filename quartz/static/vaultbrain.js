@@ -2525,11 +2525,12 @@
     if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
 
-  // the plaque over a note's title (content-meta fork) wears its room's colour
+  // the plaque over a note's title (content-meta fork) names its room; the
+  // room's colour goes on body as --room, for the plaque and the inscriptions
   function initRoomPlaque() {
-    document.querySelectorAll(".room-plaque").forEach((p) => {
-      p.style.setProperty("--room", folderColor(p.dataset.room))
-    })
+    const room = document.querySelector(".page-header .room-plaque")?.dataset.room
+    if (room) document.body.style.setProperty("--room", folderColor(room))
+    else document.body.style.removeProperty("--room")
   }
 
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it

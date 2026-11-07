@@ -122,6 +122,7 @@ plugins:
       header:
         name: Cormorant Garamond
         weights: [500, 600, 700]
+        includeItalic: true # the #quote inscriptions are set in its italic
   - source: github:quartz-community/remove-draft
     enabled: true
   - source: github:quartz-community/explicit-publish
