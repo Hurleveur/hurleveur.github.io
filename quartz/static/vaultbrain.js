@@ -1633,21 +1633,6 @@
         }
       }
       const defs = svg.appendChild(document.createElementNS(NS, "defs"))
-      // carved, not stuck on: inside each letter the top edge falls into
-      // shadow and the bottom edge catches the oculus light, the way a groove
-      // reads in stone. Each edge is the glyph cut by itself shifted 1px.
-      defs.innerHTML =
-        '<filter id="vb-carved" x="-2%" y="-10%" width="104%" height="120%">' +
-        '<feOffset in="SourceAlpha" dy="1.2" result="down"/>' +
-        '<feOffset in="SourceAlpha" dy="-1.2" result="up"/>' +
-        '<feComposite in="SourceAlpha" in2="down" operator="out" result="top"/>' +
-        '<feComposite in="SourceAlpha" in2="up" operator="out" result="bottom"/>' +
-        '<feFlood flood-color="#3b2508" flood-opacity="0.85"/>' +
-        '<feComposite in2="top" operator="in" result="shade"/>' +
-        '<feFlood flood-color="#fff4d6" flood-opacity="0.9"/>' +
-        '<feComposite in2="bottom" operator="in" result="lit"/>' +
-        '<feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shade"/><feMergeNode in="lit"/></feMerge>' +
-        "</filter>"
       const rect = (x, y, w, h) => {
         const r = document.createElementNS(NS, "rect")
         r.setAttribute("x", x)
