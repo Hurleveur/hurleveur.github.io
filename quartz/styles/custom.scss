@@ -155,8 +155,8 @@ a.internal.vb-seen {
 }
 
 /* a line the vault tagged #quote (InscribeQuotes wraps it): set apart in the
-   headings' serif italic under a hanging mark in the room's colour, its tag
-   kept small at the end, since the tag page is where the quotes gather */
+   headings' serif italic under a hanging mark in the room's colour; the tag
+   itself is dropped, the setting already says "quote" */
 .inscribed {
   display: block;
   position: relative;
@@ -182,14 +182,6 @@ a.internal.vb-seen {
     [saved-theme="dark"] & {
       color: color-mix(in srgb, var(--room, #a8843c) 65%, #ded6bf);
     }
-  }
-
-  a.tag-link {
-    font-family: var(--bodyFont);
-    font-style: normal;
-    font-size: 0.5em;
-    vertical-align: middle;
-    margin-left: 0.4em;
   }
 }
 

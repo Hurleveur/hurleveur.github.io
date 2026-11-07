@@ -41,7 +41,7 @@ const shape = (kids: ElementContent[]): string =>
     .join("")
 
 describe("InscribeQuotes", () => {
-  test("a #quote line inside a paragraph becomes one span, and its own <br> goes", () => {
+  test("a #quote line inside a paragraph becomes one span; its tag and <br> go", () => {
     const p = para(
       txt("Our brain"),
       br(),
@@ -52,19 +52,19 @@ describe("InscribeQuotes", () => {
     )
     assert.strictEqual(
       shape(run(p)),
-      "Our brain|[Use attention to change your system. #quote]\nSo this means",
+      "Our brain|[Use attention to change your system.]\nSo this means",
     )
   })
 
   test("a paragraph that is all quote is wrapped whole", () => {
     const p = para(txt("“Be one.” - Marcus Aurelius "), tag("quote"))
-    assert.strictEqual(shape(run(p)), "[“Be one.” - Marcus Aurelius #quote]")
+    assert.strictEqual(shape(run(p)), "[“Be one.” - Marcus Aurelius]")
   })
 
-  test("the line keeps its own links", () => {
+  test("the line keeps its own links, and loses only the quote tag", () => {
     const link: Element = { ...tag("x"), properties: { href: "../poems", className: ["internal"] } }
     const p = para(txt("I used to write "), link, txt(" now. "), tag("quotes"))
-    assert.strictEqual(shape(run(p)), "[I used to write #x now. #quotes]")
+    assert.strictEqual(shape(run(p)), "[I used to write #x now.]")
   })
 
   test("other tags, look-alike tags and a bare tag line are left alone", () => {

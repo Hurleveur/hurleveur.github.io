@@ -636,7 +636,7 @@ var ContentMeta_default = ((opts) => {
       }
       const rawTags = fileData.frontmatter?.tags;
       const tags = (Array.isArray(rawTags) ? rawTags : [rawTags]).filter(
-        (t2) => typeof t2 === "string" && t2.trim() !== ""
+        (t2) => typeof t2 === "string" && t2.trim() !== "" && !/^quotes?(\/|$)/.test(t2)
       );
       if (tags.length > 0) {
         segments.push(

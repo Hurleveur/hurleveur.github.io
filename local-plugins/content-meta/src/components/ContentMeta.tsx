@@ -107,8 +107,11 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
       // (see slugTag in its transformer), so the same string is both the display text and
       // the tag page's slug — same assumption TagList.tsx makes for its tag links.
       const rawTags = fileData.frontmatter?.tags;
+      // LOCI PATCH: #quote marks lines the page already sets as inscriptions
+      // (InscribeQuotes, same pattern), so on this line it is only noise
       const tags = (Array.isArray(rawTags) ? rawTags : [rawTags]).filter(
-        (t): t is string => typeof t === "string" && t.trim() !== "",
+        (t): t is string =>
+          typeof t === "string" && t.trim() !== "" && !/^quotes?(\/|$)/.test(t),
       );
       if (tags.length > 0) {
         segments.push(

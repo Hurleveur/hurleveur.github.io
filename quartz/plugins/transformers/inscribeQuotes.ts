@@ -5,9 +5,10 @@ import { tagOfLink } from "./hideLlmMarks"
 
 // The vault marks a line worth keeping with an inline #quote at its end (the same
 // tags the Quotes emitter collects for the home slab). On the page that line is set
-// apart as an inscription: its words, and the tag after them, are wrapped in one
-// span.inscribed that custom.scss sets as a block. Hard line breaks put every line of
-// a paragraph in one <p> between <br>s, so the line is the run since the last <br>.
+// apart as an inscription: its words are wrapped in one span.inscribed that custom.scss
+// sets as a block, and the tag goes, since the setting already says "quote". Hard line
+// breaks put every line of a paragraph in one <p> between <br>s, so the line is the run
+// since the last <br>.
 const QUOTE_TAG = /^quotes?(\/|$)/
 
 const isBr = (n: ElementContent) => n.type === "element" && n.tagName === "br"
@@ -35,11 +36,14 @@ export const InscribeQuotes: QuartzTransformerPlugin = () => ({
           else end = index + 1
           const first = line[0]
           if (first?.type === "text") line[0] = { ...first, value: first.value.trimStart() }
+          const last = line[line.length - 1]
+          if (last?.type === "text")
+            line[line.length - 1] = { ...last, value: last.value.trimEnd() }
           const span: Element = {
             type: "element",
             tagName: "span",
             properties: { className: ["inscribed"] },
-            children: [...line, node],
+            children: line,
           }
           kids.splice(start, end - start, span)
           return [SKIP, start + 1]
