@@ -9,7 +9,7 @@ await Promise.all([
   import("./static/scripts/script-7-cc8afa9d.js"),
   import("./static/scripts/script-8-7e107d7e.js"),
   import("./static/scripts/script-9-296b30c3.js"),
-  import("./static/scripts/script-10-a20cf9fa.js"),
+  import("./static/scripts/script-10-f32cc7b0.js"),
   import("./static/scripts/script-11-88d2c95e.js"),
   import("./static/scripts/script-12-a2f22c29.js")
 ]);

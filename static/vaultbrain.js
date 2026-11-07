@@ -59,6 +59,24 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // where a reader walks on from the foot of a note (initNearby): what it links
+  // to, then what links to it, then its shelf-mates in the same folder; never
+  // itself, home or a tag page. data is the content index.
+  function nearby(data, me, max) {
+    const shelf = me.slice(0, me.lastIndexOf("/") + 1)
+    const slugs = Object.keys(data)
+    const picks = [
+      ...(data[me]?.links || []),
+      ...slugs.filter((s) => (data[s].links || []).includes(me)),
+      ...slugs.filter((s) => {
+        const rest = s.slice(shelf.length)
+        return shelf && s.startsWith(shelf) && !rest.includes("/") && rest !== "index"
+      }),
+    ]
+    const ok = (s) => s !== me && s !== "index" && data[s] && !s.startsWith("tags/")
+    return [...new Set(picks.filter(ok))].slice(0, max)
+  }
+
   // canvas has no ellipsis of its own — a title long enough to collide with
   // its neighbour is cut here, and the hover tip still carries the whole thing
   const short = (s) => (s.length > 22 ? s.slice(0, 21) + "…" : s)
@@ -982,7 +1000,7 @@
       const w = ctx.measureText(txt).width
       ctx.fillText(txt, local ? Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, x)) : x, y)
     }
-    // by day the rotunda rings a star the way the painted brain draws its
+    // by day every brain rings a star the way the painted one draws its
     // veins, a pale core over a soft gold glow (the threads' recipe)
     const VEIN = [
       ["rgba(222,164,84,.55)", 2.4],
@@ -1078,8 +1096,9 @@
         const pop = !side
         const litS = Math.max(litG, near)
         const pig = !pop ? col : sky.day ? desat(col, -0.8 * litS) : lighten(col, 0.45 * litS)
-        // by day the rotunda's halos warm to the veins' gold (see the threads)
-        const gild = mini && sky.day
+        // by day the halos warm to the veins' gold (see the threads), in the side
+        // panel and the observatory too, so every brain is the rotunda's glass
+        const gild = sky.day
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
         if (gild) g.addColorStop(0.45, "rgba(222,164,84,.7)")
@@ -1097,7 +1116,7 @@
         // at night a star is a point of light: white at the centre, the
         // room's hue around it, fading out with no edge — a hard rim is what
         // makes a star read as a token. On the pale day sky a lit centre reads
-        // as a hollow ring, so day keeps the flat pigment disc.
+        // as a hollow ring, so day keeps a solid bead instead.
         // the star under the pointer swells, so the pick reads at a glance
         const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
@@ -1108,8 +1127,7 @@
           bg.addColorStop(0.55, pig)
           bg.addColorStop(1, darken(pig, 0.25))
           ctx.fillStyle = bg
-        } else if (sky.day) ctx.fillStyle = pig
-        else {
+        } else {
           const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
           cg.addColorStop(0, "#fffaf2")
           cg.addColorStop(0.15, lighten(pig, 0.7))
@@ -2359,6 +2377,52 @@
     if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)
   }
 
+  // the foot of a note: three doors on to nearby notes (nearby()), each in its
+  // room's colour, so a short note does not end on an empty page. Plain links,
+  // not a.internal: a card already shows what a hover preview would.
+  async function initNearby() {
+    const article = document.querySelector(".center > article.popover-hint")
+    const me = document.body.dataset.slug || ""
+    const skip = me === "index" || me.endsWith("/index") || me.startsWith("tags/")
+    if (!article || skip || article.dataset.vbNear) return
+    article.dataset.vbNear = "1"
+    let data
+    try {
+      data = await loadIndex()
+    } catch (e) {
+      return
+    }
+    const picks = data[me] ? nearby(data, me, 3) : []
+    if (!picks.length || !article.isConnected) return
+    const seen = loadSeen()
+    // the index escapes its text (-&gt;); textContent below must get the characters
+    const plain = (html) =>
+      new DOMParser().parseFromString(html || "", "text/html").body.textContent
+    const nav = document.createElement("nav")
+    nav.className = "vb-nearby"
+    nav.setAttribute("aria-label", "Nearby notes")
+    for (const s of picks) {
+      const room = s.includes("/") ? s.split("/")[0] : ""
+      const a = document.createElement("a")
+      a.className = "vb-card"
+      a.href = "/" + s.replace(/(^|\/)index$/, "$1")
+      a.classList.toggle("vb-card-seen", seen.has(normSlug("/" + s)))
+      if (room) a.style.setProperty("--room", folderColor(room))
+      const part = (cls, text) => {
+        const el = document.createElement("span")
+        el.className = cls
+        el.textContent = text
+        a.append(el)
+      }
+      // a room's own folder note would read its name twice
+      part("vb-card-room", s === room + "/index" ? "the room" : room.replace(/-/g, " "))
+      part("vb-card-title", data[s].title)
+      part("vb-card-desc", plain(data[s].description))
+      nav.append(a)
+    }
+    article.after(nav)
+  }
+
   // explorer width: drag grip on the sidebar's right edge sets --sidebar-w
   // (base.scss), persisted across pages and visits
   function initSidebarResize() {
@@ -2433,6 +2497,9 @@
     } else {
       cap.textContent = "you are here"
     }
+    // the date left the line under the title for here (content-meta renders it hidden)
+    const time = document.querySelector(".page-header .note-date time")
+    if (time) cap.append(document.createElement("br"), "edited ", time.cloneNode(true))
     rail.prepend(box)
   }
 
@@ -2524,6 +2591,16 @@
     // title and the crumbs read as one path — Loci ❯ Work ❯ …
     if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
+
+  // the plaque over a note's title (content-meta fork) names its room; the
+  // room's colour goes on body as --room, for the plaque and the inscriptions
+  function initRoomPlaque() {
+    const room = document.querySelector(".page-header .room-plaque")?.dataset.room
+    if (room) document.body.style.setProperty("--room", folderColor(room))
+    else document.body.style.removeProperty("--room")
+  }
+  // popover.inline.ts colours a preview's plaque with its own room, not the page's
+  window.vbRoomColor = folderColor
 
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it
   // keeps the side brain and moves the shelf under it to the page foot
@@ -2786,6 +2863,7 @@
       placeShelf()
       document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
+      initRoomPlaque()
       init()
       initExpand()
       initFrieze()
@@ -2798,6 +2876,7 @@
       initRandomNote()
       initAudio()
       initFolderAssets()
+      initNearby()
     })
   }
   markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
@@ -2812,6 +2891,7 @@
   placeShelf()
   document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
+  initRoomPlaque()
   init()
   initExpand()
   initFrieze()
@@ -2824,4 +2904,5 @@
   initRandomNote()
   initAudio()
   initFolderAssets()
+  initNearby()
 })()
