@@ -2405,7 +2405,7 @@
       const room = s.includes("/") ? s.split("/")[0] : ""
       const a = document.createElement("a")
       a.className = "vb-card"
-      a.href = "/" + s
+      a.href = "/" + s.replace(/(^|\/)index$/, "$1")
       a.classList.toggle("vb-card-seen", seen.has(normSlug("/" + s)))
       if (room) a.style.setProperty("--room", folderColor(room))
       const part = (cls, text) => {
@@ -2414,7 +2414,8 @@
         el.textContent = text
         a.append(el)
       }
-      part("vb-card-room", room.replace(/-/g, " "))
+      // a room's own folder note would read its name twice
+      part("vb-card-room", s === room + "/index" ? "the room" : room.replace(/-/g, " "))
       part("vb-card-title", data[s].title)
       part("vb-card-desc", plain(data[s].description))
       nav.append(a)
