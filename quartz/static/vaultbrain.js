@@ -1000,7 +1000,7 @@
       const w = ctx.measureText(txt).width
       ctx.fillText(txt, local ? Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, x)) : x, y)
     }
-    // by day the rotunda rings a star the way the painted brain draws its
+    // by day every brain rings a star the way the painted one draws its
     // veins, a pale core over a soft gold glow (the threads' recipe)
     const VEIN = [
       ["rgba(222,164,84,.55)", 2.4],
@@ -1096,8 +1096,9 @@
         const pop = !side
         const litS = Math.max(litG, near)
         const pig = !pop ? col : sky.day ? desat(col, -0.8 * litS) : lighten(col, 0.45 * litS)
-        // by day the rotunda's halos warm to the veins' gold (see the threads)
-        const gild = mini && sky.day
+        // by day the halos warm to the veins' gold (see the threads), in the side
+        // panel and the observatory too, so every brain is the rotunda's glass
+        const gild = sky.day
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
         if (gild) g.addColorStop(0.45, "rgba(222,164,84,.7)")
@@ -1115,7 +1116,7 @@
         // at night a star is a point of light: white at the centre, the
         // room's hue around it, fading out with no edge — a hard rim is what
         // makes a star read as a token. On the pale day sky a lit centre reads
-        // as a hollow ring, so day keeps the flat pigment disc.
+        // as a hollow ring, so day keeps a solid bead instead.
         // the star under the pointer swells, so the pick reads at a glance
         const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
@@ -1126,8 +1127,7 @@
           bg.addColorStop(0.55, pig)
           bg.addColorStop(1, darken(pig, 0.25))
           ctx.fillStyle = bg
-        } else if (sky.day) ctx.fillStyle = pig
-        else {
+        } else {
           const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
           cg.addColorStop(0, "#fffaf2")
           cg.addColorStop(0.15, lighten(pig, 0.7))
