@@ -2525,6 +2525,13 @@
     if (title) crumbs.querySelector(".breadcrumb-element > a")?.remove()
   }
 
+  // the plaque over a note's title (content-meta fork) wears its room's colour
+  function initRoomPlaque() {
+    document.querySelectorAll(".room-plaque").forEach((p) => {
+      p.style.setProperty("--room", folderColor(p.dataset.room))
+    })
+  }
+
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it
   // keeps the side brain and moves the shelf under it to the page foot
   // (placeShelf). Choice persists across pages and visits; default on.
@@ -2786,6 +2793,7 @@
       placeShelf()
       document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
       initCrumbBar()
+      initRoomPlaque()
       init()
       initExpand()
       initFrieze()
@@ -2812,6 +2820,7 @@
   placeShelf()
   document.querySelectorAll(".recent-notes").forEach(tagFolderLinks)
   initCrumbBar()
+  initRoomPlaque()
   init()
   initExpand()
   initFrieze()

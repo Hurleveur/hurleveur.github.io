@@ -120,7 +120,8 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
                   href={resolveRelative(fileData.slug!, `tags/${tag}` as SimpleSlug)}
                   class="internal tag-link"
                 >
-                  #{tag}
+                  {/* LOCI PATCH: no literal "#" — base.scss gives every a.tag-link a "#" ::before */}
+                  {tag}
                 </a>
               </>
             ))}
@@ -149,9 +150,20 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
         .filter((a): a is string => typeof a === "string" && a.trim() !== "")
         .map(plain);
 
+      // LOCI PATCH: a note inside one of the palace's rooms carries the room's name as a
+      // plaque over its title (custom.scss sets it above the h1; vaultbrain.js gives it the
+      // room's colour). The room's own folder page is skipped, its title already says it.
+      const [room = "", ...rest] = (fileData.slug ?? "").split("/");
+      const plaque = rest.length > 0 && room !== "tags" && rest.join("/") !== "index";
+
       return (
         <>
-          {description && <p class={classNames(displayClass, "note-description")}>{description}</p>}
+          {plaque && (
+            <p class={classNames(displayClass, "room-plaque")} data-room={room}>
+              {room.replace(/-/g, " ")}
+            </p>
+          )}
+          {description &&<p class={classNames(displayClass, "note-description")}>{description}</p>}
           {aliases.length > 0 && (
             <p class={classNames(displayClass, "note-aliases")}>
               also known as {aliases.join(", ")}

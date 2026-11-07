@@ -647,10 +647,7 @@ var ContentMeta_default = ((opts) => {
               {
                 href: resolveRelative(fileData.slug, `tags/${tag}`),
                 class: "internal tag-link",
-                children: [
-                  "#",
-                  tag
-                ]
+                children: tag
               }
             )
           ] })) })
@@ -661,7 +658,10 @@ var ContentMeta_default = ((opts) => {
       const description = typeof rawDescription === "string" && rawDescription.trim() !== "" ? plain(rawDescription) : void 0;
       const rawAliases = fileData.frontmatter?.aliases;
       const aliases = (Array.isArray(rawAliases) ? rawAliases : [rawAliases]).filter((a2) => typeof a2 === "string" && a2.trim() !== "").map(plain);
+      const [room = "", ...rest] = (fileData.slug ?? "").split("/");
+      const plaque = rest.length > 0 && room !== "tags" && rest.join("/") !== "index";
       return /* @__PURE__ */ u2(S, { children: [
+        plaque && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "room-plaque"), "data-room": room, children: room.replace(/-/g, " ") }),
         description && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-description"), children: description }),
         aliases.length > 0 && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-aliases"), children: [
           "also known as ",
