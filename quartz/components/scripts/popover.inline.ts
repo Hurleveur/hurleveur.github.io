@@ -103,6 +103,13 @@ async function openPopover(ref: Ref, targetUrl: URL, clientX: number, clientY: n
       if (elts.length === 0) return
 
       elts.forEach((elt) => popoverInner.appendChild(elt))
+      // the plaque and #quote marks read --room, which the body holds for the page
+      // underneath; a preview takes its own room's colour, or the neutral default
+      const room = popoverInner.querySelector<HTMLElement>(".room-plaque")?.dataset.room
+      popoverInner.style.setProperty(
+        "--room",
+        room && window.vbRoomColor ? window.vbRoomColor(room) : "initial",
+      )
   }
 
   if (!!document.getElementById(popoverId)) {

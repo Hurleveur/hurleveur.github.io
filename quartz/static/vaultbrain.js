@@ -2596,6 +2596,8 @@
     if (room) document.body.style.setProperty("--room", folderColor(room))
     else document.body.style.removeProperty("--room")
   }
+  // popover.inline.ts colours a preview's plaque with its own room, not the page's
+  window.vbRoomColor = folderColor
 
   // ✦ in the top bar, mirroring the explorer's ☰ on the left: on desktop it
   // keeps the side brain and moves the shelf under it to the page foot

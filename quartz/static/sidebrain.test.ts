@@ -183,3 +183,12 @@ test("a note's nearby doors", async (t) => {
     )
   })
 })
+
+test("a preview takes its own room's colour", () => {
+  // the hook is a window global between two scripts; rename either side and every
+  // preview silently falls back to the page's room colour
+  const popover = readFileSync(join(here, "../components/scripts/popover.inline.ts"), "utf8")
+  assert.match(js, /window\.vbRoomColor = folderColor/)
+  assert.match(popover, /window\.vbRoomColor\(room\)/)
+  assert.match(popover, /querySelector<HTMLElement>\("\.room-plaque"\)\?\.dataset\.room/)
+})
