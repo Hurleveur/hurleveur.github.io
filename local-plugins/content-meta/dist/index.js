@@ -661,7 +661,7 @@ var ContentMeta_default = ((opts) => {
       const [room = "", ...rest] = (fileData.slug ?? "").split("/");
       const plaque = rest.length > 0 && room !== "tags" && rest.join("/") !== "index";
       return /* @__PURE__ */ u2(S, { children: [
-        plaque && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "room-plaque"), "data-room": room, children: room.replace(/-/g, " ") }),
+        plaque && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "room-plaque"), "data-room": room, children: /* @__PURE__ */ u2("a", { href: resolveRelative(fileData.slug, `${room}/`), children: room.replace(/-/g, " ") }) }),
         description && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-description"), children: description }),
         aliases.length > 0 && /* @__PURE__ */ u2("p", { class: classNames(displayClass, "note-aliases"), children: [
           "also known as ",

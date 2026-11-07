@@ -111,6 +111,18 @@ a.internal.vb-seen {
   color: #6f6857;
   text-shadow: 0 1px 0 rgba(255, 250, 238, 0.9);
 
+  a {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--room-ink, var(--room, #a8843c));
+    }
+  }
+
   &::before {
     content: "";
     flex: none;

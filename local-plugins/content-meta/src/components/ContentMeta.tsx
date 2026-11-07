@@ -152,7 +152,9 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
 
       // LOCI PATCH: a note inside one of the palace's rooms carries the room's name as a
       // plaque over its title (custom.scss sets it above the h1; vaultbrain.js gives it the
-      // room's colour). The room's own folder page is skipped, its title already says it.
+      // room's colour) and a door back to the room. The room's own folder page is skipped,
+      // its title already says it. Not a.internal: a preview of the room's listing would
+      // pop up over the title every time the pointer crosses the plaque.
       const [room = "", ...rest] = (fileData.slug ?? "").split("/");
       const plaque = rest.length > 0 && room !== "tags" && rest.join("/") !== "index";
 
@@ -160,7 +162,9 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
         <>
           {plaque && (
             <p class={classNames(displayClass, "room-plaque")} data-room={room}>
-              {room.replace(/-/g, " ")}
+              <a href={resolveRelative(fileData.slug!, `${room}/` as SimpleSlug)}>
+                {room.replace(/-/g, " ")}
+              </a>
             </p>
           )}
           {description &&<p class={classNames(displayClass, "note-description")}>{description}</p>}
