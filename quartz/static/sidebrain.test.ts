@@ -139,3 +139,47 @@ test("seen-page tracking", async (t) => {
     assert.match(js, /const col = n\.seen \? desat\(ink, [\d.]+\) : ink/)
   })
 })
+
+// the "Walk on" doors at a note's foot (initNearby) pick from nearby(): run the
+// real function out of the source, the way rotunda.test.ts runs widestLine
+test("a note's nearby doors", async (t) => {
+  const src = js.slice(js.indexOf("function nearby"), js.indexOf("// canvas has no ellipsis"))
+  const nearby = new Function(`${src}; return nearby`)() as (
+    data: Record<string, { links?: string[] }>,
+    me: string,
+    max: number,
+  ) => string[]
+  const data = {
+    index: { links: ["work/a"] },
+    "work/index": { links: [] },
+    "work/a": { links: ["work/a", "tags/x", "friends/b", "missing/c", "index"] },
+    "friends/b": { links: ["work/a"] },
+    "travel/d": { links: ["work/a"] },
+    "work/e": { links: [] },
+    "work/sub/f": { links: [] },
+    "tags/x": { links: [] },
+  }
+
+  await t.test("links out first, then links in, then shelf-mates", () => {
+    assert.deepStrictEqual(nearby(data, "work/a", 9), ["friends/b", "travel/d", "work/e"])
+  })
+
+  await t.test("never itself, home, a tag page, a folder note or a deeper shelf", () => {
+    const picks = nearby(data, "work/a", 9)
+    for (const s of ["work/a", "index", "tags/x", "work/index", "work/sub/f", "missing/c"])
+      assert.ok(!picks.includes(s), s)
+  })
+
+  await t.test("stops at max, and a top-level note has no shelf", () => {
+    assert.deepStrictEqual(nearby(data, "work/a", 2), ["friends/b", "travel/d"])
+    assert.deepStrictEqual(nearby({ solo: { links: [] }, other: { links: [] } }, "solo", 3), [])
+  })
+
+  await t.test("runs on every note page, after anything fetched lands", () => {
+    assert.equal(
+      js.match(/^\s*initNearby\(\)$/gm)?.length,
+      2,
+      "initNearby must run on load and on nav",
+    )
+  })
+})

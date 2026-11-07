@@ -179,6 +179,92 @@ a.internal.vb-seen {
   }
 }
 
+/* the foot of a note: doors on to nearby notes (vaultbrain.js initNearby), each
+   lintelled in its room's colour, the room carved small over the title */
+.vb-nearby {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 2.5rem 0 1rem;
+
+  &::before {
+    content: "Walk on";
+    grid-column: 1 / -1;
+    font-family: var(--headerFont);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: #6f6857;
+  }
+}
+
+.vb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid rgba(111, 104, 87, 0.18);
+  border-top: 3px solid var(--room, #a8843c);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--darkgray);
+  font-weight: 400;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(58, 55, 47, 0.12);
+  }
+
+  &.vb-card-seen {
+    opacity: 0.65;
+  }
+
+  .vb-card-room {
+    font-family: var(--headerFont);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #6f6857;
+  }
+
+  .vb-card-title {
+    font-family: var(--headerFont);
+    font-weight: 600;
+    font-size: 1.3rem;
+    line-height: 1.15;
+    color: var(--dark);
+  }
+
+  .vb-card-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  [saved-theme="dark"] & {
+    border-color: rgba(168, 159, 138, 0.18);
+    border-top-color: color-mix(in srgb, var(--room, #a8843c) 65%, #ded6bf);
+    background: rgba(255, 255, 255, 0.03);
+
+    .vb-card-room {
+      color: #a89f8a;
+    }
+  }
+}
+
+[saved-theme="dark"] .vb-nearby::before {
+  color: #a89f8a;
+}
+
 h1.article-title {
   font-weight: 600;
   font-size: 2.4rem;

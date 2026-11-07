@@ -59,6 +59,24 @@
     return PALETTE[h % PALETTE.length]
   }
 
+  // where a reader walks on from the foot of a note (initNearby): what it links
+  // to, then what links to it, then its shelf-mates in the same folder; never
+  // itself, home or a tag page. data is the content index.
+  function nearby(data, me, max) {
+    const shelf = me.slice(0, me.lastIndexOf("/") + 1)
+    const slugs = Object.keys(data)
+    const picks = [
+      ...(data[me]?.links || []),
+      ...slugs.filter((s) => (data[s].links || []).includes(me)),
+      ...slugs.filter((s) => {
+        const rest = s.slice(shelf.length)
+        return shelf && s.startsWith(shelf) && !rest.includes("/") && rest !== "index"
+      }),
+    ]
+    const ok = (s) => s !== me && s !== "index" && data[s] && !s.startsWith("tags/")
+    return [...new Set(picks.filter(ok))].slice(0, max)
+  }
+
   // canvas has no ellipsis of its own — a title long enough to collide with
   // its neighbour is cut here, and the hover tip still carries the whole thing
   const short = (s) => (s.length > 22 ? s.slice(0, 21) + "…" : s)
@@ -2359,6 +2377,51 @@
     if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)
   }
 
+  // the foot of a note: three doors on to nearby notes (nearby()), each in its
+  // room's colour, so a short note does not end on an empty page. Plain links,
+  // not a.internal: a card already shows what a hover preview would.
+  async function initNearby() {
+    const article = document.querySelector(".center > article.popover-hint")
+    const me = document.body.dataset.slug || ""
+    const skip = me === "index" || me.endsWith("/index") || me.startsWith("tags/")
+    if (!article || skip || article.dataset.vbNear) return
+    article.dataset.vbNear = "1"
+    let data
+    try {
+      data = await loadIndex()
+    } catch (e) {
+      return
+    }
+    const picks = data[me] ? nearby(data, me, 3) : []
+    if (!picks.length || !article.isConnected) return
+    const seen = loadSeen()
+    // the index escapes its text (-&gt;); textContent below must get the characters
+    const plain = (html) =>
+      new DOMParser().parseFromString(html || "", "text/html").body.textContent
+    const nav = document.createElement("nav")
+    nav.className = "vb-nearby"
+    nav.setAttribute("aria-label", "Nearby notes")
+    for (const s of picks) {
+      const room = s.includes("/") ? s.split("/")[0] : ""
+      const a = document.createElement("a")
+      a.className = "vb-card"
+      a.href = "/" + s
+      a.classList.toggle("vb-card-seen", seen.has(normSlug("/" + s)))
+      if (room) a.style.setProperty("--room", folderColor(room))
+      const part = (cls, text) => {
+        const el = document.createElement("span")
+        el.className = cls
+        el.textContent = text
+        a.append(el)
+      }
+      part("vb-card-room", room.replace(/-/g, " "))
+      part("vb-card-title", data[s].title)
+      part("vb-card-desc", plain(data[s].description))
+      nav.append(a)
+    }
+    article.after(nav)
+  }
+
   // explorer width: drag grip on the sidebar's right edge sets --sidebar-w
   // (base.scss), persisted across pages and visits
   function initSidebarResize() {
@@ -2807,6 +2870,7 @@
       initRandomNote()
       initAudio()
       initFolderAssets()
+      initNearby()
     })
   }
   markSeen() // Task 2: initial load never fires "nav", so the first page needs its own call
@@ -2834,4 +2898,5 @@
   initRandomNote()
   initAudio()
   initFolderAssets()
+  initNearby()
 })()
