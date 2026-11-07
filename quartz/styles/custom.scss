@@ -43,6 +43,8 @@ body {
   --secondary: #7e632d;
   --tertiary: #756e5e;
   --highlight: rgba(168, 132, 60, 0.12);
+  /* the generated stack ends in system-ui: a blocked Google Fonts sheet made every heading sans */
+  --headerFont: "Cormorant Garamond", Georgia, "Liberation Serif", serif;
 }
 
 /* palace by night: same warm stone + gold, inverted */
@@ -266,6 +268,7 @@ a.internal.vb-seen {
 }
 
 h1.article-title {
+  font-family: var(--headerFont);
   font-weight: 600;
   font-size: 2.4rem;
   line-height: 1.1;
