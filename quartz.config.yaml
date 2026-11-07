@@ -116,6 +116,12 @@ plugins:
     order: 92
   - source: github:quartz-community/fonts
     enabled: true
+    options:
+      # headings in a serif, the palace's voice; it rides the one Google Fonts sheet the
+      # plugin already links, so it adds font files but no render-blocking request
+      header:
+        name: Cormorant Garamond
+        weights: [500, 600, 700]
   - source: github:quartz-community/remove-draft
     enabled: true
   - source: github:quartz-community/explicit-publish
