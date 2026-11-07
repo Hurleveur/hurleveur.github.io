@@ -64,6 +64,12 @@ describe("rotunda frieze over the brain canvas", () => {
       )
     }
   })
+  test("every filter the frieze names is one initFrieze builds", () => {
+    // a url() to a missing filter can stop the words being drawn at all
+    const ids = [...friezeRules.matchAll(/url\(#([\w-]+)\)/g)].map((m) => m[1])
+    assert.ok(ids.length > 0, "the frieze no longer names a filter")
+    for (const id of ids) assert.ok(js.includes(`<filter id="${id}"`), `#${id} is never built`)
+  })
 })
 
 // Phones have no hover, so a touch has to fake one: any contact sticks the
