@@ -1120,7 +1120,6 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
-        if (gild) vein(n.x, n.y, rr, 0.6)
         // a folder wears a thin gold ring, the palace's gold, so it reads as a
         // room among the notes before anything is hovered
         if (gild && (n.hub || n.slug.endsWith("/index"))) vein(n.x, n.y, rr + 2.5 / view.s, 1)
