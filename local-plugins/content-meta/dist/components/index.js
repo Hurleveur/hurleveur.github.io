@@ -577,7 +577,42 @@ function DateComponent({ date, locale }) {
 }
 
 // src/components/styles/contentMeta.scss
-var contentMeta_default = '@charset "UTF-8";\n.content-meta {\n  margin-top: 0;\n  color: var(--darkgray);\n  /* LOCI PATCH: the source line shows the full URL, which has no spaces to break at */\n}\n.content-meta a {\n  overflow-wrap: anywhere;\n}\n.content-meta[show-comma=true] > *:not(:last-child) {\n  margin-right: 8px;\n}\n.content-meta[show-comma=true] > *:not(:last-child)::after {\n  content: ",";\n}\n\n/* LOCI PATCH: the note\'s standfirst \u2014 the `description` frontmatter, set as the\n   line a reader takes the page\'s subject from, not as a table row. */\n.note-description {\n  margin: 0 0 0.3rem;\n  font-size: 1.15rem;\n  line-height: 1.45;\n  color: var(--darkgray);\n}\n\n.note-aliases {\n  margin: 0 0 0.3rem;\n  font-size: 0.9rem;\n  font-style: italic;\n  color: var(--gray);\n}';
+var contentMeta_default = `@charset "UTF-8";
+.content-meta {
+  margin-top: 0;
+  color: var(--darkgray);
+  /* LOCI PATCH: the source line shows the full URL, which has no spaces to break at */
+}
+.content-meta a {
+  overflow-wrap: anywhere;
+}
+.content-meta[show-comma=true] > *:not(:last-child) {
+  margin-right: 8px;
+}
+.content-meta[show-comma=true] > *:not(:last-child)::after {
+  content: ",";
+}
+
+/* LOCI PATCH: the note's standfirst \u2014 the \`description\` frontmatter, set as the
+   line a reader takes the page's subject from, not as a table row. */
+.note-description {
+  margin: 0 0 0.3rem;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: var(--darkgray);
+}
+
+.note-aliases {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--gray);
+}
+
+/* LOCI PATCH: shown only as the copy in the side panel's caption (vaultbrain.js) */
+.note-date {
+  display: none;
+}`;
 
 // src/components/ContentMeta.tsx
 var defaultOptions = {
@@ -590,6 +625,7 @@ var ContentMeta_default = ((opts) => {
     const text = fileData.text;
     if (text) {
       const segments = [];
+      let dated;
       if (fileData.dates) {
         const locale = cfg.locale || "en-US";
         const defaultDateType = fileData.defaultDateType ?? cfg.defaultDateType;
@@ -600,7 +636,7 @@ var ContentMeta_default = ((opts) => {
           };
           const date = getDate(dataWithDefaultDateType);
           if (date) {
-            segments.push(/* @__PURE__ */ u2(DateComponent, { date, locale }));
+            dated = /* @__PURE__ */ u2(DateComponent, { date, locale });
           }
         }
       }
@@ -667,7 +703,8 @@ var ContentMeta_default = ((opts) => {
           "also known as ",
           aliases.join(", ")
         ] }),
-        /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments })
+        segments.length > 0 && /* @__PURE__ */ u2("p", { "show-comma": options.showComma, class: classNames(displayClass, "content-meta"), children: segments }),
+        dated && /* @__PURE__ */ u2("p", { class: "note-date", children: dated })
       ] });
     } else {
       return null;

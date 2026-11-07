@@ -2497,6 +2497,9 @@
     } else {
       cap.textContent = "you are here"
     }
+    // the date left the line under the title for here (content-meta renders it hidden)
+    const time = document.querySelector(".page-header .note-date time")
+    if (time) cap.append(document.createElement("br"), "edited ", time.cloneNode(true))
     rail.prepend(box)
   }
 

@@ -203,6 +203,8 @@ plugins:
       priority: 10
   - source: ./local-plugins/content-meta # patched: render a note's `url:` or `link:` frontmatter as a source link (clippings and shared notes must show where they came from)
     enabled: true
+    options:
+      showReadingTime: false # a minute count told a reader nothing worth the line
     layout:
       position: beforeBody
       priority: 20
@@ -256,7 +258,7 @@ plugins:
     enabled: true
     options:
       limit: 5
-      showTags: true
+      showTags: false # bulleted pills under each title; the shelf above already hides its tags
     layout:
       position: right
       priority: 40

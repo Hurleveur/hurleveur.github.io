@@ -192,3 +192,14 @@ test("a preview takes its own room's colour", () => {
   assert.match(popover, /window\.vbRoomColor\(room\)/)
   assert.match(popover, /querySelector<HTMLElement>\("\.room-plaque"\)\?\.dataset\.room/)
 })
+
+test("the note's date reaches the side panel's caption", () => {
+  // the fork renders the date hidden and vaultbrain.js copies it; rename either
+  // side and the date silently vanishes from every page
+  const meta = readFileSync(
+    join(here, "../../local-plugins/content-meta/src/components/ContentMeta.tsx"),
+    "utf8",
+  )
+  assert.match(meta, /<p class="note-date">\{dated\}<\/p>/)
+  assert.match(js, /querySelector\("\.page-header \.note-date time"\)/)
+})

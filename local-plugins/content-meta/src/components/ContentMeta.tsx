@@ -35,6 +35,10 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
     if (text) {
       const segments: (string | JSX.Element)[] = [];
 
+      // LOCI PATCH: the date leaves the line under the title for the side panel's
+      // caption (vaultbrain.js initSideBrain copies it there); it renders apart, hidden,
+      // so the page keeps it at every width and a preview never shows it
+      let dated: JSX.Element | undefined;
       if (fileData.dates) {
         const locale = cfg.locale || "en-US";
         const defaultDateType =
@@ -47,7 +51,7 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
           };
           const date = getDate(dataWithDefaultDateType);
           if (date) {
-            segments.push(<DateComponent date={date} locale={locale} />);
+            dated = <DateComponent date={date} locale={locale} />;
           }
         }
       }
@@ -176,9 +180,13 @@ export default ((opts?: Partial<ContentMetaOptions>) => {
               also known as {aliases.join(", ")}
             </p>
           )}
-          <p show-comma={options.showComma} class={classNames(displayClass, "content-meta")}>
-            {segments}
-          </p>
+          {/* LOCI PATCH: with the date gone the line is often empty; render none then */}
+          {segments.length > 0 && (
+            <p show-comma={options.showComma} class={classNames(displayClass, "content-meta")}>
+              {segments}
+            </p>
+          )}
+          {dated && <p class="note-date">{dated}</p>}
         </>
       );
     } else {

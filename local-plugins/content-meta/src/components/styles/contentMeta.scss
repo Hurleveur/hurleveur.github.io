@@ -33,3 +33,8 @@
   font-style: italic;
   color: var(--gray);
 }
+
+/* LOCI PATCH: shown only as the copy in the side panel's caption (vaultbrain.js) */
+.note-date {
+  display: none;
+}
