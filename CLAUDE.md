@@ -135,7 +135,7 @@ The home page scores from these; `quartz/static/lighthouse.test.ts` guards each 
 - `vaultbrain.js` reads the index through the page's `fetchData`, never a `fetch` of its own. `loadIndex` copies it first: merging assets into the shared object would reach the explorer and search.
 - `fontOrigin: local` is what keeps `Head.tsx` from linking Cormorant, which nothing renders: the `fonts` plugin links the faces the site really uses (Schibsted Grotesk, Source Sans Pro) and its CSS wins, whatever `typography:` says.
 - The avatar is `quartz/static/bh-profile.webp`, built from the vault's `bh-profile.jpg`: `magick <jpg> -gravity center -crop 1536x1536+0+0 +repage -resize 288x288 -strip -quality 82 <webp>`.
-- Day text holds 4.5:1 on both the page and a link's tint, which is why `--secondary` is bronze. A visited link is marked by a dot, never a paler colour, since links have no contrast to spare; the night theme has not been audited.
+- Day text holds 4.5:1 on both the page and a link's tint, which is why `--secondary` is bronze. A visited link turns `--gray`, loses its bold and tint and gains a dotted underline, never a paler gold, since gold has no contrast to spare; the night theme has not been audited.
 - Judge scores by the median of three clean headless runs; a page's real score is in `lighthouse` output with no `runWarnings`.
 
 ## Frontmatter on a page

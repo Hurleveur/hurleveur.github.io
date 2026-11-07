@@ -110,12 +110,12 @@ test("lighthouse", async (t) => {
     assert.ok(ratio(gold, "#ece6d9") >= 4.5, `${gold} on the link tint`)
   })
 
-  await t.test("a visited link is marked, not faded", () => {
+  await t.test("a visited link changes ink and shape, not lightness", () => {
     const scss = readFileSync(join(here, "../styles/custom.scss"), "utf8")
     const seen = scss.match(/a\.internal\.vb-seen \{([\s\S]*?)\n\}/)![1]
-    assert.doesNotMatch(seen, /\n  color:/)
-    assert.match(seen, /&::after/)
-    assert.match(js, /if \(n\.seen\) \{\s*\n\s*ctx\.fillStyle/)
+    assert.match(seen, /color: var\(--gray\)/) // --gray is held to AA above
+    assert.match(seen, /background-color: transparent/)
+    assert.match(seen, /underline dotted/)
   })
 
   await t.test("aria-expanded lives on the explorer's buttons", () => {

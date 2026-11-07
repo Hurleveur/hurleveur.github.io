@@ -1080,13 +1080,6 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
-        // a page already opened: a dot at the heart, as on its links
-        if (n.seen) {
-          ctx.fillStyle = sky.day ? "#f5f3ee" : "#191713"
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, rr * 0.3, 0, 7)
-          ctx.fill()
-        }
         // a folder wears a thin gold ring, the palace's gold, so it reads as a
         // room among the notes before anything is hovered
         if (n.hub || n.slug.endsWith("/index")) {
