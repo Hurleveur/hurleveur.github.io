@@ -43,6 +43,17 @@ dark = ndimage.gaussian_filter(carved, 0.6) - ndimage.gaussian_filter(blank, 0.6
 dark = np.clip(-dark, 0, None)  # positive where the carving darkened the stone
 mask = dark > THRESH
 mask[:120] = mask[400:] = False  # the frieze runs between these rows
+# the "blank" render is not blank: older names are carved where the new ones sit
+# (ARCHIVES under SHARED), and where an old stroke crosses a new one the
+# difference sees no new groove, so the mask came out with crack-shaped holes.
+# The difference only finds the letters; their depth is read from the carved
+# image's own grooves (a black top-hat: dark and thinner than ~9px), inside the
+# mask closed just enough to bridge those holes. A counter stays open, since the
+# stone there is not dark.
+grooves = ndimage.black_tophat(ndimage.gaussian_filter(carved, 0.6), size=9)
+region = ndimage.binary_closing(mask, structure=disk(4))
+dark = np.where(region, np.maximum(dark, grooves), 0)
+mask = region & (dark > THRESH)
 
 # letters of one word sit a few px apart, words ~15px: close the letter gaps,
 # keep the word gaps, then each blob is a word
