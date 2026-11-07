@@ -46,7 +46,7 @@ Seven forks so far: `content-index`, `canvas-page`, `obsidian-plugin-excalidraw`
 
 ## Two files are hand-formatted — never prettier them
 
-`quartz/static/vaultbrain.js` and `quartz/styles/custom.scss` deliberately fail `prettier --check` (aligned comments, compact arrays — 150 and 45 diff lines respectively). Never `--write` them. To check just your own additions: `npx prettier <file> | diff <file> -` and confirm your block contributes nothing to the diff.
+`quartz/static/vaultbrain.js` and `quartz/styles/custom.scss` deliberately fail `prettier --check` (aligned comments, compact arrays — 292 and 52 diff lines respectively). Never `--write` them. To check just your own additions: `npx prettier <file> | diff <file> -` and confirm your block contributes nothing to the diff.
 
 ## The rotunda is fitted to a painted image
 
@@ -133,11 +133,21 @@ The home page scores from these; `quartz/static/lighthouse.test.ts` guards each 
 - The brain's `draw` loop stops once `heat < REST_HEAT` with no hover or fade left, so anything that changes the picture without going through `draw` must call `wake()` (`size`, `onHl`, `onTheme`, `WAKE_EVENTS` on the wrapper do). Under software canvas the old endless loop kept a Lighthouse run from ever going quiet, so it hit the 45 s limit and reported 130 s TBT.
 - SoundCloud loads only on the first press of ♪ or the "hey you" egg (`loadWidget`), or when `vb-audio-on` says the visitor already chose music this session. It is 1.3 MB of script plus a tracker and cookies, so nothing may create the iframe at page load.
 - `vaultbrain.js` reads the index through the page's `fetchData`, never a `fetch` of its own. `loadIndex` copies it first: merging assets into the shared object would reach the explorer and search.
-- `fontOrigin: local` is what keeps `Head.tsx` from linking Cormorant, which nothing renders: the `fonts` plugin links the faces the site really uses (Schibsted Grotesk, Source Sans Pro) and its CSS wins, whatever `typography:` says.
+- `fontOrigin: local` is what keeps `Head.tsx` from linking a second Google Fonts sheet: the `fonts` plugin links the faces the site really uses (Cormorant Garamond for headings via its `header:` option, Source Sans Pro for body) in one request, and its CSS wins, whatever `typography:` says. It only loads `title`/`header`/`body`/`code` families, so an `h1:` option alone loads nothing.
 - The avatar is `quartz/static/bh-profile.webp`, built from the vault's `bh-profile.jpg`: `magick <jpg> -gravity center -crop 1536x1536+0+0 +repage -resize 288x288 -strip -quality 82 <webp>`.
 - Day text holds 4.5:1 on both the page and a link's tint, which is why `--secondary` is bronze. A visited link turns `--gray`, loses its bold and tint and gains a dotted underline, never a paler gold, since gold has no contrast to spare; the night theme has not been audited.
 - `paintSeenLinks` runs on nav, before anything fetched lands: code that injects `a.internal` later calls `paintSeenLinks(<its root>)` itself (`initVaultIntro`, `initWhoami`, `initFolderAssets` do). Rooms are never stored as seen, since `./work` links one without a slash.
 - Judge scores by the median of three clean headless runs; a page's real score is in `lighthouse` output with no `runWarnings`.
+
+## A note page: plaque, inscriptions, doors
+
+Three additions frame a note: a room plaque over the title, `#quote` lines set as inscriptions, and "Walk on" cards at the foot. All three read one custom property, `--room`, the room's colour from `folderColor()` in `vaultbrain.js`.
+
+- The plaque is rendered by the `content-meta` fork (`.room-plaque`, `data-room`, a link to `/<room>/`) after the title; `.page-header > .popover-hint` is a flex column in `custom.scss` that orders it above the h1. It skips folder pages, tag pages and top-level notes.
+- `initRoomPlaque()` puts `--room` on `body`. A hover preview carries the previewed note's plaque, so `popover.inline.ts` sets `--room` on `.popover-inner` itself through `window.vbRoomColor`; `sidebrain.test.ts` guards both ends of that global.
+- `#quote`/`#quotes` lines are wrapped in `span.inscribed` by the first-party `InscribeQuotes` transformer (`quartz/plugins/transformers/inscribeQuotes.ts`, registered in `config-loader.ts` after `HideLlmMarks`). Hard line breaks put a whole paragraph in one `<p>`, so it cuts the line out between `<br>`s.
+- `initNearby()` appends up to three cards after the article, picked by the pure `nearby()` (links, then backlinks, then shelf-mates; never itself, home or a tag page; a room's folder note reached as a backlink reads "the room" and links to `/<room>/`). Cards are plain links, not `a.internal`, so they never preview.
+- Headings use `--headerFont`, redefined in the day `body` block with a serif fallback: the generated stack ends in `system-ui`, so a blocked Google Fonts sheet turned every heading sans. Any new `body {` block must come after that one, or `lighthouse.test.ts` parses the wrong palette.
 
 ## Frontmatter on a page
 
