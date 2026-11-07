@@ -71,6 +71,13 @@
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
+  // scale a hex toward black by t (0..1), keeping the hue
+  function darken(hex, t) {
+    const n = parseInt(hex.slice(1), 16)
+    const hx = (v) => ("0" + Math.round(v * (1 - t)).toString(16)).slice(-2)
+    return "#" + hx(n >> 16) + hx((n >> 8) & 255) + hx(n & 255)
+  }
+
   // lerp a hex toward its own grayscale value by t — real desaturation, not a
   // wash of white, so a seen star (Task 2) goes near-grey and a colorful
   // unseen one still pops next to it. A negative t pushes away from grey:
@@ -1038,7 +1045,10 @@
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
         // Task 2: a page already opened reads near-grey so an unseen one pops
-        const col = n.seen ? desat(n.color, 0.78) : n.color
+        // by day the rotunda's stars sit on a white-lit glass brain: a step
+        // darker so they hold their colour there, like the frieze's ink
+        const ink = mini && sky.day ? darken(n.color, 0.3) : n.color
+        const col = n.seen ? desat(ink, 0.78) : ink
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
         // On the rotunda the tour's room glows as bright as a hovered one:
