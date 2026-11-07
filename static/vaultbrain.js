@@ -71,6 +71,13 @@
     return "#" + [f(r), f(g), f(b)].map((x) => x.toString(16).padStart(2, "0")).join("")
   }
 
+  // scale a hex toward black by t (0..1), keeping the hue
+  function darken(hex, t) {
+    const n = parseInt(hex.slice(1), 16)
+    const hx = (v) => ("0" + Math.round(v * (1 - t)).toString(16)).slice(-2)
+    return "#" + hx(n >> 16) + hx((n >> 8) & 255) + hx(n & 255)
+  }
+
   // lerp a hex toward its own grayscale value by t — real desaturation, not a
   // wash of white, so a seen star (Task 2) goes near-grey and a colorful
   // unseen one still pops next to it. A negative t pushes away from grey:
@@ -207,7 +214,9 @@
   // contentIndex knows notes; assetIndex (Assets emitter) knows published
   // html/pdf. Merge so the map, legend, doors and folder pages see both.
   async function loadIndex() {
-    const data = await fetch("/static/contentIndex.json").then((r) => r.json())
+    // fetchData is the page's own parse (renderPage); a copy, because the
+    // assets merged below must not reach the explorer and search sharing it
+    const data = { ...(await fetchData) }
     try {
       const assets = await fetch("/static/assetIndex.json").then((r) => r.json())
       for (const a of assets) {
@@ -245,7 +254,10 @@
   function markSeen() {
     try {
       const seen = loadSeen()
-      seen.add(normSlug(location.pathname))
+      // a room is linked as "./work" as often as "./work/", so the link can't
+      // say it is one: never store a room, and drop one an older build stored
+      const here = normSlug(location.pathname)
+      isRoom(location.pathname) ? seen.delete(here) : seen.add(here)
       localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
     } catch (e) {
       /* private mode / storage blocked — the page still renders, just unmarked */
@@ -257,14 +269,19 @@
   // the plain localStorage slug set and toggles a real class instead.
   // the main categories never wash out: a room is a door you keep walking
   // back through, not a page you have read. A room is a top-level folder,
-  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash)
-  const isRoom = (path) => /^\/?[^/]+\/(index)?$/.test(path)
-  function paintSeenLinks() {
+  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash),
+  // or home itself
+  const isRoom = (path) => /^\/?([^/]+\/(index)?)?$/.test(path)
+  // root: content fetched after the first paint (home intro, whoami, folder
+  // guests) is painted by its own injector, or its links never grey
+  function paintSeenLinks(root = document) {
     const seen = loadSeen()
-    document.querySelectorAll("a.internal").forEach((a) => {
+    root.querySelectorAll("a.internal").forEach((a) => {
       try {
         const path = new URL(a.href, location.href).pathname
-        a.classList.toggle("vb-seen", !isRoom(path) && seen.has(normSlug(path)))
+        // a link to this very page (a heading anchor) is not a page you went to
+        const was = path !== location.pathname && !isRoom(path) && seen.has(normSlug(path))
+        a.classList.toggle("vb-seen", was)
       } catch (e) {
         /* malformed href */
       }
@@ -584,6 +601,7 @@
       paintStars()
       clampView()
       heat = Math.max(heat, 0.6) // rewarm the sim so the sky re-settles to the new size
+      wake()
     }
 
     function paintStars() {
@@ -724,6 +742,9 @@
     const idleHl = here && !local ? here.folder : null
     folders.forEach((f) => (hlW[f] = 0))
     let hlMax = 0
+    // how far the strengths still are from where they're heading; a fade in
+    // progress keeps the loop awake
+    let hlLeft = 0
     // a hover lights by section and then by star: the room comes up whole, and
     // over it the hovered star's own threads are reinforced (n.cw) and the
     // stars they reach stay lit even from another room (n.lw). A neighbourhood
@@ -740,15 +761,21 @@
       // Scaled by dt so a 144Hz screen fades at the same pace, not 2.4x faster.
       const k = reduceMotion ? 1 : 1 - Math.pow(1 - 0.045, dt)
       hlMax = 0
+      hlLeft = 0
       const near = hovered ? adj.get(hovered) : null
       for (const n of nodes) {
-        n.lw = (n.lw || 0) + ((near && near.has(n) ? 1 : 0) - (n.lw || 0)) * k
-        n.cw = (n.cw || 0) + ((n === hovered ? 1 : 0) - (n.cw || 0)) * k
+        const lwTo = near && near.has(n) ? 1 : 0
+        const cwTo = n === hovered ? 1 : 0
+        n.lw = (n.lw || 0) + (lwTo - (n.lw || 0)) * k
+        n.cw = (n.cw || 0) + (cwTo - (n.cw || 0)) * k
+        hlLeft = Math.max(hlLeft, Math.abs(lwTo - n.lw), Math.abs(cwTo - n.cw))
         if (local && n.lw > hlMax) hlMax = n.lw
       }
       if (local) return
       for (const f of folders) {
-        hlW[f] += ((f === hlFolder ? hlAmp : 0) - hlW[f]) * k
+        const to = f === hlFolder ? hlAmp : 0
+        hlW[f] += (to - hlW[f]) * k
+        hlLeft = Math.max(hlLeft, Math.abs(to - hlW[f]))
         if (hlW[f] > hlMax) hlMax = hlW[f]
       }
     }
@@ -766,6 +793,7 @@
       hlFolder = e.detail
       hlAmp = e.soft ? SOFT_HL : 1
       if (reduceMotion) draw()
+      wake()
     }
     window.addEventListener("vb-folder-hl", onHl)
     // coarse pointers (touch) get a fatter hit circle than a mouse needs
@@ -961,8 +989,19 @@
     let acc = 0
     // a rotunda scrolled out of view stops drawing and simulating altogether
     let onScreen = true
-    // stars drift into place then cool to a faint perpetual drift — never a hard freeze
+    // stars drift into place and cool; past REST_HEAT, with no hover or fade
+    // left, the loop stops until something wakes it: a canvas of 375 stars
+    // redrawn forever was most of the page's main-thread time on a slow phone
+    const REST_HEAT = 0.25
+    const WAKE_EVENTS = ["pointermove", "pointerdown", "wheel"]
+    let resting = false
     let heat = 1
+    function wake() {
+      if (!resting || !onScreen) return
+      resting = false
+      lastT = 0
+      draw()
+    }
     function draw() {
       ctx.clearRect(0, 0, W, H)
       // a missed themechange left a panel painting day ink on the night page;
@@ -1006,7 +1045,10 @@
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
         // Task 2: a page already opened reads near-grey so an unseen one pops
-        const col = n.seen ? desat(n.color, 0.78) : n.color
+        // by day the rotunda's stars sit on a white-lit glass brain: a step
+        // darker so they hold their colour there, like the frieze's ink
+        const ink = mini && sky.day ? darken(n.color, 0.3) : n.color
+        const col = n.seen ? desat(ink, 0.78) : ink
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
         // On the rotunda the tour's room glows as bright as a hovered one:
@@ -1056,6 +1098,15 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
+        // by day every rotunda star is rimmed in the frieze's gold, so the
+        // carved names and the sky read as one gilding
+        if (gild) {
+          ctx.strokeStyle = "rgba(184,135,63,.9)"
+          ctx.lineWidth = 0.8 / view.s
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, rr, 0, 7)
+          ctx.stroke()
+        }
         // a folder wears a thin gold ring, the palace's gold, so it reads as a
         // room among the notes before anything is hovered
         if (n.hub || n.slug.endsWith("/index")) {
@@ -1197,12 +1248,17 @@
       ctx.restore()
       if (!reduceMotion) {
         // the sim steps in 60Hz frames whatever the display's rate: a 144Hz
-        // screen used to settle (and burn CPU) 2.4x faster than a 60Hz one
-        for (acc = Math.min(acc + dt, 4); acc >= 1; acc--) {
+        // screen used to settle (and burn CPU) 2.4x faster than a 60Hz one.
+        // Never more than one a frame, or a slow device catching up makes its
+        // own frames slower; cooling follows the clock so it still rests on time
+        acc = Math.min(acc + dt, 1)
+        if (acc >= 1) {
+          acc = 0
           step()
-          heat = Math.max(heat * 0.997, 0.04)
         }
-        if (onScreen) raf = requestAnimationFrame(draw)
+        heat = Math.max(heat * Math.pow(0.997, dt), 0.04)
+        resting = heat < REST_HEAT && hlLeft < 0.01 && !hovered
+        if (onScreen && !resting) raf = requestAnimationFrame(draw)
       }
     }
 
@@ -1214,6 +1270,7 @@
         if (n.folder === "~" && !n.hub) n.color = sky.root
       })
       if (reduceMotion) draw()
+      wake()
     }
     document.addEventListener("themechange", onTheme)
 
@@ -1261,6 +1318,7 @@
     function onTipClick() {
       if (hovered) window.location.href = "/" + hovered.slug
     }
+    for (const ev of WAKE_EVENTS) wrap.addEventListener(ev, wake, { passive: true })
     cv.addEventListener("pointerdown", onTouchDown)
     cv.addEventListener("pointermove", onMove)
     cv.addEventListener("pointerleave", onLeave)
@@ -1299,6 +1357,7 @@
       io.disconnect()
       document.removeEventListener("themechange", onTheme)
       window.removeEventListener("vb-folder-hl", onHl)
+      for (const ev of WAKE_EVENTS) wrap.removeEventListener(ev, wake)
       cv.removeEventListener("pointerdown", onTouchDown)
       cv.removeEventListener("pointermove", onMove)
       cv.removeEventListener("pointerleave", onLeave)
@@ -1781,6 +1840,7 @@
     const html = data.html || ""
     const tmp = document.createElement("div")
     tmp.innerHTML = html
+    paintSeenLinks(tmp)
     const firstPara = tmp.querySelector("p")
 
     // wrap the "Hey there stranger" opener in a clickable span (clones into both
@@ -1811,6 +1871,7 @@
       a.href = "/shared/thoughts/catalyst"
       a.textContent = "✦ catalyst"
       hey.after(" ", a)
+      paintSeenLinks(hey.parentNode)
     })
 
     // easter egg: each click feeds the black hole (avatar grows + accretion
@@ -1846,6 +1907,7 @@
       })
     } else {
       body.innerHTML = html
+      paintSeenLinks(body)
     }
   }
 
@@ -1883,6 +1945,7 @@
     tmp.innerHTML = data.html || ""
     // the heading anchors are for a note page, not a hero
     tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
+    paintSeenLinks(tmp)
 
     // group the note by heading. A collapsible callout becomes a <details>
     // right where it sits — a node like any other — rather than splitting off
@@ -2061,7 +2124,7 @@
 
     let data
     try {
-      data = await fetch("/static/contentIndex.json").then((r) => r.json())
+      data = await fetchData
     } catch (e) {
       return
     }
@@ -2112,11 +2175,13 @@
   const HEY_YOU_TRACK = "https://soundcloud.com/yousefhisham/hey-you-pink-floyd"
   function playHeyYou() {
     const btn = document.getElementById("vb-audio-btn")
-    if (!btn || !btn._widget) return
+    if (!btn) return
     btn._track = HEY_YOU_TRACK
     btn._resume = 0
     sessionStorage.setItem("vb-audio-on", "1")
-    loadTrack(btn._widget, HEY_YOU_TRACK, true)
+    sessionStorage.removeItem("vb-audio-t:" + HEY_YOU_TRACK) // READY would seek back to it
+    if (btn._widget) loadTrack(btn._widget, HEY_YOU_TRACK, true)
+    else loadWidget(btn)
   }
 
   // the widget ignores auto_play on mobile, so a swapped track loads paused;
@@ -2132,6 +2197,60 @@
     })
   }
 
+  // SoundCloud's widget is 1.3 MB of script plus its tracker and cookies, so a
+  // visitor who never presses play never loads it. The widget plays as soon as
+  // it's READY, which on the first press takes a moment; iOS may want a second tap.
+  function loadWidget(btn) {
+    if (btn._frame) return
+    btn.textContent = "♪ tuning…"
+    const iframe = (btn._frame = document.createElement("iframe"))
+    iframe.id = "vb-audio-frame"
+    iframe.title = "SoundCloud player"
+    // encrypted-media is required: major-label tracks (policy MONETIZE)
+    // stream via DRM — without it the widget fires PLAY then PAUSE at 0
+    iframe.allow = "autoplay; encrypted-media"
+    iframe.src =
+      "https://w.soundcloud.com/player/?url=" +
+      encodeURIComponent(btn._track) +
+      "&auto_play=false&show_artwork=false"
+    document.body.appendChild(iframe)
+
+    const script = document.createElement("script")
+    script.src = "https://w.soundcloud.com/player/api.js"
+    script.onerror = () => setAudioLabel(btn)
+    script.onload = () => {
+      const w = SC.Widget(iframe)
+      btn._widget = w
+      w.bind(SC.Widget.Events.READY, () => {
+        setAudioLabel(btn)
+        // resume is applied on PLAY: seekTo before playback starts is ignored
+        btn._resume = +sessionStorage.getItem("vb-audio-t:" + btn._track) || 0
+        // mid-session reload with music on: try to pick back up; if the
+        // browser blocks it (no gesture yet) PLAY never fires, label stays
+        if (sessionStorage.getItem("vb-audio-on")) w.play()
+      })
+      w.bind(SC.Widget.Events.PLAY, () => {
+        if (btn._resume) w.seekTo(btn._resume)
+        btn._resume = 0
+        btn._paused = false
+        setAudioLabel(btn)
+      })
+      w.bind(SC.Widget.Events.PAUSE, () => {
+        btn._paused = true
+        setAudioLabel(btn)
+      })
+      w.bind(SC.Widget.Events.FINISH, () => {
+        // loop the room
+        w.seekTo(0)
+        w.play()
+      })
+      w.bind(SC.Widget.Events.PLAY_PROGRESS, (e) => {
+        sessionStorage.setItem("vb-audio-t:" + btn._track, Math.floor(e.currentPosition))
+      })
+    }
+    document.head.appendChild(script)
+  }
+
   function initAudio() {
     const slug = document.body.dataset.slug || ""
     const day = document.documentElement.getAttribute("saved-theme") === "light"
@@ -2139,69 +2258,32 @@
       slug === "index" && day ? HOME_DAY_TRACK : AMBIENCE.find(([p]) => slug.startsWith(p))[1]
     let btn = document.getElementById("vb-audio-btn")
     if (!btn) {
-      const iframe = document.createElement("iframe")
-      iframe.id = "vb-audio-frame"
-      // encrypted-media is required: major-label tracks (policy MONETIZE)
-      // stream via DRM — without it the widget fires PLAY then PAUSE at 0
-      iframe.allow = "autoplay; encrypted-media"
-      iframe.src =
-        "https://w.soundcloud.com/player/?url=" +
-        encodeURIComponent(track) +
-        "&auto_play=false&show_artwork=false"
-      document.body.appendChild(iframe)
-
       btn = document.createElement("button")
       btn.id = "vb-audio-btn"
       btn.type = "button"
       btn._track = track
       btn._paused = true
       btn.addEventListener("click", () => {
-        if (!btn._widget) return // widget script still loading
+        if (!btn._widget) {
+          sessionStorage.setItem("vb-audio-on", "1")
+          loadWidget(btn)
+          return
+        }
         btn._paused ? (sessionStorage.setItem("vb-audio-on", "1"), btn._widget.play())
           : (sessionStorage.removeItem("vb-audio-on"), btn._widget.pause())
       })
       document.body.appendChild(btn)
-
-      const script = document.createElement("script")
-      script.src = "https://w.soundcloud.com/player/api.js"
-      script.onload = () => {
-        const w = SC.Widget(iframe)
-        btn._widget = w
-        w.bind(SC.Widget.Events.READY, () => {
-          // resume is applied on PLAY: seekTo before playback starts is ignored
-          btn._resume = +sessionStorage.getItem("vb-audio-t:" + btn._track) || 0
-          // mid-session reload with music on: try to pick back up; if the
-          // browser blocks it (no gesture yet) PLAY never fires, label stays
-          if (sessionStorage.getItem("vb-audio-on")) w.play()
-        })
-        w.bind(SC.Widget.Events.PLAY, () => {
-          if (btn._resume) w.seekTo(btn._resume)
-          btn._resume = 0
-          btn._paused = false
-          setAudioLabel(btn)
-        })
-        w.bind(SC.Widget.Events.PAUSE, () => {
-          btn._paused = true
-          setAudioLabel(btn)
-        })
-        w.bind(SC.Widget.Events.FINISH, () => {
-          // loop the room
-          w.seekTo(0)
-          w.play()
-        })
-        w.bind(SC.Widget.Events.PLAY_PROGRESS, (e) => {
-          sessionStorage.setItem("vb-audio-t:" + btn._track, Math.floor(e.currentPosition))
-        })
-      }
-      document.head.appendChild(script)
+      if (sessionStorage.getItem("vb-audio-on")) loadWidget(btn)
     }
     if (btn._track !== track && btn._widget) {
       btn._track = track
       loadTrack(btn._widget, track, !!sessionStorage.getItem("vb-audio-on"), () => {
         btn._resume = +sessionStorage.getItem("vb-audio-t:" + track) || 0
       })
+    } else if (!btn._frame) {
+      btn._track = track
     }
-    setAudioLabel(btn)
+    if (!btn._frame || btn._widget) setAudioLabel(btn)
   }
 
   // folder pages are built from the markdown that physically sits under the
@@ -2251,6 +2333,7 @@
       }
       ul.appendChild(li)
     }
+    paintSeenLinks(ul)
     // "N items under this folder" — bump the count to include what we appended
     const p = listing.querySelector("p")
     if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)

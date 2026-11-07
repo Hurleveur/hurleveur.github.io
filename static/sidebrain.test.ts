@@ -62,8 +62,25 @@ test("side brain", async (t) => {
     const src = js.match(/const isRoom = \(path\) => (\/.+\/)\.test\(path\)/)
     assert.ok(src, "isRoom is gone — the main categories dim once visited again")
     const isRoom = (p: string) => new Function(`return ${src![1]}`)().test(p)
-    for (const p of ["/work/", "work/", "work/index", "/travel/index"]) assert.ok(isRoom(p), p)
-    for (const p of ["/work", "/work/note", "work/sub/", "/", "about"]) assert.ok(!isRoom(p), p)
+    for (const p of ["/work/", "work/", "work/index", "/travel/index", "/", ""]) assert.ok(isRoom(p), p)
+    for (const p of ["/work", "/work/note", "work/sub/", "about"]) assert.ok(!isRoom(p), p)
+    // "./work" is a room too, but the link can't say so: the store never keeps one
+    assert.match(js, /isRoom\(location\.pathname\) \? seen\.delete\(here\) : seen\.add\(here\)/)
+  })
+
+  await t.test("links that arrive after the first paint still grey", () => {
+    // the home intro, outro, whoami card and a folder's guests are fetched,
+    // so the paint on nav has already run when their links land
+    const after = (fn: string, call: string) => {
+      const from = js.indexOf(`function ${fn}(`)
+      const to = js.indexOf("\n  }\n", from)
+      assert.ok(from > -1 && js.slice(from, to).includes(call), `${fn} never calls ${call}`)
+    }
+    after("initVaultIntro", "paintSeenLinks(tmp)")
+    after("initWhoami", "paintSeenLinks(tmp)")
+    after("initFolderAssets", "paintSeenLinks(ul)")
+    // a heading anchor points at the page being read, which is always "seen"
+    assert.match(js, /path !== location\.pathname && !isRoom\(path\)/)
   })
 
   await t.test("✦ off keeps the map and sends the shelf to the page foot", () => {
@@ -117,6 +134,8 @@ test("seen-page tracking", async (t) => {
   await t.test("a seen star desaturates instead of gaining a second color system", () => {
     // reuses n.color/desat rather than a parallel "seen palette" — one hue per
     // note, dimmed, so an unseen star still pops next to it
-    assert.match(js, /const col = n\.seen \? desat\(n\.color, [\d.]+\) : n\.color/)
+    // (ink is n.color, darkened on the day rotunda: still the note's own hue)
+    assert.match(js, /const ink = mini && sky\.day \? darken\(n\.color, [\d.]+\) : n\.color/)
+    assert.match(js, /const col = n\.seen \? desat\(ink, [\d.]+\) : ink/)
   })
 })
