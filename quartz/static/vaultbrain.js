@@ -1088,6 +1088,15 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
+        // by day every rotunda star is rimmed in the frieze's gold, so the
+        // carved names and the sky read as one gilding
+        if (gild) {
+          ctx.strokeStyle = "rgba(184,135,63,.9)"
+          ctx.lineWidth = 0.8 / view.s
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, rr, 0, 7)
+          ctx.stroke()
+        }
         // a folder wears a thin gold ring, the palace's gold, so it reads as a
         // room among the notes before anything is hovered
         if (n.hub || n.slug.endsWith("/index")) {
