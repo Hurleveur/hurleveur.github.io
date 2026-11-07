@@ -982,6 +982,21 @@
       const w = ctx.measureText(txt).width
       ctx.fillText(txt, local ? Math.min(W - w / 2 - 4, Math.max(w / 2 + 4, x)) : x, y)
     }
+    // by day the rotunda rings a star the way the painted brain draws its
+    // veins, a pale core over a soft gold glow (the threads' recipe)
+    const VEIN = [
+      ["rgba(222,164,84,.55)", 2.4],
+      ["rgba(255,246,226,.95)", 0.8],
+    ]
+    function vein(x, y, r, w) {
+      for (const [ink, lw] of VEIN) {
+        ctx.strokeStyle = ink
+        ctx.lineWidth = (lw * w) / view.s
+        ctx.beginPath()
+        ctx.arc(x, y, r, 0, 7)
+        ctx.stroke()
+      }
+    }
 
     let t = 0
     let lastT = 0
@@ -1086,7 +1101,14 @@
         // the star under the pointer swells, so the pick reads at a glance
         const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
-        if (sky.day) ctx.fillStyle = pig
+        if (gild) {
+          // a glass bead lit from the upper left, like the brain's own matter
+          const bg = ctx.createRadialGradient(n.x - rr * 0.35, n.y - rr * 0.35, 0, n.x, n.y, rr)
+          bg.addColorStop(0, lighten(pig, 0.6))
+          bg.addColorStop(0.55, pig)
+          bg.addColorStop(1, darken(pig, 0.25))
+          ctx.fillStyle = bg
+        } else if (sky.day) ctx.fillStyle = pig
         else {
           const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
           cg.addColorStop(0, "#fffaf2")
@@ -1098,18 +1120,10 @@
         ctx.beginPath()
         ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
         ctx.fill()
-        // by day every rotunda star is rimmed in the frieze's gold, so the
-        // carved names and the sky read as one gilding
-        if (gild) {
-          ctx.strokeStyle = "rgba(184,135,63,.9)"
-          ctx.lineWidth = 0.8 / view.s
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, rr, 0, 7)
-          ctx.stroke()
-        }
         // a folder wears a thin gold ring, the palace's gold, so it reads as a
         // room among the notes before anything is hovered
-        if (n.hub || n.slug.endsWith("/index")) {
+        if (gild && (n.hub || n.slug.endsWith("/index"))) vein(n.x, n.y, rr + 2.5 / view.s, 1)
+        else if (n.hub || n.slug.endsWith("/index")) {
           ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
           ctx.lineWidth = 1.2 / view.s
           ctx.beginPath()
@@ -1122,23 +1136,29 @@
         // zoom so the ring stays the same thickness at every scale)
         // it fades with the eased n.cw, so a pick in and out is a fade, not a pop
         if ((n.cw || 0) > 0.01) {
-          ctx.strokeStyle = sky.label
-          ctx.lineWidth = (pop ? 2 : 1.5) / view.s
           ctx.globalAlpha = n.cw
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, rr + 5 / view.s, 0, 7)
-          ctx.stroke()
+          if (gild) vein(n.x, n.y, rr + 5 / view.s, 1.6)
+          else {
+            ctx.strokeStyle = sky.label
+            ctx.lineWidth = (pop ? 2 : 1.5) / view.s
+            ctx.beginPath()
+            ctx.arc(n.x, n.y, rr + 5 / view.s, 0, 7)
+            ctx.stroke()
+          }
           ctx.globalAlpha = 1
         }
         if (n !== hovered && near > 0.01 && !local) {
           // what the hovered star touches: a thinner ring in the same ink, and
           // in the observatory its name, so the group and the links read apart
-          ctx.strokeStyle = sky.label
-          ctx.lineWidth = 1 / view.s
           ctx.globalAlpha = near
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, n.r * pulse + 4 / view.s, 0, 7)
-          ctx.stroke()
+          if (gild) vein(n.x, n.y, n.r * pulse + 4 / view.s, 1)
+          else {
+            ctx.strokeStyle = sky.label
+            ctx.lineWidth = 1 / view.s
+            ctx.beginPath()
+            ctx.arc(n.x, n.y, n.r * pulse + 4 / view.s, 0, 7)
+            ctx.stroke()
+          }
           if (!mini && !n.you) {
             ctx.textAlign = "center"
             ctx.font = "400 " + 10 / view.s + "px IBM Plex Sans, sans-serif"
