@@ -126,6 +126,18 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   `quartz/static/sidebrain.test.ts` guards the seams that fail silently,
   including the `:not(.vb-expanded)` the overlay needs to outrank two ids.
 
+## What a Lighthouse pass settled
+
+The home page scores from these; `quartz/static/lighthouse.test.ts` guards each one.
+
+- The brain's `draw` loop stops once `heat < REST_HEAT` with no hover or fade left, so anything that changes the picture without going through `draw` must call `wake()` (`size`, `onHl`, `onTheme`, `WAKE_EVENTS` on the wrapper do). Under software canvas the old endless loop kept a Lighthouse run from ever going quiet, so it hit the 45 s limit and reported 130 s TBT.
+- SoundCloud loads only on the first press of ♪ or the "hey you" egg (`loadWidget`), or when `vb-audio-on` says the visitor already chose music this session. It is 1.3 MB of script plus a tracker and cookies, so nothing may create the iframe at page load.
+- `vaultbrain.js` reads the index through the page's `fetchData`, never a `fetch` of its own. `loadIndex` copies it first: merging assets into the shared object would reach the explorer and search.
+- `fontOrigin: local` is what keeps `Head.tsx` from linking Cormorant, which nothing renders: the `fonts` plugin links the faces the site really uses (Schibsted Grotesk, Source Sans Pro) and its CSS wins, whatever `typography:` says.
+- The avatar is `quartz/static/bh-profile.webp`, built from the vault's `bh-profile.jpg`: `magick <jpg> -gravity center -crop 1536x1536+0+0 +repage -resize 288x288 -strip -quality 82 <webp>`.
+- Day text holds 4.5:1 on both the page and a link's tint, which is why `--secondary` is bronze. A visited link is marked by a dot, never a paler colour, since links have no contrast to spare; the night theme has not been audited.
+- Judge scores by the median of three clean headless runs; a page's real score is in `lighthouse` output with no `runWarnings`.
+
 ## Frontmatter on a page
 
 `note-properties` is the frontmatter parser here — its transformer is what sets

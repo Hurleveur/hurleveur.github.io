@@ -14,7 +14,9 @@ configuration:
     - Templates
     - .obsidian
   theme:
-    fontOrigin: googleFonts
+    # the fonts plugin links the faces the site renders in; googleFonts here
+    # would add a second render-blocking sheet for Cormorant, which nothing uses
+    fontOrigin: local
     cdnCaching: true
     typography:
       header: Cormorant Garamond

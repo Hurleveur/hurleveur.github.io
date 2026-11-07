@@ -11,7 +11,7 @@ publish: true
     <canvas id="vb-graph" role="img" aria-label="Live constellation of the vault — click to enter the observatory"></canvas>
     <div id="vb-tip"></div>
   </div>
-  <button id="vb-expand" type="button" aria-label="Expand the constellation into the observatory" aria-expanded="false">
+  <button id="vb-expand" type="button" aria-label="Enter the mind: expand the constellation into the observatory" aria-expanded="false">
     <span class="vb-expand-ico" aria-hidden="true">⤢</span>
     <span class="vb-expand-txt">Enter the mind</span>
   </button>
@@ -72,5 +72,5 @@ publish: true
       <button class="whoami-more" id="whoami-more" type="button" hidden>Read more</button>
     </p>
   </div>
-  <img class="whoami-avatar" src="/attachments/bh-profile.jpg" alt="Profile portrait" />
+  <img class="whoami-avatar" src="/static/bh-profile.webp" alt="Profile portrait" />
 </section>

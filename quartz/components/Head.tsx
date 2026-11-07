@@ -5,6 +5,11 @@ import { googleFontHref, googleFontSubsetHref } from "../util/theme"
 import { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "./types"
 import { unescapeHTML } from "../util/escape"
 import { CustomOgImagesEmitterName } from "../../.quartz/plugins"
+// the rotunda is a CSS background, so the browser only finds it after every
+// stylesheet: ask for the theme's image first. Above the stylesheets, since an
+// inline script below one waits for it.
+const heroPreload = `(()=>{const l=document.createElement("link");l.rel="preload";l.as="image";l.fetchPriority="high";l.href=localStorage.getItem("theme")==="dark"?"/static/rotunda-night.webp":"/static/rotunda.webp";document.head.append(l)})()`
+
 export default (() => {
   const Head: QuartzComponent = ({
     cfg,
@@ -45,6 +50,7 @@ export default (() => {
       <head>
         <title>{title}</title>
         <meta charSet="utf-8" />
+        {fileData.slug === "index" && <script dangerouslySetInnerHTML={{ __html: heroPreload }} />}
         {coreStylesheet && <link rel="preload" href={coreStylesheet} as="style" />}
         {coreScript && coreScript.contentType === "external" && (
           <link rel="preload" href={coreScript.src} as="script" />
