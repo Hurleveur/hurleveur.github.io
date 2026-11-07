@@ -37,11 +37,11 @@
 body {
   --light: #f5f3ee;
   --lightgray: #e9e5dc;
-  --gray: #7a7362;
+  --gray: #756e5e;
   --darkgray: #55503f;
   --dark: #3a372f;
-  --secondary: #a8843c;
-  --tertiary: #7a7362;
+  --secondary: #7e632d;
+  --tertiary: #756e5e;
   --highlight: rgba(168, 132, 60, 0.12);
 }
 
@@ -66,12 +66,27 @@ body {
 }
 
 /* pages already opened (vaultbrain.js paintSeenLinks, a localStorage slug set
-   — :visited can't be read or matched reliably). Drift toward the page's own
-   ink, not a fixed color, so it reads right in every room and both themes —
-   --light/--secondary already swap per [saved-theme] above, no dark rule needed. */
+   — :visited can't be read or matched reliably). A dot and no tint rather than
+   a paler colour: links sit just over AA, so any fade drops them under it. The
+   stars in the brain carry the same dot. */
 a.internal.vb-seen {
-  color: color-mix(in srgb, var(--secondary) 35%, var(--light));
   background-color: transparent;
+
+  &::after {
+    content: "";
+    display: inline-block;
+    width: 0.28em;
+    height: 0.28em;
+    margin-left: 0.3em;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 0.14em;
+  }
+}
+
+/* the footer plugin fades itself to 0.7, which puts its text under AA */
+#quartz-body > footer {
+  opacity: 1;
 }
 
 /* ============================================================
@@ -119,7 +134,7 @@ a.internal.vb-seen {
     margin-top: 1.1rem;
     font-style: italic;
     font-size: clamp(1.05rem, 2vw, 1.35rem);
-    color: #7a7362;
+    color: #756e5e;
   }
 
   .colonnade {
@@ -362,6 +377,7 @@ a.internal.vb-seen {
 
   .attribution {
     margin-top: 0.7rem;
+    opacity: 1; // .eyebrow's fade put this small text under AA
 
     a {
       color: inherit;
@@ -594,7 +610,7 @@ a.internal.vb-seen {
   .sub {
     text-align: center;
     font-style: italic;
-    color: #7a7362;
+    color: #756e5e;
     margin-bottom: 3rem;
   }
 }
@@ -698,7 +714,7 @@ a.internal.vb-seen {
   .count {
     font-style: italic;
     font-size: 0.85rem;
-    color: #7a7362;
+    color: #756e5e;
     margin-top: 0.3rem;
   }
 

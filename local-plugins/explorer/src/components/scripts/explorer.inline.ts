@@ -383,7 +383,8 @@ async function handleNavOrRender(e) {
           const nearestExplorer = this.closest(".explorer");
           if (!nearestExplorer) return;
           const explorerCollapsed = nearestExplorer.classList.toggle("collapsed");
-          nearestExplorer.setAttribute("aria-expanded", explorerCollapsed ? "false" : "true");
+          // LOCI PATCH: on the button, not the div: aria-expanded isn't valid on a roleless div
+          this.setAttribute("aria-expanded", explorerCollapsed ? "false" : "true");
 
           if (!explorerCollapsed) {
             document.documentElement.classList.add("mobile-no-scroll");
@@ -479,7 +480,8 @@ async function handleNavOrRender(e) {
 
       if (mobileExplorer.checkVisibility && mobileExplorer.checkVisibility()) {
         explorer.classList.add("collapsed");
-        explorer.setAttribute("aria-expanded", "false");
+        // LOCI PATCH: on the button, not the div: aria-expanded isn't valid on a roleless div
+        mobileExplorer.setAttribute("aria-expanded", "false");
         document.documentElement.classList.remove("mobile-no-scroll");
       }
     }
