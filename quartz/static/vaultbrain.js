@@ -247,7 +247,10 @@
   function markSeen() {
     try {
       const seen = loadSeen()
-      seen.add(normSlug(location.pathname))
+      // a room is linked as "./work" as often as "./work/", so the link can't
+      // say it is one: never store a room, and drop one an older build stored
+      const here = normSlug(location.pathname)
+      isRoom(location.pathname) ? seen.delete(here) : seen.add(here)
       localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
     } catch (e) {
       /* private mode / storage blocked — the page still renders, just unmarked */
@@ -259,14 +262,19 @@
   // the plain localStorage slug set and toggles a real class instead.
   // the main categories never wash out: a room is a door you keep walking
   // back through, not a page you have read. A room is a top-level folder,
-  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash)
-  const isRoom = (path) => /^\/?[^/]+\/(index)?$/.test(path)
-  function paintSeenLinks() {
+  // linked as "/work/", "work/" or "work/index" (a top-level note has no slash),
+  // or home itself
+  const isRoom = (path) => /^\/?([^/]+\/(index)?)?$/.test(path)
+  // root: content fetched after the first paint (home intro, whoami, folder
+  // guests) is painted by its own injector, or its links never grey
+  function paintSeenLinks(root = document) {
     const seen = loadSeen()
-    document.querySelectorAll("a.internal").forEach((a) => {
+    root.querySelectorAll("a.internal").forEach((a) => {
       try {
         const path = new URL(a.href, location.href).pathname
-        a.classList.toggle("vb-seen", !isRoom(path) && seen.has(normSlug(path)))
+        // a link to this very page (a heading anchor) is not a page you went to
+        const was = path !== location.pathname && !isRoom(path) && seen.has(normSlug(path))
+        a.classList.toggle("vb-seen", was)
       } catch (e) {
         /* malformed href */
       }
@@ -1813,6 +1821,7 @@
     const html = data.html || ""
     const tmp = document.createElement("div")
     tmp.innerHTML = html
+    paintSeenLinks(tmp)
     const firstPara = tmp.querySelector("p")
 
     // wrap the "Hey there stranger" opener in a clickable span (clones into both
@@ -1843,6 +1852,7 @@
       a.href = "/shared/thoughts/catalyst"
       a.textContent = "✦ catalyst"
       hey.after(" ", a)
+      paintSeenLinks(hey.parentNode)
     })
 
     // easter egg: each click feeds the black hole (avatar grows + accretion
@@ -1878,6 +1888,7 @@
       })
     } else {
       body.innerHTML = html
+      paintSeenLinks(body)
     }
   }
 
@@ -1915,6 +1926,7 @@
     tmp.innerHTML = data.html || ""
     // the heading anchors are for a note page, not a hero
     tmp.querySelectorAll('a[role="anchor"]').forEach((a) => a.remove())
+    paintSeenLinks(tmp)
 
     // group the note by heading. A collapsible callout becomes a <details>
     // right where it sits — a node like any other — rather than splitting off
@@ -2302,6 +2314,7 @@
       }
       ul.appendChild(li)
     }
+    paintSeenLinks(ul)
     // "N items under this folder" — bump the count to include what we appended
     const p = listing.querySelector("p")
     if (p) p.textContent = p.textContent.replace(/\d+/, (n) => +n + mine.length)
