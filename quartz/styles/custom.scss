@@ -37,11 +37,11 @@
 body {
   --light: #f5f3ee;
   --lightgray: #e9e5dc;
-  --gray: #696252;
+  --gray: #706959;
   --darkgray: #55503f;
   --dark: #3a372f;
-  --secondary: #735828;
-  --tertiary: #696252;
+  --secondary: #7a5f2b;
+  --tertiary: #706959;
   --highlight: rgba(168, 132, 60, 0.12);
   /* the generated stack ends in system-ui: a blocked Google Fonts sheet made every heading sans */
   --headerFont: "Cormorant Garamond", Georgia, "Liberation Serif", serif;
@@ -51,11 +51,11 @@ body {
 [saved-theme="dark"] body {
   --light: #191713;
   --lightgray: #2e2b24;
-  --gray: #918a78;
+  --gray: #8d8674;
   --darkgray: #beb7a4;
   --dark: #e6e1d4;
   --secondary: #c9a45c;
-  --tertiary: #918a78;
+  --tertiary: #8d8674;
   --highlight: rgba(201, 164, 92, 0.12);
 }
 
