@@ -108,6 +108,35 @@ test("lighthouse", async (t) => {
     // the tinted pill behind an unread link, as Lighthouse computed it
     const gold = day.match(/--secondary: (#\w+)/)![1]
     assert.ok(ratio(gold, "#ece6d9") >= 4.5, `${gold} on the link tint`)
+
+    // the marble's veins darken the page under the text: the darkest point is a
+    // vein at full strength, its colour at the rect's opacity over --light
+    const svg = readFileSync(join(here, "marble-day.svg"), "utf8")
+    const vein = svg
+      .match(/0 0 0 0 ([\d.]+)  0 0 0 0 ([\d.]+)  0 0 0 0 ([\d.]+)  -/)!
+      .slice(1)
+      .map(Number)
+    const opacity = Number(svg.match(/url\(#vein\)" opacity="([\d.]+)"/)![1])
+    const over = (top: number[], a: number, under: number[]) =>
+      "#" +
+      under
+        .map((u, i) =>
+          Math.round(u * (1 - a) + top[i] * a)
+            .toString(16)
+            .padStart(2, "0"),
+        )
+        .join("")
+    const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+    const floor = over(
+      vein.map((v) => v * 255),
+      opacity,
+      rgb(page),
+    )
+    for (const fg of shades) {
+      assert.ok(ratio(fg, floor) >= 4.5, `${fg} on the darkest vein ${floor}`)
+    }
+    const tint = over([168, 132, 60], 0.12, rgb(floor))
+    assert.ok(ratio(gold, tint) >= 4.5, `${gold} on the link tint over a vein ${tint}`)
   })
 
   await t.test("a visited link changes ink and shape, not lightness", () => {

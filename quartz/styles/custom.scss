@@ -37,11 +37,11 @@
 body {
   --light: #f5f3ee;
   --lightgray: #e9e5dc;
-  --gray: #756e5e;
+  --gray: #706959;
   --darkgray: #55503f;
   --dark: #3a372f;
-  --secondary: #7e632d;
-  --tertiary: #756e5e;
+  --secondary: #7a5f2b;
+  --tertiary: #706959;
   --highlight: rgba(168, 132, 60, 0.12);
   /* the generated stack ends in system-ui: a blocked Google Fonts sheet made every heading sans */
   --headerFont: "Cormorant Garamond", Georgia, "Liberation Serif", serif;
@@ -57,6 +57,23 @@ body {
   --secondary: #c9a45c;
   --tertiary: #8d8674;
   --highlight: rgba(201, 164, 92, 0.12);
+}
+
+/* the palace's marble behind every other page: faint clouds and veins drawn by
+   SVG noise (quartz/static/marble-*.svg), tiled and fixed to the window so the
+   panels that must be opaque (explorer, sticky side brain) wear the same stone
+   in register. Day veins may darken the page only as far as --gray keeps 4.5:1,
+   which lighthouse.test.ts checks against the darkest vein. Home, the library
+   and the observatory keep their own worlds. */
+body:not([data-slug="index"]):not([data-slug^="books"]) {
+  --marble: url("/static/marble-day.svg");
+}
+[saved-theme="dark"] body:not([data-slug="index"]):not([data-slug^="books"]) {
+  --marble: url("/static/marble-night.svg");
+}
+body {
+  --marble-bg: var(--marble, none) 0 0 / 1000px 1000px fixed var(--light);
+  background: var(--marble-bg);
 }
 
 .eyebrow {
@@ -2013,7 +2030,7 @@ body[data-slug^="books"] {
       box-sizing: border-box;
       width: var(--sidebar-w, #{$sidePanelWidth});
       padding: 1.2rem 1rem 1.2rem 1.4rem;
-      background: var(--light);
+      background: var(--marble-bg);
       border-right: 1px solid var(--lightgray);
     }
   }
@@ -2350,7 +2367,7 @@ $rightCol: clamp(320px, 24vw, 480px);
       position: sticky;
       top: 0;
       z-index: 2;
-      background: var(--light);
+      background: var(--marble-bg);
     }
   }
 
