@@ -86,7 +86,9 @@ at runtime on every page but home; it replaces `quartz-community/graph`, which i
   the page scroll.
 - The panel shows a neighbourhood, not the vault: the current page, what it
   links to, what links back (`local`). A folder note, or a note with no links,
-  falls back to its folder's shelf. Only `local` drops the section hub stars —
+  falls back to its folder's shelf. The folder notes above the page join it, and
+  that chain's folder edges draw at rest (`chain`; elsewhere folder edges light
+  on hover only). Only `local` drops the section hub stars —
   their counts are the whole vault's and would lie inside a neighbourhood.
 - A hover lights in two tiers: the section (`hlW`, set through `hlEmit`, which
   the frieze and tour share) and the star (`n.lw` glow, `n.cw` own threads, from

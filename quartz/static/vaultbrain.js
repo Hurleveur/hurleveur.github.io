@@ -391,6 +391,9 @@
     // to, and what links back. The whole vault stays one button away (⤢ opens
     // the same observatory the home rotunda does).
     let local = false
+    // this page and the folder notes above it: their folder edges are drawn at
+    // rest in a neighbourhood, so a page shows where it is filed
+    const chain = new Set([me])
     if (side) {
       const near = new Set()
       if (data[me]) {
@@ -402,6 +405,16 @@
       // would otherwise be a single star in an empty panel
       const folderOf = me.endsWith("/index") ? me.slice(0, -6) : near.size < 2 && me.includes("/") ? me.split("/")[0] : null
       if (folderOf) for (const t of slugs) if (t.startsWith(folderOf + "/")) near.add(t)
+      if (data[me]) {
+        const up = me.split("/").slice(0, -1)
+        if (me.endsWith("/index")) up.pop()
+        for (; up.length; up.pop()) {
+          const f = up.join("/") + "/index"
+          if (!data[f]) continue
+          near.add(f)
+          chain.add(f)
+        }
+      }
       if (near.size > 1) {
         slugs = slugs.filter((t) => near.has(t))
         local = true
@@ -1078,10 +1091,11 @@
       // the rotunda draws no resting threads: over the painted brain they read
       // as a net, so its only lines are the hovered star's own (below)
       ;(mini ? [] : links).forEach(([a, b, folderEdge]) => {
-        if (folderEdge) return
+        const filed = local && chain.has(a.slug) && chain.has(b.slug)
+        if (folderEdge && !filed) return
         // in a neighbourhood the page's own threads are the point: each one
         // takes the colour of the room at its far end
-        const mine = local && (a.you || b.you)
+        const mine = local && (a.you || b.you || filed)
         ctx.globalAlpha = (mine ? 0.6 : 1) * (1 - 0.85 * (hlMax - linkLit(a, b)))
         ctx.strokeStyle = mine ? (a.you ? b : a).color : sky.link
         ctx.lineWidth = 1

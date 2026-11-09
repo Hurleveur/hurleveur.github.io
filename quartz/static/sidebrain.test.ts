@@ -83,6 +83,13 @@ test("side brain", async (t) => {
     assert.match(js, /path !== location\.pathname && !isRoom\(path\)/)
   })
 
+  await t.test("a page shows the folder notes it is filed under", () => {
+    // folder edges only light on hover; in the panel the page's own chain up
+    // to its room is drawn at rest, and the folder notes are pulled in for it
+    assert.match(js, /near\.add\(f\)\n\s*chain\.add\(f\)/)
+    assert.match(js, /if \(folderEdge && !filed\) return/)
+  })
+
   await t.test("✦ off keeps the map and sends the shelf to the page foot", () => {
     // everything but #vb-side leaves the column, and it runs on every nav,
     // since the SPA morph refills the column from the new page
