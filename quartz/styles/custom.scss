@@ -88,6 +88,78 @@ a.internal.vb-seen {
    room name in the frieze's ink, its colour on the lozenge and the rule
    (--room, set by vaultbrain.js). The plaque renders after the title, inside
    content-meta, so the header column reorders it on top. */
+/* walking out of the hall: the rotunda's dome, faded into the page above the
+   title. On .page-header, never .popover-hint, or a hover preview carries it. */
+body:not([data-slug="index"]):not([data-slug^="books"]) .center > .page-header {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: -1.6rem;
+    /* past the column into the margins, never past the window (a phone's
+       column is the window less its padding) */
+    left: max(-4rem, calc(50% - 50vw));
+    right: max(-4rem, calc(50% - 50vw));
+    height: 9rem;
+    background: url("/static/rotunda.webp") center 0 / 100% auto no-repeat;
+    opacity: 0.7;
+    filter: sepia(0.35);
+    mask-image:
+      linear-gradient(to bottom, black 35%, transparent),
+      linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+    mask-composite: intersect;
+    pointer-events: none;
+
+    [saved-theme="dark"] & {
+      background-image: url("/static/rotunda-night.webp");
+      filter: none;
+    }
+  }
+}
+
+/* a room of the palace (the seven names carved in the frieze) stands under the
+   whole dome, its name cut like the hall's own title: spaced capitals in the
+   frieze's ink, lifted off the stone by a halo */
+$rooms: alignment, work, travel, friends, shared, library, meaning;
+@each $room in $rooms {
+  body[data-slug="#{$room}/index"] .center > .page-header {
+    padding-top: 3.2rem;
+    text-align: center;
+
+    &::before {
+      height: 13rem;
+      opacity: 0.85;
+    }
+
+    h1.article-title {
+      font-size: clamp(2rem, 4vw, 2.9rem);
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #6f6857;
+      text-shadow:
+        0 0 2px rgba(255, 250, 238, 0.95),
+        0 0 14px rgba(255, 250, 238, 0.85);
+
+      [saved-theme="dark"] & {
+        color: #a89f8a;
+        text-shadow:
+          0 0 2px rgba(0, 0, 0, 0.9),
+          0 0 14px rgba(0, 0, 0, 0.75);
+      }
+    }
+
+    .note-description {
+      max-width: 34em;
+      margin-inline: auto;
+      font-style: italic;
+    }
+  }
+}
+
 .page-header > .popover-hint {
   display: flex;
   flex-direction: column;
