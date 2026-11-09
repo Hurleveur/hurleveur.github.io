@@ -148,6 +148,7 @@ test("a note's nearby doors", async (t) => {
     data: Record<string, { links?: string[] }>,
     me: string,
     max: number,
+    rand?: () => number,
   ) => string[]
   const data = {
     index: { links: ["work/a"] },
@@ -173,6 +174,35 @@ test("a note's nearby doors", async (t) => {
   await t.test("stops at max, and a top-level note has no shelf", () => {
     assert.deepStrictEqual(nearby(data, "work/a", 2), ["friends/b", "travel/d"])
     assert.deepStrictEqual(nearby({ solo: { links: [] }, other: { links: [] } }, "solo", 3), [])
+  })
+
+  await t.test("drawn at random within a tier, never across tiers", () => {
+    const many = {
+      ...data,
+      "work/a": { links: ["friends/b", "travel/d", "work/e"] },
+      "friends/g": { links: ["work/a"] },
+    }
+    const first = nearby(many, "work/a", 3, () => 0.999)
+    const other = nearby(many, "work/a", 3, () => 0)
+    assert.deepStrictEqual(first, ["friends/b", "travel/d", "work/e"])
+    assert.notDeepStrictEqual(other, first)
+    assert.deepStrictEqual([...other].sort(), [...first].sort())
+    // a backlink only fills what the links leave
+    assert.ok(!nearby(many, "work/a", 3, () => 0).includes("friends/g"))
+  })
+
+  await t.test("a carved room walks on to its frieze neighbours, round the ring", () => {
+    const hall = {
+      ...data,
+      "alignment/index": { links: ["work/a"] },
+      "meaning/index": {},
+      "travel/index": {},
+    }
+    assert.deepStrictEqual(nearby(hall, "work/index", 3), ["alignment/index", "travel/index"])
+    assert.deepStrictEqual(nearby(hall, "alignment/index", 3), ["meaning/index", "work/index"])
+    // an unpublished neighbour is skipped, a deeper folder note keeps the note rule
+    assert.deepStrictEqual(nearby(data, "work/index", 3), [])
+    assert.deepStrictEqual(nearby(hall, "work/sub/index", 3), ["work/sub/f"])
   })
 
   await t.test("runs on every note page, after anything fetched lands", () => {

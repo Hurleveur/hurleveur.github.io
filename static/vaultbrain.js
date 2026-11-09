@@ -61,20 +61,40 @@
 
   // where a reader walks on from the foot of a note (initNearby): what it links
   // to, then what links to it, then its shelf-mates in the same folder; never
-  // itself, home or a tag page. data is the content index.
-  function nearby(data, me, max) {
+  // itself, home or a tag page; drawn at random within each of those tiers, so
+  // a revisit opens other doors. A room carved in the frieze walks on to the
+  // rooms either side of it instead, the hall a ring. data is the content index.
+  function nearby(data, me, max, rand = Math.random) {
+    // the frieze left to right, as CARVED places it
+    const hall = ["alignment", "work", "travel", "friends", "shared", "library", "meaning"]
+    const at = hall.findIndex((r) => me === r + "/index")
+    if (at >= 0)
+      return [hall[(at + hall.length - 1) % hall.length], hall[(at + 1) % hall.length]]
+        .map((r) => r + "/index")
+        .filter((s) => data[s])
+        .slice(0, max)
     const shelf = me.slice(0, me.lastIndexOf("/") + 1)
     const slugs = Object.keys(data)
-    const picks = [
-      ...(data[me]?.links || []),
-      ...slugs.filter((s) => (data[s].links || []).includes(me)),
-      ...slugs.filter((s) => {
-        const rest = s.slice(shelf.length)
-        return shelf && s.startsWith(shelf) && !rest.includes("/") && rest !== "index"
-      }),
-    ]
     const ok = (s) => s !== me && s !== "index" && data[s] && !s.startsWith("tags/")
-    return [...new Set(picks.filter(ok))].slice(0, max)
+    const shuffled = (list) => {
+      const a = [...new Set(list.filter(ok))]
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1))
+        ;[a[i], a[j]] = [a[j], a[i]]
+      }
+      return a
+    }
+    const picks = [
+      ...shuffled(data[me]?.links || []),
+      ...shuffled(slugs.filter((s) => (data[s].links || []).includes(me))),
+      ...shuffled(
+        slugs.filter((s) => {
+          const rest = s.slice(shelf.length)
+          return shelf && s.startsWith(shelf) && !rest.includes("/") && rest !== "index"
+        }),
+      ),
+    ]
+    return [...new Set(picks)].slice(0, max)
   }
 
   // canvas has no ellipsis of its own — a title long enough to collide with
@@ -2381,9 +2401,12 @@
   // room's colour, so a short note does not end on an empty page. Plain links,
   // not a.internal: a card already shows what a hover preview would.
   async function initNearby() {
-    const article = document.querySelector(".center > article.popover-hint")
+    // a folder page wraps its article, with the shelf, in div.popover-hint
+    const article = document.querySelector(
+      ".center > article.popover-hint, .center > .popover-hint > article",
+    )
     const me = document.body.dataset.slug || ""
-    const skip = me === "index" || me.endsWith("/index") || me.startsWith("tags/")
+    const skip = me === "index" || me.startsWith("tags/")
     if (!article || skip || article.dataset.vbNear) return
     article.dataset.vbNear = "1"
     let data
@@ -2415,7 +2438,12 @@
         a.append(el)
       }
       // a room's own folder note would read its name twice
-      part("vb-card-room", s === room + "/index" ? "the room" : room.replace(/-/g, " "))
+      const roomNote = s === room + "/index"
+      const fromRoom = /^[^/]+\/index$/.test(me)
+      part(
+        "vb-card-room",
+        roomNote ? (fromRoom ? "next room" : "the room") : room.replace(/-/g, " "),
+      )
       part("vb-card-title", data[s].title)
       part("vb-card-desc", plain(data[s].description))
       nav.append(a)
