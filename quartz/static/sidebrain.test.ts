@@ -205,6 +205,19 @@ test("a note's nearby doors", async (t) => {
     assert.deepStrictEqual(nearby(hall, "work/sub/index", 3), ["work/sub/f"])
   })
 
+  await t.test("home's dice redraws three distinct doors under the whoami card", () => {
+    const shuffle = new Function(`${src}; return shuffle`)() as <T>(a: T[]) => T[]
+    const list = ["a", "b", "c", "d", "e"]
+    const drawn = shuffle([...list])
+    assert.deepStrictEqual([...drawn].sort(), list)
+    const home = js.slice(
+      js.indexOf("async function initRandomNote()"),
+      js.indexOf("// room ambience"),
+    )
+    assert.match(home, /doorCards\(data, shuffle\(\[\.\.\.pool\]\)\.slice\(0, 3\)/)
+    assert.match(home, /nav \? nav\.replaceWith\(fresh\) : card\.after\(fresh\)/)
+  })
+
   await t.test("runs on every note page, after anything fetched lands", () => {
     assert.equal(
       js.match(/^\s*initNearby\(\)$/gm)?.length,

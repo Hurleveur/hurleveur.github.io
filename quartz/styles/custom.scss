@@ -345,6 +345,17 @@ $rooms: alignment, work, travel, friends, shared, library, meaning;
   }
 }
 
+/* home: three random doors under the whoami card, as wide as it; its dice redraws them */
+.whoami-picks {
+  max-width: 48rem;
+  margin: 2rem auto 0;
+  padding: 0 1.5rem;
+
+  &::before {
+    content: "Wander";
+  }
+}
+
 [saved-theme="dark"] .vb-nearby::before {
   color: #a89f8a;
 }

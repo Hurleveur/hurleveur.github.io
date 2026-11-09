@@ -76,14 +76,7 @@
     const shelf = me.slice(0, me.lastIndexOf("/") + 1)
     const slugs = Object.keys(data)
     const ok = (s) => s !== me && s !== "index" && data[s] && !s.startsWith("tags/")
-    const shuffled = (list) => {
-      const a = [...new Set(list.filter(ok))]
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(rand() * (i + 1))
-        ;[a[i], a[j]] = [a[j], a[i]]
-      }
-      return a
-    }
+    const shuffled = (list) => shuffle([...new Set(list.filter(ok))], rand)
     const picks = [
       ...shuffled(data[me]?.links || []),
       ...shuffled(slugs.filter((s) => (data[s].links || []).includes(me))),
@@ -95,6 +88,15 @@
       ),
     ]
     return [...new Set(picks)].slice(0, max)
+  }
+
+  // Fisher-Yates, in place; rand is injectable so tests can pin the order
+  function shuffle(a, rand = Math.random) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
   }
 
   // canvas has no ellipsis of its own — a title long enough to collide with
@@ -2171,10 +2173,10 @@
     }
   }
 
-  // whoami card: "surprise me" link to a random published note, from the same
-  // contentIndex.json as the shelf/graph. Excludes empty notes (folder/tag
-  // index pages have no content) and anything tagged #unfinished. Reroll
-  // swaps the link without a page nav.
+  // whoami card: three random published notes as door cards right under it,
+  // from the same contentIndex.json as the shelf/graph. Excludes empty notes
+  // (folder/tag index pages have no content), home, tag pages and anything
+  // tagged #unfinished. The dice redraws the three without a page nav.
   async function initRandomNote() {
     const el = document.getElementById("whoami-random")
     if (!el || el.dataset.vbDone) return
@@ -2186,28 +2188,36 @@
     } catch (e) {
       return
     }
-    const pool = Object.entries(data).filter(
-      ([, v]) => v.content && v.content.trim() && !(v.tags || []).includes("unfinished"),
-    )
-    if (!pool.length) return
+    const pool = Object.keys(data).filter((s) => {
+      const v = data[s]
+      return (
+        s !== "index" &&
+        !s.startsWith("tags/") &&
+        v.content &&
+        v.content.trim() &&
+        !(v.tags || []).includes("unfinished")
+      )
+    })
+    const card = el.closest(".whoami-card")
+    if (!pool.length || !card) return
 
+    let nav
     const render = () => {
-      const [slug, v] = pool[Math.floor(Math.random() * pool.length)]
-      el.replaceChildren()
-      const a = document.createElement("a")
-      a.href = "/" + slug
-      a.textContent = v.title || slug
-      const dice = document.createElement("button")
-      dice.type = "button"
-      dice.className = "whoami-reroll"
-      dice.setAttribute("aria-label", "Show another random note")
-      dice.textContent = "🎲"
-      dice.addEventListener("click", (e) => {
-        e.preventDefault()
-        render()
-      })
-      el.append("Random note: ", a, dice)
+      const fresh = doorCards(data, shuffle([...pool]).slice(0, 3), "index", "Random notes")
+      fresh.classList.add("whoami-picks")
+      nav ? nav.replaceWith(fresh) : card.after(fresh)
+      nav = fresh
     }
+    const dice = document.createElement("button")
+    dice.type = "button"
+    dice.className = "whoami-reroll"
+    dice.setAttribute("aria-label", "Show three other random notes")
+    dice.textContent = "🎲"
+    dice.addEventListener("click", (e) => {
+      e.preventDefault()
+      render()
+    })
+    el.append("Reroll the three below ", dice)
     render()
   }
 
@@ -2417,13 +2427,19 @@
     }
     const picks = data[me] ? nearby(data, me, 3) : []
     if (!picks.length || !article.isConnected) return
+    article.after(doorCards(data, picks, me, "Nearby notes"))
+  }
+
+  // the "Walk on" row: one card per slug, lintelled in its room's colour.
+  // me is the page the reader stands on, which decides "next room"/"the room".
+  function doorCards(data, picks, me, label) {
     const seen = loadSeen()
     // the index escapes its text (-&gt;); textContent below must get the characters
     const plain = (html) =>
       new DOMParser().parseFromString(html || "", "text/html").body.textContent
     const nav = document.createElement("nav")
     nav.className = "vb-nearby"
-    nav.setAttribute("aria-label", "Nearby notes")
+    nav.setAttribute("aria-label", label)
     for (const s of picks) {
       const room = s.includes("/") ? s.split("/")[0] : ""
       const a = document.createElement("a")
@@ -2448,7 +2464,7 @@
       part("vb-card-desc", plain(data[s].description))
       nav.append(a)
     }
-    article.after(nav)
+    return nav
   }
 
   // explorer width: drag grip on the sidebar's right edge sets --sidebar-w
