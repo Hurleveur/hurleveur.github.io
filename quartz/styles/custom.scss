@@ -345,18 +345,46 @@ $rooms: alignment, work, travel, friends, shared, library, meaning;
   }
 }
 
-/* home: three random doors under the whoami card, as wide as it; its dice redraws them */
+/* home: three random doors under the whoami card, as wide as it; the dice on
+   their heading redraws them */
 .whoami-picks {
   max-width: 48rem;
   margin: 2rem auto 0;
   padding: 0 1.5rem;
 
+  // a real heading in place of the "Walk on" pseudo, so the dice can sit on it
   &::before {
-    content: "Wander";
+    display: none;
+  }
+
+  .whoami-picks-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--headerFont);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: #6f6857;
+  }
+
+  .whoami-reroll {
+    all: unset;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: 0;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 0.7;
+    }
   }
 }
 
-[saved-theme="dark"] .vb-nearby::before {
+[saved-theme="dark"] .vb-nearby::before,
+[saved-theme="dark"] .whoami-picks-head {
   color: #a89f8a;
 }
 
@@ -794,19 +822,6 @@ h1.article-title {
 
     a {
       color: var(--secondary);
-    }
-  }
-
-  .whoami-reroll {
-    all: unset;
-    cursor: pointer;
-    margin-left: 0.3rem;
-    font-size: 0.85rem;
-    vertical-align: -0.05em;
-
-    &:hover,
-    &:focus-visible {
-      opacity: 0.7;
     }
   }
 

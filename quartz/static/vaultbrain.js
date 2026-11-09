@@ -2205,8 +2205,12 @@
     const render = () => {
       const fresh = doorCards(data, shuffle([...pool]).slice(0, 3), "index", "Random notes")
       fresh.classList.add("whoami-picks")
+      // the heading moves into the fresh row; a keyboard reroll keeps its focus
+      const focused = document.activeElement === dice
+      fresh.prepend(head)
       nav ? nav.replaceWith(fresh) : card.after(fresh)
       nav = fresh
+      if (focused) dice.focus()
     }
     const dice = document.createElement("button")
     dice.type = "button"
@@ -2217,7 +2221,9 @@
       e.preventDefault()
       render()
     })
-    el.append("Reroll the three below ", dice)
+    const head = document.createElement("div")
+    head.className = "whoami-picks-head"
+    head.append("Wander", dice)
     render()
   }
 
