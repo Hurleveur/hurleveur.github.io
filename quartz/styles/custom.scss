@@ -169,6 +169,12 @@ $rooms: alignment, work, travel, friends, shared, library, meaning;
   }
 }
 
+/* a preview is a glance at the note, not a visit: no room plaque over it.
+   It stays in the DOM, since popover.inline.ts reads its data-room. */
+.popover .room-plaque {
+  display: none;
+}
+
 .room-plaque {
   order: -1;
   display: flex;
@@ -2334,7 +2340,6 @@ body.vb-open #quartz-body .sidebar.right {
 
   .section-li > .section {
     /* the stock listing is a 3-column grid built for the article width */
-    display: block;
     padding: 0.1rem 0;
   }
 
@@ -2352,6 +2357,26 @@ body.vb-open #quartz-body .sidebar.right {
 
   .tags {
     display: none; /* no room for them at this width */
+  }
+}
+
+/* a shelf row reads as a ledger line: the date in a fixed column on the left,
+   the title beside it; a row with no date keeps the column empty */
+.sidebar.right > .page-listing .section-li > .section,
+.sidebar.right .recent-notes .section {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  column-gap: 0.6rem;
+  align-items: baseline;
+
+  /* Recent Notes renders the title before the date: both pinned to row 1 */
+  > .meta {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+  }
+
+  > .desc {
+    grid-area: 1 / 2;
   }
 }
 
