@@ -2401,7 +2401,10 @@
   // room's colour, so a short note does not end on an empty page. Plain links,
   // not a.internal: a card already shows what a hover preview would.
   async function initNearby() {
-    const article = document.querySelector(".center > article.popover-hint")
+    // a folder page wraps its article, with the shelf, in div.popover-hint
+    const article = document.querySelector(
+      ".center > article.popover-hint, .center > .popover-hint > article",
+    )
     const me = document.body.dataset.slug || ""
     const skip = me === "index" || me.startsWith("tags/")
     if (!article || skip || article.dataset.vbNear) return
