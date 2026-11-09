@@ -99,6 +99,17 @@
     return a
   }
 
+  // [[Library]] reaches the index as "library", while a folder note's slug is
+  // library/index (markdownLinkResolution: shortest), so the link pointed at
+  // nothing. Point such links at the folder note; an entry that changes is
+  // replaced, never edited, since the index is shared with search.
+  function fileLinks(data) {
+    const fix = (l) => (!data[l] && data[l + "/index"] ? l + "/index" : l)
+    for (const [s, v] of Object.entries(data))
+      if ((v.links || []).some((l) => fix(l) !== l)) data[s] = { ...v, links: v.links.map(fix) }
+    return data
+  }
+
   // canvas has no ellipsis of its own — a title long enough to collide with
   // its neighbour is cut here, and the hover tip still carries the whole thing
   const short = (s) => (s.length > 22 ? s.slice(0, 21) + "…" : s)
@@ -265,7 +276,7 @@
     } catch (e) {
       /* no published assets */
     }
-    return data
+    return fileLinks(data)
   }
 
   // Task 2 storage key: normalize a URL pathname or a contentIndex slug to the
@@ -571,7 +582,9 @@
     const links = []
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
-        if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l]])
+        // a link to the note's own folder note (categories: [[Library]] on a
+        // book in Library) is that folder edge, drawn and weighed as one
+        if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l], l === folderNoteOf(slug)])
       }
     }
     // folder edges (marked) light on hover only: as resting threads, ~300 of

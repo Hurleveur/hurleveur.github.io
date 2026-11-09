@@ -88,6 +88,8 @@ test("side brain", async (t) => {
     // to its room is drawn at rest, and the folder notes are pulled in for it
     assert.match(js, /near\.add\(f\)\n\s*chain\.add\(f\)/)
     assert.match(js, /if \(folderEdge && !filed\) return/)
+    // a note's own link to its folder note must not draw at rest everywhere
+    assert.match(js, /links\.push\(\[bySlug\[slug\], bySlug\[l\], l === folderNoteOf\(slug\)\]\)/)
   })
 
   await t.test("✦ off keeps the map and sends the shelf to the page foot", () => {
@@ -223,6 +225,18 @@ test("a note's nearby doors", async (t) => {
     )
     assert.match(home, /doorCards\(data, shuffle\(\[\.\.\.pool\]\)\.slice\(0, 3\)/)
     assert.match(home, /nav \? nav\.replaceWith\(fresh\) : card\.after\(fresh\)/)
+  })
+
+  await t.test("a link to a folder's name reaches its folder note", () => {
+    const fileLinks = new Function(`${src}; return fileLinks`)() as (
+      d: Record<string, { links?: string[] }>,
+    ) => Record<string, { links?: string[] }>
+    const shared = { links: ["library", "friends/meaning", "nowhere"] }
+    const out = fileLinks({ note: shared, "library/index": {}, "friends/meaning": {} })
+    assert.deepStrictEqual(out.note.links, ["library/index", "friends/meaning", "nowhere"])
+    // the page's own index object is shared with search: never edited in place
+    assert.deepStrictEqual(shared.links, ["library", "friends/meaning", "nowhere"])
+    assert.match(js, /return fileLinks\(data\)/)
   })
 
   await t.test("runs on every note page, after anything fetched lands", () => {
