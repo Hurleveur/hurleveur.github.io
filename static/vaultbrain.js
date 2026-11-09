@@ -76,14 +76,7 @@
     const shelf = me.slice(0, me.lastIndexOf("/") + 1)
     const slugs = Object.keys(data)
     const ok = (s) => s !== me && s !== "index" && data[s] && !s.startsWith("tags/")
-    const shuffled = (list) => {
-      const a = [...new Set(list.filter(ok))]
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(rand() * (i + 1))
-        ;[a[i], a[j]] = [a[j], a[i]]
-      }
-      return a
-    }
+    const shuffled = (list) => shuffle([...new Set(list.filter(ok))], rand)
     const picks = [
       ...shuffled(data[me]?.links || []),
       ...shuffled(slugs.filter((s) => (data[s].links || []).includes(me))),
@@ -95,6 +88,26 @@
       ),
     ]
     return [...new Set(picks)].slice(0, max)
+  }
+
+  // Fisher-Yates, in place; rand is injectable so tests can pin the order
+  function shuffle(a, rand = Math.random) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+
+  // [[Library]] reaches the index as "library", while a folder note's slug is
+  // library/index (markdownLinkResolution: shortest), so the link pointed at
+  // nothing. Point such links at the folder note; an entry that changes is
+  // replaced, never edited, since the index is shared with search.
+  function fileLinks(data) {
+    const fix = (l) => (!data[l] && data[l + "/index"] ? l + "/index" : l)
+    for (const [s, v] of Object.entries(data))
+      if ((v.links || []).some((l) => fix(l) !== l)) data[s] = { ...v, links: v.links.map(fix) }
+    return data
   }
 
   // canvas has no ellipsis of its own — a title long enough to collide with
@@ -263,7 +276,7 @@
     } catch (e) {
       /* no published assets */
     }
-    return data
+    return fileLinks(data)
   }
 
   // Task 2 storage key: normalize a URL pathname or a contentIndex slug to the
@@ -389,6 +402,9 @@
     // to, and what links back. The whole vault stays one button away (⤢ opens
     // the same observatory the home rotunda does).
     let local = false
+    // this page and the folder notes above it: their folder edges are drawn at
+    // rest in a neighbourhood, so a page shows where it is filed
+    const chain = new Set([me])
     if (side) {
       const near = new Set()
       if (data[me]) {
@@ -400,6 +416,16 @@
       // would otherwise be a single star in an empty panel
       const folderOf = me.endsWith("/index") ? me.slice(0, -6) : near.size < 2 && me.includes("/") ? me.split("/")[0] : null
       if (folderOf) for (const t of slugs) if (t.startsWith(folderOf + "/")) near.add(t)
+      if (data[me]) {
+        const up = me.split("/").slice(0, -1)
+        if (me.endsWith("/index")) up.pop()
+        for (; up.length; up.pop()) {
+          const f = up.join("/") + "/index"
+          if (!data[f]) continue
+          near.add(f)
+          chain.add(f)
+        }
+      }
       if (near.size > 1) {
         slugs = slugs.filter((t) => near.has(t))
         local = true
@@ -556,7 +582,9 @@
     const links = []
     for (const slug of slugs) {
       for (const l of data[slug].links || []) {
-        if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l]])
+        // a link to the note's own folder note (categories: [[Library]] on a
+        // book in Library) is that folder edge, drawn and weighed as one
+        if (bySlug[l] && l !== slug) links.push([bySlug[slug], bySlug[l], l === folderNoteOf(slug)])
       }
     }
     // folder edges (marked) light on hover only: as resting threads, ~300 of
@@ -1076,10 +1104,11 @@
       // the rotunda draws no resting threads: over the painted brain they read
       // as a net, so its only lines are the hovered star's own (below)
       ;(mini ? [] : links).forEach(([a, b, folderEdge]) => {
-        if (folderEdge) return
+        const filed = local && chain.has(a.slug) && chain.has(b.slug)
+        if (folderEdge && !filed) return
         // in a neighbourhood the page's own threads are the point: each one
         // takes the colour of the room at its far end
-        const mine = local && (a.you || b.you)
+        const mine = local && (a.you || b.you || filed)
         ctx.globalAlpha = (mine ? 0.6 : 1) * (1 - 0.85 * (hlMax - linkLit(a, b)))
         ctx.strokeStyle = mine ? (a.you ? b : a).color : sky.link
         ctx.lineWidth = 1
@@ -2171,10 +2200,10 @@
     }
   }
 
-  // whoami card: "surprise me" link to a random published note, from the same
-  // contentIndex.json as the shelf/graph. Excludes empty notes (folder/tag
-  // index pages have no content) and anything tagged #unfinished. Reroll
-  // swaps the link without a page nav.
+  // whoami card: three random published notes as door cards right under it,
+  // from the same contentIndex.json as the shelf/graph. Excludes empty notes
+  // (folder/tag index pages have no content), home, tag pages and anything
+  // tagged #unfinished. The dice redraws the three without a page nav.
   async function initRandomNote() {
     const el = document.getElementById("whoami-random")
     if (!el || el.dataset.vbDone) return
@@ -2186,28 +2215,42 @@
     } catch (e) {
       return
     }
-    const pool = Object.entries(data).filter(
-      ([, v]) => v.content && v.content.trim() && !(v.tags || []).includes("unfinished"),
-    )
-    if (!pool.length) return
+    const pool = Object.keys(data).filter((s) => {
+      const v = data[s]
+      return (
+        s !== "index" &&
+        !s.startsWith("tags/") &&
+        v.content &&
+        v.content.trim() &&
+        !(v.tags || []).includes("unfinished")
+      )
+    })
+    const card = el.closest(".whoami-card")
+    if (!pool.length || !card) return
 
+    let nav
     const render = () => {
-      const [slug, v] = pool[Math.floor(Math.random() * pool.length)]
-      el.replaceChildren()
-      const a = document.createElement("a")
-      a.href = "/" + slug
-      a.textContent = v.title || slug
-      const dice = document.createElement("button")
-      dice.type = "button"
-      dice.className = "whoami-reroll"
-      dice.setAttribute("aria-label", "Show another random note")
-      dice.textContent = "🎲"
-      dice.addEventListener("click", (e) => {
-        e.preventDefault()
-        render()
-      })
-      el.append("Random note: ", a, dice)
+      const fresh = doorCards(data, shuffle([...pool]).slice(0, 3), "index", "Random notes")
+      fresh.classList.add("whoami-picks")
+      // the heading moves into the fresh row; a keyboard reroll keeps its focus
+      const focused = document.activeElement === dice
+      fresh.prepend(head)
+      nav ? nav.replaceWith(fresh) : card.after(fresh)
+      nav = fresh
+      if (focused) dice.focus()
     }
+    const dice = document.createElement("button")
+    dice.type = "button"
+    dice.className = "whoami-reroll"
+    dice.setAttribute("aria-label", "Show three other random notes")
+    dice.textContent = "🎲"
+    dice.addEventListener("click", (e) => {
+      e.preventDefault()
+      render()
+    })
+    const head = document.createElement("div")
+    head.className = "whoami-picks-head"
+    head.append("Wander", dice)
     render()
   }
 
@@ -2417,13 +2460,19 @@
     }
     const picks = data[me] ? nearby(data, me, 3) : []
     if (!picks.length || !article.isConnected) return
+    article.after(doorCards(data, picks, me, "Nearby notes"))
+  }
+
+  // the "Walk on" row: one card per slug, lintelled in its room's colour.
+  // me is the page the reader stands on, which decides "next room"/"the room".
+  function doorCards(data, picks, me, label) {
     const seen = loadSeen()
     // the index escapes its text (-&gt;); textContent below must get the characters
     const plain = (html) =>
       new DOMParser().parseFromString(html || "", "text/html").body.textContent
     const nav = document.createElement("nav")
     nav.className = "vb-nearby"
-    nav.setAttribute("aria-label", "Nearby notes")
+    nav.setAttribute("aria-label", label)
     for (const s of picks) {
       const room = s.includes("/") ? s.split("/")[0] : ""
       const a = document.createElement("a")
@@ -2448,7 +2497,7 @@
       part("vb-card-desc", plain(data[s].description))
       nav.append(a)
     }
-    article.after(nav)
+    return nav
   }
 
   // explorer width: drag grip on the sidebar's right edge sets --sidebar-w
