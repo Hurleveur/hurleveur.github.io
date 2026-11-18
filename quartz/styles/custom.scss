@@ -494,12 +494,13 @@ h1.article-title {
   }
 }
 
-/* PauseAI: the mark alone, beside the "why does this exist" paragraph, linking
-   to pauseai.be. It carried a label and a protest date
-   until the protest happened; the logo is what is left, muted until hovered.
+/* PauseAI: the mark and its name, beside the "why does this exist" paragraph,
+   linking to pauseai.be. It carried a protest date until the protest
+   happened; the logo and a caption are what is left, a little muted until hovered.
    The row exists only to give the badge a right edge to hang off without
    pushing .vault-intro out of the hero's centre — hence relative + absolute.
-   Under 68rem there is no room beside the prose, so it stacks under it. */
+   Under 68rem there is no room beside the prose: it and the compendium
+   (mirrored on the left) sit side by side under it. */
 .palace-hero .intro-row {
   position: relative;
   width: 100%;
@@ -518,7 +519,7 @@ h1.article-title {
   .pauseai-badge {
     display: block;
     color: #d93d1a;
-    opacity: 0.5;
+    opacity: 0.8;
     text-decoration: none;
     transition:
       transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
@@ -526,7 +527,7 @@ h1.article-title {
 
     svg {
       display: block;
-      width: clamp(26px, 2.6vw, 34px);
+      width: clamp(32px, 3vw, 40px);
       height: auto;
       border-radius: 50%;
     }
@@ -549,13 +550,138 @@ h1.article-title {
   color: #ff6a42;
 }
 
-@media all and (max-width: 68rem) {
-  .palace-hero .intro-row {
-    flex-direction: column;
-    align-items: center;
+/* the Human Knowledge Compendium, mirroring PauseAI on the left: a side door,
+   not a room, so it stays as quiet as the badge across from it */
+.palace-hero .compendium {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.palace-hero .compendium-orb {
+  display: block;
+  opacity: 0.8;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+
+  /* crawl-links tags it a.internal; drop that chip's tint and the seen grey */
+  &.internal,
+  &.internal.vb-seen {
+    text-decoration: none;
+    font-weight: inherit;
+    background-color: transparent;
+    padding: 0;
+    line-height: inherit;
+  }
+
+  img {
+    display: block;
+    width: clamp(36px, 3.4vw, 44px);
+    height: auto;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 1px solid rgba(168, 132, 60, 0.6);
+  }
+
+  /* one render per theme, the compendium's own day and night graph */
+  .orb-night {
+    display: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+[saved-theme="dark"] .palace-hero .compendium-orb {
+  .orb-day {
+    display: none;
+  }
+
+  .orb-night {
+    display: block;
+  }
+}
+
+/* both side marks are a fixed column held off the edge, or the caption
+   (wider than the mark) runs into the window edge and clips */
+@media all and (min-width: 68rem) {
+  .palace-hero .pauseai,
+  .palace-hero .compendium {
+    width: 8.5rem;
   }
 
   .palace-hero .pauseai {
+    right: 1rem;
+  }
+
+  .palace-hero .compendium {
+    left: 1rem;
+  }
+}
+
+/* the caption under both side marks: a name in the mark's ink, a grey line */
+.palace-hero :is(.compendium-orb, .pauseai-badge) {
+  text-align: center;
+  text-decoration: none;
+
+  svg {
+    margin: 0 auto;
+  }
+
+  .mark-title {
+    display: block;
+    margin-top: 0.4rem;
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .mark-sub {
+    display: block;
+    max-width: 7.5rem;
+    margin: 0.1rem auto 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    line-height: 1.3;
+    color: #756e5e;
+  }
+}
+
+.palace-hero .compendium-orb .mark-title {
+  color: #8a6420;
+}
+
+[saved-theme="dark"] .palace-hero {
+  .compendium-orb .mark-title {
+    color: #d9b25c;
+  }
+
+  .mark-sub {
+    color: #a49c86;
+  }
+}
+
+@media all and (max-width: 68rem) {
+  .palace-hero .intro-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    column-gap: 3rem;
+  }
+
+  .palace-hero .intro-row .vault-intro {
+    order: -1;
+  }
+
+  .palace-hero :is(.pauseai, .compendium) {
     position: static;
     transform: none;
     margin-top: 1.4rem;
@@ -1136,82 +1262,6 @@ h1.article-title {
 
 [saved-theme="dark"] .doors .sub {
   color: #a49c86;
-}
-
-/* the compendium's star map shrunk into a medallion: under the intro on a
-   desktop, the eighth door after the seven rooms on a phone */
-.compendium-orb {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 2.5rem auto 0.5rem;
-  max-width: 20rem;
-  text-align: center;
-  /* crawl-links tags it a.internal; drop that chip's tint and the seen grey */
-  &.internal,
-  &.internal.vb-seen {
-    text-decoration: none;
-    color: inherit;
-    font-weight: inherit;
-    background-color: transparent;
-    padding: 0;
-    line-height: inherit;
-  }
-
-  img {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 1px solid rgba(201, 164, 92, 0.6);
-    box-shadow: 0 0 0 5px rgba(201, 164, 92, 0.12), 0 8px 22px rgba(20, 18, 14, 0.25);
-    transition: box-shadow 0.4s ease;
-  }
-
-  /* one render per theme, the compendium's own day and night graph */
-  .orb-night {
-    display: none;
-  }
-
-  &:hover img {
-    box-shadow: 0 0 0 5px rgba(201, 164, 92, 0.3), 0 0 28px rgba(217, 166, 83, 0.45);
-  }
-
-  .orb-title {
-    margin-top: 0.5rem;
-    font-family: var(--headerFont);
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    font-size: 1rem;
-    color: var(--secondary);
-  }
-
-  .orb-sub {
-    font-style: italic;
-    font-size: 0.9rem;
-    color: #756e5e;
-  }
-}
-
-[saved-theme="dark"] .compendium-orb {
-  .orb-sub {
-    color: #a49c86;
-  }
-
-  .orb-day {
-    display: none;
-  }
-
-  .orb-night {
-    display: block;
-  }
-}
-
-@media (max-width: 640px) {
-  .compendium-orb {
-    margin-top: 0;
-    margin-bottom: 2rem;
-  }
 }
 
 /* home page is a hall, not an article — drop title/meta/graph chrome */
@@ -2329,6 +2379,7 @@ body[data-slug^="books"] {
   .spine,
   .quote-slab blockquote,
   .palace-hero .clippy,
+  .palace-hero .compendium-orb,
   .palace-hero .pauseai .pauseai-badge {
     transition: none !important;
   }

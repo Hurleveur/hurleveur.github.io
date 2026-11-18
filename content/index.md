@@ -23,6 +23,14 @@ publish: true
   <h1>A palace<br>of the mind</h1>
   <p class="latin">Everything I have learned, kept in rooms — walk in, take what serves you.</p>
   <div class="intro-row">
+    <aside class="compendium">
+      <a class="compendium-orb" href="/knowledge-compendium" data-router-ignore title="Human Knowledge Compendium">
+        <img class="orb-day" src="/static/compendium-orb-day.webp" alt="" width="44" height="44" loading="lazy" />
+        <img class="orb-night" src="/static/compendium-orb.webp" alt="" width="44" height="44" loading="lazy" />
+        <span class="mark-title">Compendium</span>
+        <span class="mark-sub">fifty plates of knowledge</span>
+      </a>
+    </aside>
     <div class="vault-intro" id="vault-intro"></div>
     <aside class="pauseai">
       <a class="pauseai-badge" href="https://pauseai.be" target="_blank" rel="noopener" title="PauseAI Belgium" aria-label="PauseAI Belgium">
@@ -31,6 +39,8 @@ publish: true
           <rect x="21" y="19" width="8" height="26" rx="2" fill="#fff" />
           <rect x="35" y="19" width="8" height="26" rx="2" fill="#fff" />
         </svg>
+        <span class="mark-title">PauseAI</span>
+        <span class="mark-sub">Belgium</span>
       </a>
     </aside>
   </div>
@@ -39,12 +49,6 @@ publish: true
     <p class="sub">one door per wing of the vault — open one to see what it holds</p>
     <div class="door-row" data-vb-doors></div>
   </section>
-  <a class="compendium-orb" href="/knowledge-compendium" data-router-ignore>
-    <img class="orb-day" src="/static/compendium-orb-day.webp" alt="" width="110" height="110" loading="lazy" />
-    <img class="orb-night" src="/static/compendium-orb.webp" alt="" width="110" height="110" loading="lazy" />
-    <span class="orb-title">The Compendium</span>
-    <span class="orb-sub">fifty plates of human knowledge, drawn as one star map</span>
-  </a>
   <div class="vault-intro" id="vault-outro"></div>
   <div class="colonnade" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
