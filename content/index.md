@@ -39,6 +39,11 @@ publish: true
     <p class="sub">one door per wing of the vault — open one to see what it holds</p>
     <div class="door-row" data-vb-doors></div>
   </section>
+  <a class="compendium-orb" href="/knowledge-compendium" data-router-ignore>
+    <img src="/static/compendium-orb.webp" alt="" width="160" height="160" loading="lazy" />
+    <span class="orb-title">The Compendium</span>
+    <span class="orb-sub">fifty plates of human knowledge, drawn as one star map</span>
+  </a>
   <div class="vault-intro" id="vault-outro"></div>
   <div class="colonnade" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span><span></span><span></span>

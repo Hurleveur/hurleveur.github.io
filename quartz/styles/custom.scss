@@ -1138,6 +1138,68 @@ h1.article-title {
   color: #a49c86;
 }
 
+/* the compendium's star map shrunk into a medallion: under the intro on a
+   desktop, the eighth door after the seven rooms on a phone */
+.compendium-orb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 2.5rem auto 0.5rem;
+  max-width: 20rem;
+  text-align: center;
+  /* crawl-links tags it a.internal; drop that chip's tint and the seen grey */
+  &.internal,
+  &.internal.vb-seen {
+    text-decoration: none;
+    color: inherit;
+    font-weight: inherit;
+    background-color: transparent;
+    padding: 0;
+    line-height: inherit;
+  }
+
+  img {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 164, 92, 0.6);
+    box-shadow: 0 0 0 6px rgba(201, 164, 92, 0.12), 0 10px 30px rgba(20, 18, 14, 0.35);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  &:hover img {
+    transform: rotate(-8deg) scale(1.04);
+    box-shadow: 0 0 0 6px rgba(201, 164, 92, 0.3), 0 0 36px rgba(217, 166, 83, 0.45);
+  }
+
+  .orb-title {
+    margin-top: 0.5rem;
+    font-family: var(--headerFont);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-size: 1rem;
+    color: var(--secondary);
+  }
+
+  .orb-sub {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #756e5e;
+  }
+}
+
+[saved-theme="dark"] .compendium-orb .orb-sub {
+  color: #a49c86;
+}
+
+@media (max-width: 640px) {
+  .compendium-orb {
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
+}
+
 /* home page is a hall, not an article — drop title/meta/graph chrome */
 body[data-slug="index"] {
   .sidebar.right,

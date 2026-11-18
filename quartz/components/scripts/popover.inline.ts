@@ -134,7 +134,8 @@ function clearActivePopover() {
 // vaultbrain.js build their links after "nav", so a scan of the page at nav
 // time missed them. The frieze's room names are left out on purpose: they are
 // doors, not references. Links inside an open popover don't open another one.
-const POPOVER_LINKS = "a.internal, .explorer a"
+// the compendium medallion leads to a raw html page, nothing to preview
+const POPOVER_LINKS = "a.internal:not(.compendium-orb), .explorer a"
 function linkOf(t: EventTarget | null): HTMLElement | SVGElement | null {
   if (!(t instanceof Element) || t.closest(".popover")) return null
   return t.closest<HTMLElement | SVGElement>(POPOVER_LINKS)
