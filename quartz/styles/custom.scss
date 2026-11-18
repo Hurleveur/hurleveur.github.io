@@ -610,9 +610,14 @@ h1.article-title {
 /* both side marks are a fixed column held off the edge, or the caption
    (wider than the mark) runs into the window edge and clips */
 @media all and (min-width: 68rem) {
+  /* hung at the foot of the intro, not its middle: beside the opening
+     lines they compete with the welcome */
   .palace-hero .pauseai,
   .palace-hero .compendium {
     width: 8.5rem;
+    top: auto;
+    bottom: 0;
+    transform: none;
   }
 
   .palace-hero .pauseai {
