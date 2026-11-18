@@ -110,6 +110,21 @@
   }
 }
 
+// a title taller than its section's row would overlap the next one
+// (tocRail.inline.ts sets this): each row keeps its title's height and the
+// list scrolls, so the ticks give up their exact place in the article
+.toc-rail.toc-rail-dense {
+  .toc-rail-list {
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .toc-rail-item {
+    flex-basis: auto;
+    flex-shrink: 0;
+  }
+}
+
 .toc-rail:hover .toc-rail-item > a,
 .toc-rail:focus-within .toc-rail-item > a {
   opacity: 1;

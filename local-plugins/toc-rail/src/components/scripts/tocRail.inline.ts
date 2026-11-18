@@ -38,6 +38,14 @@ function layoutRail(rail: HTMLElement) {
     const end = tops[i + 1] ?? docH;
     row.style.flexGrow = String(Math.max(0, end - (tops[i] ?? 0)) / docH);
   });
+  // more titles than the margin holds (a book-length note): measured without
+  // the dense rule, since that rule is what would hide the overlap
+  rail.classList.remove("toc-rail-dense");
+  const crowded = rows.some((row) => {
+    const a = row.firstElementChild as HTMLElement | null;
+    return !!a && a.offsetHeight > row.offsetHeight + 1;
+  });
+  rail.classList.toggle("toc-rail-dense", crowded);
   return tops;
 }
 
