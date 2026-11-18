@@ -1,4 +1,4 @@
-When we implement a feature, make sure the local server is running and open each changed page in my browser (`xdg-open http://localhost:8050/<page>`, unsandboxed) once per session — a page already opened stays open and I refresh it myself, so only a page not yet opened gets a new tab; don't test it with playwright yourself, I'll handle manual verifications.
+When we implement a feature, make sure the local server is running so the global "show the work" rule opens it at `http://localhost:8050/<page>`; don't test it with playwright yourself, I'll handle manual verifications.
 
 - The dev server always runs on port 8050: `npm run serve` (or `npm run tune` for `/?tune`), never Quartz's default 8080.
 
