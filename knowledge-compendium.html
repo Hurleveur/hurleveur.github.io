@@ -46,7 +46,8 @@
     background: rgba(12,13,15,0.96);
     backdrop-filter: blur(4px);
     border-bottom: 1px solid var(--line);
-    padding: 0.6rem 1.2rem 0.7rem;
+    /* left clears the site's fixed ☰ (assetnav.js: 1rem + 2.4rem) */
+    padding: 0.6rem 1.2rem 0.7rem 4rem;
   }
   nav .title {
     display: flex;
@@ -563,7 +564,7 @@
 
   @media (max-width: 720px) {
     html { scroll-padding-top: 5rem; }
-    nav { padding: 0.5rem 0.75rem 0.6rem; }
+    nav { padding: 0.5rem 0.75rem 0.6rem 3.8rem; }
     nav .title { flex-wrap: wrap; row-gap: 0.15rem; }
     nav .title > span:not(#prog) { display: none; }  /* subtitle dropped; progress stays */
     nav .title h1 { font-size: 0.8rem; letter-spacing: 0.12em; }
@@ -690,18 +691,28 @@
   body.day section:hover { box-shadow: 0 12px 30px rgba(60,48,24,0.14); }
   body.day .crail a:hover { color: #211d16; }
   body.day .step { background: rgba(243,239,230,0.9); }
-  /* the graph is a deliberately dark cosmic star-map — keep it (and its
-     overlay panels) dark in both themes; the canvas draws its own colors */
+  /* by day the star map becomes a notebook page: sepia ink on parchment,
+     the stars watercolour orbs (draw() reads body.day for the canvas) */
   body.day #graphview {
-    --ink-2:#101216; --line:#23262c; --line-soft:#1a1d22;
-    --text:#b8bcc4; --text-dim:#6f747e; --text-faint:#4a4e57;
-    --accent:#d9a653; --accent-dim:#8a6c3a; --link:#9fb6c9;
+    background:
+      radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgba(120,88,40,0.22) 100%),
+      radial-gradient(circle at 22% 14%, rgba(255,250,235,0.65) 0%, transparent 45%),
+      repeating-linear-gradient(90deg, transparent 0 3px, rgba(110,80,40,0.018) 3px 4px),
+      linear-gradient(180deg, #f1e6cc 0%, #e6d6b3 100%);
   }
+  body.day #card { background: rgba(247,240,224,0.97); box-shadow: 0 12px 34px rgba(80,60,30,0.25); }
+  body.day #card h3, body.day #side .st { color: #2a2218; }
+  body.day #side {
+    background: linear-gradient(270deg, rgba(238,226,198,0.96) 0%, rgba(238,226,198,0.78) 75%, transparent 100%);
+    border-left-color: rgba(140,110,60,0.25);
+  }
+  body.day #side .se:hover { background: rgba(120,90,40,0.06); }
+  body.day #gctrl button { background: rgba(246,238,220,0.85); }
 
 </style>
 </head>
 <body>
-<script>try{var m=localStorage.getItem("hkc-theme")||((window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)?"day":"night");if(m==="day")document.body.classList.add("day");}catch(e){}</script>
+<script>try{if(localStorage.getItem("theme")!=="dark")document.body.classList.add("day");}catch(e){document.body.classList.add("day");}</script>
 
 <nav>
   <div class="title">
@@ -2265,10 +2276,12 @@
 
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
+    var day = document.body.classList.contains("day");
+    function edgeInk(a) { return day ? "rgba(95,70,40," + Math.min(a * 2.2, 1) + ")" : "rgba(120,160,200," + a + ")"; }
 
     stars.forEach(function (s) {
       var a = 0.25 + 0.45 * Math.abs(Math.sin(t * 0.001 * s.sp + s.tw));
-      ctx.fillStyle = "rgba(200,215,235," + a * 0.5 + ")";
+      ctx.fillStyle = day ? "rgba(110,80,40," + a * 0.22 + ")" : "rgba(200,215,235," + a * 0.5 + ")";
       ctx.fillRect(s.x, s.y, s.s, s.s);
     });
 
@@ -2294,14 +2307,16 @@
         if (i === 0) ctx.moveTo(ex, ey); else ctx.lineTo(ex, ey);
       });
       ctx.closePath();
-      ctx.fillStyle = "rgba(" + dm.col + ",0.028)";
+      ctx.fillStyle = "rgba(" + dm.col + "," + (day ? 0.08 : 0.028) + ")";
       ctx.fill();
-      ctx.strokeStyle = "rgba(" + dm.col + ",0.08)";
+      ctx.strokeStyle = day ? "rgba(90,66,36,0.3)" : "rgba(" + dm.col + ",0.08)";
       ctx.lineWidth = 1;
+      if (day) ctx.setLineDash([5, 4]);
       ctx.stroke();
-      ctx.font = "9px " + MONO;
+      ctx.setLineDash([]);
+      ctx.font = day ? "italic 14px " + SERIF : "9px " + MONO;
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(" + dm.col + ",0.4)";
+      ctx.fillStyle = day ? "rgba(" + ink(dm.col, 0.5) + ",0.85)" : "rgba(" + dm.col + ",0.4)";
       ctx.fillText(dm.name.toUpperCase(), hx, topY - 22);
     });
     ctx.globalAlpha = 1;
@@ -2315,31 +2330,31 @@
       ctx.lineTo(pb.x, pb.y);
       if (hot) {
         var g = ctx.createLinearGradient(pa.x, pa.y, pb.x, pb.y);
-        g.addColorStop(0, "rgba(217,166,83,0.75)");
-        g.addColorStop(1, "rgba(125,200,230,0.75)");
+        g.addColorStop(0, day ? "rgba(156,90,20,0.85)" : "rgba(217,166,83,0.75)");
+        g.addColorStop(1, day ? "rgba(40,95,140,0.85)" : "rgba(125,200,230,0.75)");
         ctx.strokeStyle = g;
         ctx.lineWidth = 1.4;
       } else if (focusNode) {
-        ctx.strokeStyle = "rgba(120,160,200,0.02)";
+        ctx.strokeStyle = edgeInk(0.02);
         ctx.lineWidth = 0.5;
       } else if (frontier && !!e.a.read !== !!e.b.read) {
-        ctx.strokeStyle = "rgba(217,166,83,0.3)";       /* frontier edge: read → unread */
+        ctx.strokeStyle = day ? "rgba(156,107,31,0.55)" : "rgba(217,166,83,0.3)";       /* frontier edge: read → unread */
         ctx.lineWidth = 1;
       } else if (frontier && e.a.read && e.b.read) {
-        ctx.strokeStyle = "rgba(120,160,200,0.12)";
+        ctx.strokeStyle = edgeInk(0.12);
         ctx.lineWidth = 0.7;
       } else if (frontier) {
-        ctx.strokeStyle = "rgba(120,160,200,0.03)";
+        ctx.strokeStyle = edgeInk(0.03);
         ctx.lineWidth = 0.5;
       } else {
-        ctx.strokeStyle = "rgba(120,160,200,0.06)";
+        ctx.strokeStyle = edgeInk(0.06);
         ctx.lineWidth = 0.6;
       }
       ctx.stroke();
       if (hot && e.labels.length) {
         var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
         ctx.font = "italic 9px " + MONO;
-        ctx.fillStyle = "rgba(180,195,215,0.85)";
+        ctx.fillStyle = day ? "rgba(70,52,30,0.9)" : "rgba(180,195,215,0.85)";
         ctx.textAlign = "center";
         ctx.fillText(e.labels[0], mx, my - 5);
       }
@@ -2356,7 +2371,7 @@
 
       var glowR = n.r * (hot ? 5 : 3);
       var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-      grad.addColorStop(0, "rgba(" + col + "," + (hot ? 0.55 : 0.3) + ")");
+      grad.addColorStop(0, "rgba(" + col + "," + (hot ? (day ? 0.4 : 0.55) : (day ? 0.22 : 0.3)) + ")");
       grad.addColorStop(1, "rgba(" + col + ",0)");
       ctx.beginPath();
       ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
@@ -2365,30 +2380,43 @@
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = hot ? "#f0d9a8" : "rgba(" + col + "," + (linkedToHover ? 1 : 0.85) + ")";
+      ctx.fillStyle = hot ? (day ? "#c98a2c" : "#f0d9a8")
+        : "rgba(" + (day ? ink(col, 0.82) : col) + "," + (linkedToHover ? 1 : 0.85) + ")";
       ctx.fill();
+      if (day) {
+        ctx.strokeStyle = "rgba(60,42,22,0.6)";   /* ink outline */
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
       if (n.read) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, n.r + 3.5, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(217,166,83," + (hot ? 0.85 : 0.4) + ")";
+        ctx.strokeStyle = (day ? "rgba(156,107,31," : "rgba(217,166,83,") + (hot ? 0.85 : 0.4) + ")";
         ctx.lineWidth = 1;
         ctx.stroke();
       }
       ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(n.r * 0.4, 1.2), 0, Math.PI * 2);
+      /* by day the white core slides up-left: a lit sphere, not a star */
+      if (day) ctx.arc(p.x - n.r * 0.3, p.y - n.r * 0.3, Math.max(n.r * 0.32, 1), 0, Math.PI * 2);
+      else ctx.arc(p.x, p.y, Math.max(n.r * 0.4, 1.2), 0, Math.PI * 2);
       ctx.fillStyle = "rgba(255,255,255," + (hot ? 0.95 : 0.55 + n.t * 0.3) + ")";
       ctx.fill();
 
       if (n.pinned) {
         ctx.beginPath();
         ctx.arc(p.x + n.r + 4, p.y - n.r - 4, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(230,235,245,0.8)";
+        ctx.fillStyle = day ? "rgba(60,42,22,0.8)" : "rgba(230,235,245,0.8)";
         ctx.fill();
       }
 
       ctx.font = (hot ? "600 " : "") + "8px " + MONO;
       ctx.textAlign = "center";
-      ctx.fillStyle = hot ? "#e8d5ae"
+      ctx.fillStyle = day
+        ? (hot ? "#7a4a12"
+          : linkedToHover ? "rgba(40,30,18,0.95)"
+          : (frontier && n.frontier) ? "rgba(140,90,20,0.95)"
+          : "rgba(70,55,35," + (0.55 + n.t * 0.4) + ")")
+        : hot ? "#e8d5ae"
         : linkedToHover ? "rgba(210,216,226,0.95)"
         : (frontier && n.frontier) ? "rgba(232,213,174,0.95)"
         : "rgba(175,182,194," + (0.5 + n.t * 0.4) + ")";
@@ -2402,6 +2430,9 @@
   }
 
   var MONO = '"Berkeley Mono","IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace';
+  var SERIF = '"Cormorant Garamond","EB Garamond",Georgia,serif';
+  /* "r,g,b" scaled toward black: watercolour pigment reads deeper than starlight */
+  function ink(col, k) { return col.split(",").map(function (v) { return Math.round(v * k); }).join(","); }
 
   function loop(t) {
     if (!running) return;
@@ -2948,7 +2979,9 @@
   }
 
   /* ── day / night theme toggle ── */
-  var THEME_KEY = "hkc-theme";
+  // the site's own key and default (darkmode fork: "light" unless the visitor
+  // chose "dark"), so the compendium opens in whatever theme the site is in
+  var THEME_KEY = "theme";
   var btnTheme = document.getElementById("btn-theme");
   function applyTheme(mode) {
     var day = mode === "day";
@@ -2957,14 +2990,11 @@
   }
   var savedTheme = null;
   try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
-  if (!savedTheme) {
-    savedTheme = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "day" : "night";
-  }
-  applyTheme(savedTheme);
+  applyTheme(savedTheme === "dark" ? "night" : "day");
   if (btnTheme) btnTheme.addEventListener("click", function () {
     var day = !document.body.classList.contains("day");
     applyTheme(day ? "day" : "night");
-    try { localStorage.setItem(THEME_KEY, day ? "day" : "night"); } catch (e) {}
+    try { localStorage.setItem(THEME_KEY, day ? "light" : "dark"); } catch (e) {}
     this.blur();
   });
 
