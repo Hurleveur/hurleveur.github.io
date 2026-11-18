@@ -494,25 +494,45 @@ h1.article-title {
   }
 }
 
-/* PauseAI: the mark and its name, beside the "why does this exist" paragraph,
-   linking to pauseai.be. It carried a protest date until the protest
-   happened; the logo and a caption are what is left, a little muted until hovered.
-   The row exists only to give the badge a right edge to hang off without
-   pushing .vault-intro out of the hero's centre — hence relative + absolute.
-   Under 68rem there is no room beside the prose: it and the compendium
-   (mirrored on the left) sit side by side under it. */
-.palace-hero .intro-row {
-  position: relative;
-  width: 100%;
+/* the colonnade between two side marks: the Human Knowledge Compendium on
+   its left, PauseAI on its right. Each mark is a fixed column so the bars
+   stay centred whatever the captions say. */
+.palace-hero .colonnade-row {
+  margin-top: 2.6rem;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: clamp(1.2rem, 5vw, 4rem);
+
+  .colonnade {
+    margin: 0;
+  }
+
+  > aside {
+    width: 8.5rem;
+    flex: none;
+  }
 }
 
+/* two 8.5rem columns and the bars come to 406px, wider than a phone */
+@media (max-width: 640px) {
+  .palace-hero .colonnade-row {
+    gap: 0.8rem;
+
+    > aside {
+      width: 6.5rem;
+    }
+
+    .colonnade {
+      gap: 0.6rem;
+    }
+  }
+}
+
+/* PauseAI: the mark and its name, linking to pauseai.be. It carried a
+   protest date until the protest happened; the logo and a caption are what
+   is left, a little muted until hovered. */
 .palace-hero .pauseai {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   justify-content: center;
 
@@ -550,15 +570,8 @@ h1.article-title {
   color: #ff6a42;
 }
 
-/* the Human Knowledge Compendium, mirroring PauseAI on the left: a side door,
-   not a room, so it stays as quiet as the badge across from it */
-.palace-hero .compendium {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
+/* the Human Knowledge Compendium, mirroring PauseAI: a side door, not a
+   room, so it stays as quiet as the badge across from it */
 .palace-hero .compendium-orb {
   display: block;
   opacity: 0.8;
@@ -607,28 +620,6 @@ h1.article-title {
   }
 }
 
-/* both side marks are a fixed column held off the edge, or the caption
-   (wider than the mark) runs into the window edge and clips */
-@media all and (min-width: 68rem) {
-  /* hung at the foot of the intro, not its middle: beside the opening
-     lines they compete with the welcome */
-  .palace-hero .pauseai,
-  .palace-hero .compendium {
-    width: 8.5rem;
-    top: auto;
-    bottom: 0;
-    transform: none;
-  }
-
-  .palace-hero .pauseai {
-    right: 1rem;
-  }
-
-  .palace-hero .compendium {
-    left: 1rem;
-  }
-}
-
 /* the caption under both side marks: a name in the mark's ink, a grey line */
 .palace-hero :is(.compendium-orb, .pauseai-badge) {
   text-align: center;
@@ -670,26 +661,6 @@ h1.article-title {
 
   .mark-sub {
     color: #a49c86;
-  }
-}
-
-@media all and (max-width: 68rem) {
-  .palace-hero .intro-row {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-    column-gap: 3rem;
-  }
-
-  .palace-hero .intro-row .vault-intro {
-    order: -1;
-  }
-
-  .palace-hero :is(.pauseai, .compendium) {
-    position: static;
-    transform: none;
-    margin-top: 1.4rem;
   }
 }
 

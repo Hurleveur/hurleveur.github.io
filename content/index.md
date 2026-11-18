@@ -22,7 +22,14 @@ publish: true
   <p class="eyebrow">Nosce te ipsum</p>
   <h1>A palace<br>of the mind</h1>
   <p class="latin">Everything I have learned, kept in rooms — walk in, take what serves you.</p>
-  <div class="intro-row">
+  <div class="vault-intro" id="vault-intro"></div>
+  <section class="doors" hidden>
+    <h2>The rooms</h2>
+    <p class="sub">one door per wing of the vault — open one to see what it holds</p>
+    <div class="door-row" data-vb-doors></div>
+  </section>
+  <div class="vault-intro" id="vault-outro"></div>
+  <div class="colonnade-row">
     <aside class="compendium">
       <a class="compendium-orb" href="/knowledge-compendium" data-router-ignore title="Human Knowledge Compendium">
         <img class="orb-day" src="/static/compendium-orb-day.webp" alt="" width="44" height="44" loading="lazy" />
@@ -31,7 +38,9 @@ publish: true
         <span class="mark-sub">fifty plates of knowledge</span>
       </a>
     </aside>
-    <div class="vault-intro" id="vault-intro"></div>
+    <div class="colonnade" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
     <aside class="pauseai">
       <a class="pauseai-badge" href="https://pauseai.be" target="_blank" rel="noopener" title="PauseAI Belgium" aria-label="PauseAI Belgium">
         <svg viewBox="0 0 64 64" aria-hidden="true">
@@ -43,15 +52,6 @@ publish: true
         <span class="mark-sub">Belgium</span>
       </a>
     </aside>
-  </div>
-  <section class="doors" hidden>
-    <h2>The rooms</h2>
-    <p class="sub">one door per wing of the vault — open one to see what it holds</p>
-    <div class="door-row" data-vb-doors></div>
-  </section>
-  <div class="vault-intro" id="vault-outro"></div>
-  <div class="colonnade" aria-hidden="true">
-    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
   </div>
   <div class="quote-slab">
     <blockquote id="rotating-quote">How others treat you is not a reflection of who you are. How you treat others is.</blockquote>
