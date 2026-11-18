@@ -40,7 +40,8 @@ publish: true
     <div class="door-row" data-vb-doors></div>
   </section>
   <a class="compendium-orb" href="/knowledge-compendium" data-router-ignore>
-    <img src="/static/compendium-orb.webp" alt="" width="160" height="160" loading="lazy" />
+    <img class="orb-day" src="/static/compendium-orb-day.webp" alt="" width="110" height="110" loading="lazy" />
+    <img class="orb-night" src="/static/compendium-orb.webp" alt="" width="110" height="110" loading="lazy" />
     <span class="orb-title">The Compendium</span>
     <span class="orb-sub">fifty plates of human knowledge, drawn as one star map</span>
   </a>
