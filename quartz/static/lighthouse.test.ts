@@ -39,6 +39,16 @@ test("lighthouse", async (t) => {
     assert.match(js, /wrap\.removeEventListener\(ev, wake\)/)
   })
 
+  await t.test("reduced motion repaints after every resize", () => {
+    // no loop runs there, so wake() is a no-op: the observer's first call
+    // cleared the canvas and the brain stayed blank for those visitors
+    assert.match(js, /new ResizeObserver\(\(\) => \{\s*size\(\)\s*if \(reduceMotion\) settle\(\)/)
+    assert.match(
+      js,
+      /const settle = \(\) => \{\s*for \(let i = 0; i < 300; i\+\+\) step\(\)\s*draw\(\)/,
+    )
+  })
+
   await t.test("a slow device takes one sim step a frame, not a catch-up burst", () => {
     assert.match(js, /acc = Math\.min\(acc \+ dt, 1\)/)
   })

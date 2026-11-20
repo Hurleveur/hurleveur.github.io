@@ -1421,7 +1421,18 @@
     }
     // observe the wrapper, not the window: the explorer toggle resizes the
     // grid column without firing a window resize, and the sim must follow
-    const ro = new ResizeObserver(size)
+    // reduced motion has no frame loop: the sim settles in one go and draws
+    // once, at start and on every resize, since size() clears the canvas and
+    // wake() only restarts a loop that ran (the first observe fired, so the
+    // brain stayed blank for those visitors)
+    const settle = () => {
+      for (let i = 0; i < 300; i++) step()
+      draw()
+    }
+    const ro = new ResizeObserver(() => {
+      size()
+      if (reduceMotion) settle()
+    })
     ro.observe(wrap)
 
     const io = new IntersectionObserver(([e]) => {
@@ -1436,8 +1447,8 @@
 
     size()
     initPositions()
-    if (reduceMotion) for (let i = 0; i < 300; i++) step()
-    draw()
+    if (reduceMotion) settle()
+    else draw()
 
     cleanup = () => {
       cancelAnimationFrame(raf)
