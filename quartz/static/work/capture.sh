@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Refreshes the site captures on the Work room's cards (Work/Work.md in the
 # vault): one 1440x900 headless screenshot per site, saved as a 1200px webp.
-# Not here: setup.webp (a generated painting), endless-sky.webp (the game's own
-# battle.jpg from endless-sky.github.io/screenshots.html) and the CSS-drawn cards.
+# Not here: endless-sky.webp (the game's own battle.jpg from
+# endless-sky.github.io/screenshots.html) and the CSS-drawn cards.
 set -euo pipefail
 cd "$(dirname "$0")"
 declare -A SITES=(
