@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Refreshes the site captures on the Work room's cards (Work/Work.md in the
 # vault): one 1440x900 headless screenshot per site, saved as a 1200px webp.
-# The painted cards (guides, office) are generated images and are not here.
+# Not here: the batman badge (from the batman repo), and the cards drawn in CSS.
 set -euo pipefail
 cd "$(dirname "$0")"
 declare -A SITES=(
@@ -10,7 +10,6 @@ declare -A SITES=(
   [cyberspace]=https://www.cyberspace.team/
   [ctf]=https://robottech.vercel.app/
   [openjarvis]=https://openjarvis.stanford.edu/
-  [batman]=https://github.com/Hurleveur/batman
 )
 tmp=$(mktemp -d)
 for name in "${!SITES[@]}"; do

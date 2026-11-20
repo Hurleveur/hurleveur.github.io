@@ -135,7 +135,7 @@ function clearActivePopover() {
 // time missed them. The frieze's room names are left out on purpose: they are
 // doors, not references. Links inside an open popover don't open another one.
 // the compendium medallion leads to a raw html page, nothing to preview
-const POPOVER_LINKS = "a.internal:not(.compendium-orb, .wcard-shot, .work-btn), .explorer a"
+const POPOVER_LINKS = "a.internal:not(.compendium-orb, .wcard-shot), .explorer a"
 function linkOf(t: EventTarget | null): HTMLElement | SVGElement | null {
   if (!(t instanceof Element) || t.closest(".popover")) return null
   return t.closest<HTMLElement | SVGElement>(POPOVER_LINKS)

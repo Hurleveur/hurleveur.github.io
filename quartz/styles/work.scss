@@ -48,15 +48,21 @@
   gap: 0.8rem 1.4rem;
   margin: 1.4rem 0 0;
 
-  .work-btn {
+  // the site's link rules (a.internal, and .vb-seen once a page was visited)
+  // strip backgrounds and grey the text; this selector has to outrank both
+  .work-showcase & a.work-btn {
     display: inline-block;
     padding: 0.6rem 1.2rem;
+    border: 1px solid var(--secondary);
     border-radius: 999px;
     background: var(--secondary);
     color: var(--light);
     font-family: var(--sans);
     font-size: 0.9rem;
+    font-weight: $semiBoldWeight;
     letter-spacing: 0.02em;
+    line-height: 1.2;
+    text-decoration: none;
     transition:
       transform 0.2s ease,
       box-shadow 0.2s ease;
@@ -66,6 +72,22 @@
       color: var(--light);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px -8px var(--secondary);
+    }
+
+    &.work-btn-ghost {
+      background: transparent;
+      color: var(--secondary);
+
+      &:hover,
+      &:focus-visible {
+        color: var(--secondary);
+        background: var(--highlight);
+      }
+    }
+
+    // Quartz's external-link arrow does not belong on a button
+    .external-icon {
+      display: none;
     }
   }
 
@@ -78,6 +100,12 @@
       color: var(--dark);
     }
   }
+}
+
+.work-more-link {
+  margin: 0.9rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.9rem;
 }
 
 // section label: small caps with a hairline running to the edge
@@ -131,6 +159,13 @@
   }
 }
 
+// outranks a.internal.vb-seen, which would grey and underline a visited card
+.work-showcase .wcard a.wcard-shot {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
 .wcard-shot {
   position: relative;
   display: block;
@@ -172,6 +207,7 @@
   background: color-mix(in srgb, var(--lightgray) 70%, var(--light));
   font-family: var(--sans);
   font-size: 0.7rem;
+  line-height: 1.2; // a.internal sets 1.4rem, which swells the address pill
   font-weight: 400;
   color: var(--darkgray);
 
@@ -290,6 +326,13 @@
   }
 }
 
+// a square emblem instead of a capture: whole, centred on a dark field
+.wcard-badge img {
+  object-fit: contain;
+  padding: 1.1rem 0;
+  background: radial-gradient(circle at 50% 45%, #1d3a5a, #0b1018 70%);
+}
+
 // cards with no site to capture get a drawn picture of the same 16:10
 .wcard-drawn {
   display: flex;
@@ -303,8 +346,6 @@
   gap: 0.55rem;
   aspect-ratio: 16 / 10;
   padding: 1rem 1.3rem;
-  margin-top: -28px; // the bar sits over it like over a capture
-  padding-top: calc(28px + 1rem);
   background:
     radial-gradient(ellipse 80% 60% at 85% 10%, rgba(83, 87, 154, 0.35), transparent 70%), #16151d;
   font-family: var(--codeFont, monospace);
