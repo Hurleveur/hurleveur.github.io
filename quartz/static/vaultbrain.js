@@ -597,8 +597,9 @@
       const standIn = hub?.hub && hub.slug === n.folder + "/"
       if (standIn && !n.hub && !folderNoteOf(n.slug)) links.push([n, hub, true])
     }
-    // a star's size is how connected it is, links and folders alike, rooms
-    // included: one scale, so the best-connected stars read biggest at a glance
+    // a star's size is how connected it is, links and folders alike: one scale,
+    // so the best-connected stars read biggest at a glance. A room has a floor
+    // on it, or a small room's star reads as one more note among its own
     const reach = new Map(nodes.map((n) => [n, new Set()]))
     for (const [a, b] of links) {
       reach.get(a).add(b)
@@ -609,6 +610,7 @@
     for (const n of nodes) {
       const k = reach.get(n).size ** 0.6
       n.r = mini ? Math.min(0.6 + k * 0.85, 11) : Math.min(1 + k * 1.7, 22) * rs
+      if (n.hub) n.r = Math.max(n.r, mini ? 7 : 14 * rs)
     }
 
     // a neighbourhood small enough to read gets every title drawn; past that
@@ -1148,10 +1150,12 @@
         // by day the halos warm to the veins' gold (see the threads), in the side
         // panel and the observatory too, so every brain is the rotunda's glass
         const gild = sky.day
+        // a room's halo keeps its own colour, the one thing gold would hide
+        const warm = gild && !n.hub
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
-        if (gild) g.addColorStop(0.45, "rgba(222,164,84,.7)")
-        g.addColorStop(1, gild ? "rgba(222,164,84,0)" : "transparent")
+        if (warm) g.addColorStop(0.45, "rgba(222,164,84,.7)")
+        g.addColorStop(1, warm ? "rgba(222,164,84,0)" : "transparent")
         ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
         // at night overlapping halos add their light, so a dense room glows
@@ -1195,6 +1199,17 @@
           ctx.lineWidth = 1.2 / view.s
           ctx.beginPath()
           ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
+          ctx.stroke()
+        }
+        // the ring alone is every folder's; a room's star also holds a drop of
+        // its own colour, never darkened or greyed, so the seven read apart
+        if (n.hub) {
+          ctx.fillStyle = n.color
+          ctx.strokeStyle = "rgba(255,250,242,.9)"
+          ctx.lineWidth = 1.2 / view.s
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, rr * 0.55, 0, 7)
+          ctx.fill()
           ctx.stroke()
         }
         ctx.globalAlpha = 1
