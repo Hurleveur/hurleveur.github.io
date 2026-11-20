@@ -2387,6 +2387,24 @@
     if (!btn._frame || btn._widget) setAudioLabel(btn)
   }
 
+  // a Work room card (Work/Work.md) says what its note's `description:` says,
+  // so the line is edited in one place; the HTML keeps a copy for the first
+  // paint. The index holds published notes only, so nothing private reaches it.
+  async function initWorkCards() {
+    const lines = document.querySelectorAll("[data-desc-of]")
+    if (!lines.length) return
+    let data
+    try {
+      data = await fetchData
+    } catch (e) {
+      return
+    }
+    lines.forEach((el) => {
+      const desc = data[el.dataset.descOf]?.description
+      if (desc) el.textContent = desc
+    })
+  }
+
   // folder pages are built from the markdown that physically sits under the
   // folder. Two things belong there and aren't: the published html/pdf assets
   // (so /guides doesn't say "0 items" while the explorer lists its pdf), and
@@ -2953,6 +2971,7 @@
       initRandomNote()
       initAudio()
       initFolderAssets()
+      initWorkCards()
       initNearby()
     })
   }
@@ -2981,5 +3000,6 @@
   initRandomNote()
   initAudio()
   initFolderAssets()
+  initWorkCards()
   initNearby()
 })()

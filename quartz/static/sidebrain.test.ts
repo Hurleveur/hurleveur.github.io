@@ -267,3 +267,12 @@ test("the note's date reaches the side panel's caption", () => {
   assert.match(meta, /<p class="note-date">\{dated\}<\/p>/)
   assert.match(js, /querySelector\("\.page-header \.note-date time"\)/)
 })
+
+test("the Work room's cards read their line from the note's description", () => {
+  // the markup lives in the vault (Work/Work.md), so nothing in the repo would
+  // notice the init falling off the nav list and the cards freezing on their copy
+  const calls = js.match(/^\s*initWorkCards\(\)$/gm) ?? []
+  assert.equal(calls.length, 2, "called on first load and on every nav")
+  assert.match(js, /querySelectorAll\("\[data-desc-of\]"\)/)
+  assert.match(js, /data\[el\.dataset\.descOf\]\?\.description/)
+})

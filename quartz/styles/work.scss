@@ -431,7 +431,8 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   }
 }
 
-// HAI OS is not out yet: a dark field with a light breathing in it, no picture
+// HAI OS is not out yet: its cockpit's look (dark teal grid, the tick dial, the
+// assistant's eyes) with nothing on screen, rather than a capture of it
 .hai-veil {
   position: relative;
   min-height: 16rem;
@@ -439,58 +440,138 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.6rem;
+  gap: 1rem;
+  padding: 2.6rem 1rem 1.4rem;
   background:
-    radial-gradient(ellipse 60% 50% at 50% 42%, rgba(201, 151, 63, 0.16), transparent 70%), #0e0d13;
+    radial-gradient(ellipse 55% 50% at 50% 50%, rgba(45, 212, 191, 0.08), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 30% 100%, rgba(201, 151, 63, 0.08), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(45, 212, 191, 0.05) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(45, 212, 191, 0.05) 0 1px, transparent 1px 44px), #0b1014;
+  font-family: var(--codeFont, monospace);
+  font-weight: 400;
 }
 
-.hai-orb {
-  width: 7rem;
+.hai-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.18);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: rgba(148, 163, 170, 0.6);
+
+  b {
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: #e6edf0;
+
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 0.6rem;
+      border-radius: 50%;
+      background: #2dd4bf;
+      vertical-align: 0.1em;
+    }
+  }
+
+  span:first-of-type {
+    color: #2dd4bf;
+  }
+}
+
+// the dial: a ring of ticks, teal running into amber, the eyes inside it
+.hai-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 8.5rem;
+  aspect-ratio: 1;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+      repeating-conic-gradient(#0b1014 0 1.6deg, transparent 1.6deg 6deg),
+      conic-gradient(
+        from 200deg,
+        transparent 0 8%,
+        rgba(45, 212, 191, 0.85) 8%,
+        rgba(45, 212, 191, 0.6) 55%,
+        rgba(201, 151, 63, 0.8) 80%,
+        transparent 80%
+      );
+    mask: radial-gradient(circle, transparent 60%, black 61% 70%, transparent 71%);
+    animation: hai-turn 40s linear infinite;
+  }
+}
+
+.hai-eyes {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(236, 214, 160, 0.9) 0,
-    rgba(201, 151, 63, 0.45) 18%,
-    rgba(201, 151, 63, 0.08) 45%,
-    transparent 70%
-  );
-  box-shadow: 0 0 60px 10px rgba(201, 151, 63, 0.16);
-  animation: hai-breathe 5s ease-in-out infinite;
-}
-
-.hai-word {
-  font-family: var(--codeFont, monospace);
-  font-size: 0.8rem;
-  letter-spacing: 0.6em;
-  color: rgba(236, 214, 160, 0.55);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.2);
 
   i {
-    display: inline-block;
-    width: 0.5em;
-    height: 1em;
-    vertical-align: -0.15em;
-    background: currentColor;
-    animation: hai-caret 1.1s steps(1) infinite;
+    display: flex;
+    gap: 0.55rem;
+
+    &::before,
+    &::after {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: #2dd4bf;
+      box-shadow: 0 0 8px #2dd4bf;
+      animation: hai-blink 6s infinite;
+    }
   }
 }
 
-@keyframes hai-breathe {
-  50% {
-    transform: scale(1.08);
-    opacity: 0.75;
+.hai-state {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  color: rgba(45, 212, 191, 0.8);
+}
+
+@keyframes hai-turn {
+  to {
+    transform: rotate(1turn);
   }
 }
 
-@keyframes hai-caret {
-  50% {
-    opacity: 0;
+@keyframes hai-blink {
+  0%,
+  46%,
+  50%,
+  100% {
+    transform: none;
+  }
+  48% {
+    transform: scaleY(0.1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hai-orb,
-  .hai-word i {
+  .hai-dial::before,
+  .hai-eyes i::before,
+  .hai-eyes i::after {
     animation: none;
   }
 }
@@ -541,7 +622,7 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   }
 }
 
-:root[saved-theme="dark"] .guide-niche {
+:root[saved-theme="dark"] .guide-niche:not(.guide-alcove) {
   background:
     linear-gradient(
       color-mix(in srgb, var(--light) 25%, transparent),
@@ -556,6 +637,8 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   z-index: 1;
   flex: 0 1 8.6em;
   min-width: 0;
+  // without it a cover with more text grows past the ratio, out of line
+  min-height: 0;
   aspect-ratio: 3 / 4.3;
   container-type: inline-size;
   display: flex;
@@ -606,27 +689,27 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
     background: repeating-linear-gradient(90deg, #f4ecdc 0 1px, #d6c8ac 1px 2px);
   }
 
-  &:nth-child(1) {
+  &:nth-of-type(1) {
     --cloth: #3f5240;
     --tilt: -2deg;
   }
-  &:nth-child(2) {
+  &:nth-of-type(2) {
     --cloth: #4d5193;
     --tilt: 1deg;
   }
-  &:nth-child(3) {
+  &:nth-of-type(3) {
     --cloth: #6e3b2c;
     --tilt: -0.5deg;
   }
-  &:nth-child(4) {
+  &:nth-of-type(4) {
     --cloth: #2f4858;
     --tilt: 1.5deg;
   }
-  &:nth-child(5) {
+  &:nth-of-type(5) {
     --cloth: #7a5c2e;
     --tilt: -1.5deg;
   }
-  &:nth-child(6) {
+  &:nth-of-type(6) {
     --cloth: #5b2f4a;
     --tilt: 1deg;
   }
@@ -641,7 +724,7 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
       0 22px 28px -14px rgba(0, 0, 0, 0.8);
   }
 
-  .wcard:hover &:nth-child(even) {
+  .wcard:hover &:nth-of-type(even) {
     transition-delay: 0.06s;
   }
 
@@ -657,7 +740,7 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
     margin-top: 0.55em;
     font-family: var(--headerFont);
     // scaled to the cover's width, so "Prompting" never breaks mid-word
-    font-size: min(1.32em, 25cqi);
+    font-size: min(1.32em, 23cqi);
     font-weight: 600;
     line-height: 1.05;
     overflow-wrap: normal;
@@ -676,7 +759,7 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   .gc-hook {
     margin-top: auto;
     font-family: var(--headerFont);
-    font-size: 0.78em;
+    font-size: 0.74em;
     font-style: italic;
     line-height: 1.25;
     color: rgba(240, 228, 208, 0.82);
@@ -701,9 +784,25 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   text-decoration: none;
 }
 
-// the Guides page: the shelf sits under the title, with room around it
-body[data-slug="work/guides/index"] .guide-niche {
-  margin: 0.5rem 0 1.4rem;
+// the Guides page: the page header already paints the dome, so the shelf
+// stands in a niche cut into the marble instead of under a second dome
+.guide-alcove {
+  margin: 0.5rem 0 1.6rem;
+  padding-top: 4.2em;
+  border-radius: 13rem 13rem 14px 14px / 6rem 6rem 14px 14px;
+  background:
+    radial-gradient(
+      ellipse 50% 60% at 50% 0%,
+      color-mix(in srgb, var(--light) 70%, white),
+      transparent 75%
+    ),
+    linear-gradient(
+      color-mix(in srgb, var(--lightgray) 45%, var(--light)),
+      color-mix(in srgb, var(--lightgray) 85%, var(--light))
+    );
+  box-shadow:
+    inset 0 14px 30px -12px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px color-mix(in srgb, var(--gray) 25%, transparent);
 
   @media (max-width: 600px) {
     flex-wrap: wrap;
@@ -720,8 +819,21 @@ body[data-slug="work/guides/index"] .guide-niche {
   }
 }
 
-.guide-shelf-caption {
-  margin: 0 0 1.6rem;
+:root[saved-theme="dark"] .guide-alcove {
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 0%, rgba(240, 228, 208, 0.08), transparent 75%),
+    linear-gradient(
+      color-mix(in srgb, var(--lightgray) 60%, var(--light)),
+      color-mix(in srgb, var(--lightgray) 30%, var(--light))
+    );
+}
+
+.gc-caption {
+  position: absolute;
+  top: 1.6em;
+  left: 0;
+  right: 0;
+  margin: 0;
   text-align: center;
   font-family: var(--sans);
   font-size: 0.72rem;
