@@ -108,6 +108,54 @@
   font-size: 0.9rem;
 }
 
+// the page's last word: the same two buttons, centred under the shelf
+.work-end {
+  justify-content: center;
+  margin: 2.5rem 0 1rem;
+}
+
+// the Path section is Work/Path/Path.md's Timeline, embedded: the room's own
+// heading stands for the note's, and it reads as the page, not a quotation
+body[data-slug="work/index"] .transclude[data-url="work/path/index"] {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+
+  > h2:first-child,
+  > .transclude-src {
+    display: none;
+  }
+}
+
+// the "How I work" shelf is the Library's spines (custom.scss .shelf) on the
+// page; a visited spine (.vb-seen) would grey its text on the cloth
+.work-shelf a.spine.internal {
+  color: #f0e4d0;
+  font-weight: 400;
+  line-height: normal;
+  text-decoration: none;
+}
+
+// a phone holds the nine on one board instead of wrapping a row off it
+@media (max-width: 600px) {
+  .work-shelf {
+    gap: 4px;
+    padding: 0;
+
+    a.spine.internal {
+      min-height: 150px;
+      padding: 0.8rem 0.4rem;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.work-shelf + .shelf-board {
+  max-width: 30rem;
+  margin-bottom: 0;
+}
+
 // section label: small caps with a hairline running to the edge. They are
 // Markdown headings between the HTML blocks, so the toc rail lists them.
 body[data-slug="work/index"] .markdown-rendered > h2 {
