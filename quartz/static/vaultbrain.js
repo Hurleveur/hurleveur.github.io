@@ -598,19 +598,21 @@
       if (standIn && !n.hub && !folderNoteOf(n.slug)) links.push([n, hub, true])
     }
     // a star's size is how connected it is, links and folders alike: one scale,
-    // so the best-connected stars read biggest at a glance. A room's star is a
-    // size up with a floor, or the seven read as notes among their own
+    // so the best-connected stars read biggest at a glance. A room reaches
+    // everything it holds as well, so it grows with its notes, past the cap
+    // that keeps a note from crowding the sky
     const reach = new Map(nodes.map((n) => [n, new Set()]))
     for (const [a, b] of links) {
       reach.get(a).add(b)
       reach.get(b).add(a)
     }
+    for (const n of nodes) if (!n.hub) reach.get(hubByFolder[n.folder])?.add(n)
     // steeper than a square root and from a small base: the lone notes shrink
     // to dust so the well-connected ones can grow without crowding the sky
     for (const n of nodes) {
       const k = reach.get(n).size ** 0.6
-      n.r = mini ? Math.min(0.6 + k * 0.85, 11) : Math.min(1 + k * 1.7, 22) * rs
-      if (n.hub) n.r = Math.max(n.r * 1.4, mini ? 8 : 16 * rs)
+      const cap = n.hub ? Infinity : mini ? 11 : 22
+      n.r = mini ? Math.min(0.6 + k * 0.85, cap) : Math.min(1 + k * 1.7, cap) * rs
     }
 
     // a neighbourhood small enough to read gets every title drawn; past that
@@ -1129,10 +1131,7 @@
         const big = n.hub || n.hubWeight >= 2
         const pulse = big ? 1 + Math.sin(t * (n.hub ? 1.2 : 2) + i) * (n.hub ? 0.05 : 0.08) : 1
         // Task 2: a page already opened reads near-grey so an unseen one pops
-        // by day the rotunda's stars sit on a white-lit glass brain: a step
-        // darker so they hold their colour there, like the frieze's ink
-        const ink = mini && sky.day && !n.hub ? darken(n.color, 0.3) : n.color
-        const col = n.seen ? desat(ink, 0.78) : ink
+        const col = n.seen ? desat(n.color, 0.78) : n.color
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
         // On the rotunda the tour's room glows as bright as a hovered one:
@@ -1146,8 +1145,9 @@
         // white glass), at night it lightens toward starlight
         const pop = !side
         const litS = Math.max(litG, near)
-        // a room's star burns as if half lit at rest, so the seven outshine their notes
-        const up = n.hub ? Math.max(litS, 0.4) : litS
+        // a room's star burns as if half lit at rest, so the seven outshine
+        // their notes; by day every unread star does, vivid on the white glass
+        const up = n.hub || (sky.day && !n.seen) ? Math.max(litS, 0.4) : litS
         const pig = !pop ? col : sky.day ? desat(col, -0.8 * up) : lighten(col, 0.45 * up)
         // by day the halos warm to the veins' gold (see the threads), in the side
         // panel and the observatory too, so every brain is the rotunda's glass
