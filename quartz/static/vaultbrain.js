@@ -1173,44 +1173,52 @@
         // the star under the pointer swells, so the pick reads at a glance
         const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
-        if (gild) {
-          // a glass bead lit from the upper left, like the brain's own matter
-          const bg = ctx.createRadialGradient(n.x - rr * 0.35, n.y - rr * 0.35, 0, n.x, n.y, rr)
-          bg.addColorStop(0, lighten(pig, 0.6))
-          bg.addColorStop(0.55, pig)
-          bg.addColorStop(1, darken(pig, 0.25))
-          ctx.fillStyle = bg
-        } else {
-          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
-          cg.addColorStop(0, "#fffaf2")
-          cg.addColorStop(0.15, lighten(pig, 0.7))
-          cg.addColorStop(0.45, pig)
-          cg.addColorStop(1, pig + "00")
-          ctx.fillStyle = cg
-        }
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
-        ctx.fill()
-        // a folder wears a thin gold ring, the palace's gold, so it reads as a
-        // room among the notes before anything is hovered
-        if (gild && (n.hub || n.slug.endsWith("/index"))) vein(n.x, n.y, rr + 2.5 / view.s, 1)
-        else if (n.hub || n.slug.endsWith("/index")) {
-          ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
-          ctx.lineWidth = 1.2 / view.s
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
-          ctx.stroke()
-        }
-        // the ring alone is every folder's; a room's star also holds a drop of
-        // its own colour, never darkened or greyed, so the seven read apart
         if (n.hub) {
-          ctx.fillStyle = n.color
-          ctx.strokeStyle = "rgba(255,250,242,.9)"
-          ctx.lineWidth = 1.2 / view.s
+          // a room is a four-pointed sparkle, the top bar's ✦, where every
+          // other star is round: the seven read apart by shape, not by rings
+          const R = rr * 1.9
+          const c = R * 0.25
+          const sg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, R)
+          sg.addColorStop(0, gild ? lighten(pig, 0.6) : "#fffaf2")
+          sg.addColorStop(gild ? 0.3 : 0.15, gild ? pig : lighten(pig, 0.3))
+          sg.addColorStop(1, gild ? darken(pig, 0.15) : pig)
+          ctx.fillStyle = sg
           ctx.beginPath()
-          ctx.arc(n.x, n.y, rr * 0.55, 0, 7)
+          ctx.moveTo(n.x, n.y - R)
+          ctx.quadraticCurveTo(n.x + c, n.y - c, n.x + R, n.y)
+          ctx.quadraticCurveTo(n.x + c, n.y + c, n.x, n.y + R)
+          ctx.quadraticCurveTo(n.x - c, n.y + c, n.x - R, n.y)
+          ctx.quadraticCurveTo(n.x - c, n.y - c, n.x, n.y - R)
           ctx.fill()
-          ctx.stroke()
+        } else {
+          if (gild) {
+            // a glass bead lit from the upper left, like the brain's own matter
+            const bg = ctx.createRadialGradient(n.x - rr * 0.35, n.y - rr * 0.35, 0, n.x, n.y, rr)
+            bg.addColorStop(0, lighten(pig, 0.6))
+            bg.addColorStop(0.55, pig)
+            bg.addColorStop(1, darken(pig, 0.25))
+            ctx.fillStyle = bg
+          } else {
+            const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
+            cg.addColorStop(0, "#fffaf2")
+            cg.addColorStop(0.15, lighten(pig, 0.7))
+            cg.addColorStop(0.45, pig)
+            cg.addColorStop(1, pig + "00")
+            ctx.fillStyle = cg
+          }
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
+          ctx.fill()
+          // a folder wears a thin gold ring, the palace's gold, so it reads
+          // as a folder among the notes before anything is hovered
+          if (gild && n.slug.endsWith("/index")) vein(n.x, n.y, rr + 2.5 / view.s, 1)
+          else if (n.slug.endsWith("/index")) {
+            ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
+            ctx.lineWidth = 1.2 / view.s
+            ctx.beginPath()
+            ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
+            ctx.stroke()
+          }
         }
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so
