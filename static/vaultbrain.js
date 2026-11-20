@@ -1421,7 +1421,18 @@
     }
     // observe the wrapper, not the window: the explorer toggle resizes the
     // grid column without firing a window resize, and the sim must follow
-    const ro = new ResizeObserver(size)
+    // reduced motion has no frame loop: the sim settles in one go and draws
+    // once, at start and on every resize, since size() clears the canvas and
+    // wake() only restarts a loop that ran (the first observe fired, so the
+    // brain stayed blank for those visitors)
+    const settle = () => {
+      for (let i = 0; i < 300; i++) step()
+      draw()
+    }
+    const ro = new ResizeObserver(() => {
+      size()
+      if (reduceMotion) settle()
+    })
     ro.observe(wrap)
 
     const io = new IntersectionObserver(([e]) => {
@@ -1436,8 +1447,8 @@
 
     size()
     initPositions()
-    if (reduceMotion) for (let i = 0; i < 300; i++) step()
-    draw()
+    if (reduceMotion) settle()
+    else draw()
 
     cleanup = () => {
       cancelAnimationFrame(raf)
@@ -2387,6 +2398,24 @@
     if (!btn._frame || btn._widget) setAudioLabel(btn)
   }
 
+  // a Work room card (Work/Work.md) says what its note's `description:` says,
+  // so the line is edited in one place; the HTML keeps a copy for the first
+  // paint. The index holds published notes only, so nothing private reaches it.
+  async function initWorkCards() {
+    const lines = document.querySelectorAll("[data-desc-of]")
+    if (!lines.length) return
+    let data
+    try {
+      data = await fetchData
+    } catch (e) {
+      return
+    }
+    lines.forEach((el) => {
+      const desc = data[el.dataset.descOf]?.description
+      if (desc) el.textContent = desc
+    })
+  }
+
   // folder pages are built from the markdown that physically sits under the
   // folder. Two things belong there and aren't: the published html/pdf assets
   // (so /guides doesn't say "0 items" while the explorer lists its pdf), and
@@ -2953,6 +2982,7 @@
       initRandomNote()
       initAudio()
       initFolderAssets()
+      initWorkCards()
       initNearby()
     })
   }
@@ -2981,5 +3011,6 @@
   initRandomNote()
   initAudio()
   initFolderAssets()
+  initWorkCards()
   initNearby()
 })()
