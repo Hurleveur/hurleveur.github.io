@@ -10,7 +10,6 @@ declare -A SITES=(
   [ingram]=https://ingram.tech/
   [cyberspace]=https://www.cyberspace.team/
   [ctf]=https://robottech.vercel.app/
-  [openjarvis]=https://openjarvis.stanford.edu/
   [loci]=https://hurleveur.github.io/
 )
 tmp=$(mktemp -d)

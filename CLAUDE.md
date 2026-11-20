@@ -191,6 +191,7 @@ The full path only wins when no other note shares that name. Where one does, eve
 - A new file under `quartz/static/` is copied only when the dev server starts: restart it, or the card shows a broken image.
 - The section titles are Markdown `##` headings between the HTML blocks, so the toc rail lists them; a heading written inside an HTML block never reaches it.
 - An HTML block in Markdown ends at the first blank line: keep the block free of blank lines, and leave one after its closing `</div>`, or the next paragraph renders with raw `[[wikilinks]]`.
-- The card pictures are headless captures in `quartz/static/work/`, refreshed by `capture.sh` beside them; the Claude Code setup card is a painted image (`setup.webp`), and Claude Office and Guides are drawn in CSS.
+- The card pictures are headless captures in `quartz/static/work/`, refreshed by `capture.sh` beside them; the Claude Code setup card is a painted image (`setup.webp`), and HAI OS (`.hai-veil`, kept unrevealed until release), Claude Office and Guides are drawn in CSS.
+- The guide covers (`.guide-niche` > `.guide-cover`) head `Work/Guides/Guides.md` as links and fill the Guides card here as spans: one component in em, the card shrinks it with one font-size. The links need `.guide-niche a.guide-cover.internal`, or a visited guide loses its cloth colour.
 - The picture links (`.wcard-shot`) are kept out of `POPOVER_LINKS`, or every card hover opens a preview on top of its own text.
 - A visited page's links get `a.internal.vb-seen` (grey text, no background): any filled control in the showcase needs a selector that outranks it, or its hover goes light-on-light.

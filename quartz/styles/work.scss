@@ -134,6 +134,12 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   margin-top: 2.5rem;
 }
 
+.wgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 1.2rem;
+}
+
 .wlist {
   display: grid;
   gap: 0.9rem;
@@ -425,100 +431,303 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   }
 }
 
+// HAI OS is not out yet: a dark field with a light breathing in it, no picture
+.hai-veil {
+  position: relative;
+  min-height: 16rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 42%, rgba(201, 151, 63, 0.16), transparent 70%), #0e0d13;
+}
+
+.hai-orb {
+  width: 7rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(236, 214, 160, 0.9) 0,
+    rgba(201, 151, 63, 0.45) 18%,
+    rgba(201, 151, 63, 0.08) 45%,
+    transparent 70%
+  );
+  box-shadow: 0 0 60px 10px rgba(201, 151, 63, 0.16);
+  animation: hai-breathe 5s ease-in-out infinite;
+}
+
+.hai-word {
+  font-family: var(--codeFont, monospace);
+  font-size: 0.8rem;
+  letter-spacing: 0.6em;
+  color: rgba(236, 214, 160, 0.55);
+
+  i {
+    display: inline-block;
+    width: 0.5em;
+    height: 1em;
+    vertical-align: -0.15em;
+    background: currentColor;
+    animation: hai-caret 1.1s steps(1) infinite;
+  }
+}
+
+@keyframes hai-breathe {
+  50% {
+    transform: scale(1.08);
+    opacity: 0.75;
+  }
+}
+
+@keyframes hai-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hai-orb,
+  .hai-word i {
+    animation: none;
+  }
+}
+
+// the Guides card's picture holds the shelf, laid over it
 .wcard-guides .wcard-shot {
   min-height: 15rem;
+}
+
+// the guides as printed handbooks on a marble ledge under the dome: the head of
+// the Guides page (Work/Guides/Guides.md) and, smaller, the Guides card here.
+// Sized in em, so the card shrinks the whole shelf by setting one font-size.
+.guide-niche {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1em;
+  margin: 0;
+  padding: 3.2em 1.6em 2.3em;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      color-mix(in srgb, var(--light) 20%, transparent),
+      color-mix(in srgb, var(--light) 50%, transparent)
+    ),
+    url("/static/rotunda.webp") center 30% / cover;
+
+  // the ledge the covers stand on
+  &::after {
+    content: "";
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    bottom: 1.6em;
+    height: 0.7em;
+    border-radius: 2px;
+    background: linear-gradient(#f1ece2, #cdc3b2);
+    box-shadow: 0 12px 18px -8px rgba(0, 0, 0, 0.55);
+  }
+
+  .wcard & {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    font-size: clamp(0.5rem, 0.3rem + 0.45vw, 0.72rem);
+  }
+}
+
+:root[saved-theme="dark"] .guide-niche {
   background:
     linear-gradient(
       color-mix(in srgb, var(--light) 25%, transparent),
       color-mix(in srgb, var(--light) 55%, transparent)
     ),
-    url("/static/rotunda.webp") center 30% / cover;
-}
-
-:root[saved-theme="dark"] .wcard-guides .wcard-shot {
-  background:
-    linear-gradient(
-      color-mix(in srgb, var(--light) 30%, transparent),
-      color-mix(in srgb, var(--light) 60%, transparent)
-    ),
     url("/static/rotunda-night.webp") center 30% / cover;
 }
 
-// five guide covers stood on a ledge under the dome; they lift on hover
-.guide-stack {
-  position: absolute;
-  inset: 0;
+.guide-cover {
+  --cloth: #2f4858;
+  position: relative;
+  z-index: 1;
+  flex: 0 1 8.6em;
+  min-width: 0;
+  aspect-ratio: 3 / 4.3;
+  container-type: inline-size;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  padding: 0 1rem;
+  flex-direction: column;
+  padding: 1.15em 0.95em 1.05em 1.3em;
+  border-radius: 2px 6px 6px 2px;
+  // spine crease, then a faint cloth weave, over the cover colour
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.38),
+      rgba(0, 0, 0, 0.06) 7%,
+      rgba(255, 255, 255, 0.1) 8.5%,
+      transparent 10.5%
+    ),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 4px),
+    var(--cloth);
+  box-shadow:
+    inset 0 0 0 1px rgba(240, 228, 208, 0.12),
+    0 14px 22px -12px rgba(0, 0, 0, 0.75);
+  color: #f0e4d0;
+  font-weight: 400;
+  text-decoration: none;
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
 
-  > span {
-    flex: 0 1 5.6rem;
-    min-width: 0;
-    aspect-ratio: 3 / 4.2;
-    display: flex;
-    align-items: flex-end;
-    padding: 0.6rem 0.5rem;
-    border-radius: 3px 7px 7px 3px;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.25), transparent 14%), var(--cloth, #2f4858);
-    box-shadow:
-      inset 0 0 0 1px rgba(240, 228, 208, 0.18),
-      0 10px 20px -10px rgba(0, 0, 0, 0.6);
-    font-family: var(--headerFont);
-    font-size: clamp(0.72rem, 0.6rem + 0.35vw, 0.9rem);
-    font-weight: 600;
-    line-height: 1.12;
-    hyphens: auto;
-    color: #f0e4d0;
-    transform: rotate(var(--tilt, 0deg));
-    transition: transform 0.4s ease;
+  // gold-foil frame
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0.55em 0.5em 0.55em 0.9em;
+    border: 1px solid rgba(226, 194, 125, 0.5);
+    border-radius: 2px;
+    pointer-events: none;
   }
 
-  > span:nth-child(1) {
+  // the page block showing past the cover's edge
+  &::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    right: -5px;
+    width: 5px;
+    border-radius: 0 3px 3px 0;
+    background: repeating-linear-gradient(90deg, #f4ecdc 0 1px, #d6c8ac 1px 2px);
+  }
+
+  &:nth-child(1) {
     --cloth: #3f5240;
-    --tilt: -3deg;
-  }
-  > span:nth-child(2) {
-    --cloth: #53579a;
-    --tilt: 1.5deg;
-  }
-  > span:nth-child(3) {
-    --cloth: #6e3b2c;
-    --tilt: -1deg;
-  }
-  > span:nth-child(4) {
-    --cloth: #2f4858;
-    --tilt: 2.5deg;
-  }
-  > span:nth-child(5) {
-    --cloth: #7a5c2e;
     --tilt: -2deg;
   }
-
-  .wcard:hover & > span,
-  .wcard:focus-within & > span {
-    transform: translateY(-0.5rem) rotate(0deg);
+  &:nth-child(2) {
+    --cloth: #4d5193;
+    --tilt: 1deg;
+  }
+  &:nth-child(3) {
+    --cloth: #6e3b2c;
+    --tilt: -0.5deg;
+  }
+  &:nth-child(4) {
+    --cloth: #2f4858;
+    --tilt: 1.5deg;
+  }
+  &:nth-child(5) {
+    --cloth: #7a5c2e;
+    --tilt: -1.5deg;
+  }
+  &:nth-child(6) {
+    --cloth: #5b2f4a;
+    --tilt: 1deg;
   }
 
-  .wcard:hover & > span:nth-child(even),
-  .wcard:focus-within & > span:nth-child(even) {
+  &:hover,
+  &:focus-visible,
+  .wcard:hover &,
+  .wcard:focus-within & {
+    transform: translateY(-0.6em) rotate(0deg);
+    box-shadow:
+      inset 0 0 0 1px rgba(240, 228, 208, 0.12),
+      0 22px 28px -14px rgba(0, 0, 0, 0.8);
+  }
+
+  .wcard:hover &:nth-child(even) {
     transition-delay: 0.06s;
   }
 
-  // a thumbnail holds three covers at a readable size
-  @media (min-width: 720px) {
-    .wcard-compact & > span:nth-child(n + 4) {
+  .gc-series {
+    font-family: var(--sans);
+    font-size: 0.56em;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(226, 194, 125, 0.85);
+  }
+
+  .gc-title {
+    margin-top: 0.55em;
+    font-family: var(--headerFont);
+    // scaled to the cover's width, so "Prompting" never breaks mid-word
+    font-size: min(1.32em, 25cqi);
+    font-weight: 600;
+    line-height: 1.05;
+    overflow-wrap: normal;
+    color: #ecd6a0;
+  }
+
+  .gc-title::after {
+    content: "";
+    display: block;
+    width: 1.6em;
+    height: 1px;
+    margin-top: 0.55em;
+    background: rgba(226, 194, 125, 0.6);
+  }
+
+  .gc-hook {
+    margin-top: auto;
+    font-family: var(--headerFont);
+    font-size: 0.78em;
+    font-style: italic;
+    line-height: 1.25;
+    color: rgba(240, 228, 208, 0.82);
+  }
+
+  // too small to read on the card; the Guides page carries them
+  .wcard & .gc-series,
+  .wcard & .gc-hook {
+    display: none;
+  }
+}
+
+// a guide on its own page is an a.internal, which tints and pads it, and once
+// visited (.vb-seen) drops its colour and greys it; this outranks both
+.guide-niche a.guide-cover.internal {
+  padding: 1.15em 0.95em 1.05em 1.3em;
+  border-radius: 2px 6px 6px 2px;
+  background-color: var(--cloth);
+  color: #f0e4d0;
+  font-weight: 400;
+  line-height: normal;
+  text-decoration: none;
+}
+
+// the Guides page: the shelf sits under the title, with room around it
+body[data-slug="work/guides/index"] .guide-niche {
+  margin: 0.5rem 0 1.4rem;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+    row-gap: 1.6em;
+    font-size: 0.8rem;
+
+    &::after {
       display: none;
+    }
+
+    .guide-cover {
+      flex-basis: 28%;
     }
   }
 }
 
-@media (min-width: 720px) {
-  .wcard-compact.wcard-guides .wcard-shot {
-    min-height: 9rem;
-  }
+.guide-shelf-caption {
+  margin: 0 0 1.6rem;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--secondary);
 }
 
 // the path: a rail down the left with a stop per step, the last one lit
