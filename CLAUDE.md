@@ -188,7 +188,8 @@ The full path only wins when no other note shares that name. Where one does, eve
 
 `/work` opens on a portfolio block written as raw HTML at the top of `Work/Work.md` in the vault, the Library's pattern; its styles are `quartz/styles/work.scss`, pulled into `custom.scss` with `@use`.
 
+- The section titles are Markdown `##` headings between the HTML blocks, so the toc rail lists them; a heading written inside an HTML block never reaches it.
 - An HTML block in Markdown ends at the first blank line: keep the block free of blank lines, and leave one after its closing `</div>`, or the next paragraph renders with raw `[[wikilinks]]`.
-- The card pictures are headless captures in `quartz/static/work/`, refreshed by `capture.sh` beside them; batman shows its repo's badge, and Claude Office and Guides are drawn in CSS because they have no site to capture.
+- The card pictures are headless captures in `quartz/static/work/`, refreshed by `capture.sh` beside them; the Claude Code setup card is a painted image (`setup.webp`), and Claude Office and Guides are drawn in CSS.
 - The picture links (`.wcard-shot`) are kept out of `POPOVER_LINKS`, or every card hover opens a preview on top of its own text.
 - A visited page's links get `a.internal.vb-seen` (grey text, no background): any filled control in the showcase needs a selector that outranks it, or its hover goes light-on-light.

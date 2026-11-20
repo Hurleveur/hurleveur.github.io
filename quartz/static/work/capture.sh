@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Refreshes the site captures on the Work room's cards (Work/Work.md in the
 # vault): one 1440x900 headless screenshot per site, saved as a 1200px webp.
-# Not here: the batman badge (from the batman repo), and the cards drawn in CSS.
+# Not here: setup.webp (a generated painting) and the cards drawn in CSS.
 set -euo pipefail
 cd "$(dirname "$0")"
 declare -A SITES=(
