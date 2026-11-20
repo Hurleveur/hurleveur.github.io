@@ -598,8 +598,8 @@
       if (standIn && !n.hub && !folderNoteOf(n.slug)) links.push([n, hub, true])
     }
     // a star's size is how connected it is, links and folders alike: one scale,
-    // so the best-connected stars read biggest at a glance. A room has a floor
-    // on it, or a small room's star reads as one more note among its own
+    // so the best-connected stars read biggest at a glance. A room's star is a
+    // size up with a floor, or the seven read as notes among their own
     const reach = new Map(nodes.map((n) => [n, new Set()]))
     for (const [a, b] of links) {
       reach.get(a).add(b)
@@ -610,7 +610,7 @@
     for (const n of nodes) {
       const k = reach.get(n).size ** 0.6
       n.r = mini ? Math.min(0.6 + k * 0.85, 11) : Math.min(1 + k * 1.7, 22) * rs
-      if (n.hub) n.r = Math.max(n.r, mini ? 7 : 14 * rs)
+      if (n.hub) n.r = Math.max(n.r * 1.4, mini ? 8 : 16 * rs)
     }
 
     // a neighbourhood small enough to read gets every title drawn; past that
@@ -1131,7 +1131,7 @@
         // Task 2: a page already opened reads near-grey so an unseen one pops
         // by day the rotunda's stars sit on a white-lit glass brain: a step
         // darker so they hold their colour there, like the frieze's ink
-        const ink = mini && sky.day ? darken(n.color, 0.3) : n.color
+        const ink = mini && sky.day && !n.hub ? darken(n.color, 0.3) : n.color
         const col = n.seen ? desat(ink, 0.78) : ink
         // the room glows at half, so a star the hovered one reaches — glowing
         // whole — still stands out inside its own room
@@ -1146,17 +1146,17 @@
         // white glass), at night it lightens toward starlight
         const pop = !side
         const litS = Math.max(litG, near)
-        const pig = !pop ? col : sky.day ? desat(col, -0.8 * litS) : lighten(col, 0.45 * litS)
+        // a room's star burns as if half lit at rest, so the seven outshine their notes
+        const up = n.hub ? Math.max(litS, 0.4) : litS
+        const pig = !pop ? col : sky.day ? desat(col, -0.8 * up) : lighten(col, 0.45 * up)
         // by day the halos warm to the veins' gold (see the threads), in the side
         // panel and the observatory too, so every brain is the rotunda's glass
         const gild = sky.day
-        // a room's halo keeps its own colour, the one thing gold would hide
-        const warm = gild && !n.hub
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, glowR)
         g.addColorStop(0, pig)
-        if (warm) g.addColorStop(0.45, "rgba(222,164,84,.7)")
-        g.addColorStop(1, warm ? "rgba(222,164,84,0)" : "transparent")
-        ctx.globalAlpha = Math.min(1, (n.hub ? 0.4 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
+        if (gild) g.addColorStop(0.45, "rgba(222,164,84,.7)")
+        g.addColorStop(1, gild ? "rgba(222,164,84,0)" : "transparent")
+        ctx.globalAlpha = Math.min(1, (n.hub ? 0.55 : big ? 0.3 : 0.2) * dim * (1 + 0.8 * glow))
         ctx.fillStyle = g
         // at night overlapping halos add their light, so a dense room glows
         // like a nebula instead of stacking flat tints
@@ -1173,52 +1173,33 @@
         // the star under the pointer swells, so the pick reads at a glance
         const swell = pop ? 1 + 0.6 * (n.cw || 0) : 1
         const rr = n.r * pulse * (n.hub ? 1 + 0.15 * lit : 1) * swell
-        if (n.hub) {
-          // a room is a four-pointed sparkle, the top bar's ✦, where every
-          // other star is round: the seven read apart by shape, not by rings
-          const R = rr * 1.9
-          const c = R * 0.25
-          const sg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, R)
-          sg.addColorStop(0, gild ? lighten(pig, 0.6) : "#fffaf2")
-          sg.addColorStop(gild ? 0.3 : 0.15, gild ? pig : lighten(pig, 0.3))
-          sg.addColorStop(1, gild ? darken(pig, 0.15) : pig)
-          ctx.fillStyle = sg
-          ctx.beginPath()
-          ctx.moveTo(n.x, n.y - R)
-          ctx.quadraticCurveTo(n.x + c, n.y - c, n.x + R, n.y)
-          ctx.quadraticCurveTo(n.x + c, n.y + c, n.x, n.y + R)
-          ctx.quadraticCurveTo(n.x - c, n.y + c, n.x - R, n.y)
-          ctx.quadraticCurveTo(n.x - c, n.y - c, n.x, n.y - R)
-          ctx.fill()
+        if (gild) {
+          // a glass bead lit from the upper left, like the brain's own matter
+          const bg = ctx.createRadialGradient(n.x - rr * 0.35, n.y - rr * 0.35, 0, n.x, n.y, rr)
+          bg.addColorStop(0, lighten(pig, 0.6))
+          bg.addColorStop(0.55, pig)
+          bg.addColorStop(1, darken(pig, 0.25))
+          ctx.fillStyle = bg
         } else {
-          if (gild) {
-            // a glass bead lit from the upper left, like the brain's own matter
-            const bg = ctx.createRadialGradient(n.x - rr * 0.35, n.y - rr * 0.35, 0, n.x, n.y, rr)
-            bg.addColorStop(0, lighten(pig, 0.6))
-            bg.addColorStop(0.55, pig)
-            bg.addColorStop(1, darken(pig, 0.25))
-            ctx.fillStyle = bg
-          } else {
-            const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
-            cg.addColorStop(0, "#fffaf2")
-            cg.addColorStop(0.15, lighten(pig, 0.7))
-            cg.addColorStop(0.45, pig)
-            cg.addColorStop(1, pig + "00")
-            ctx.fillStyle = cg
-          }
+          const cg = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, rr * 1.5)
+          cg.addColorStop(0, "#fffaf2")
+          cg.addColorStop(0.15, lighten(pig, 0.7))
+          cg.addColorStop(0.45, pig)
+          cg.addColorStop(1, pig + "00")
+          ctx.fillStyle = cg
+        }
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
+        ctx.fill()
+        // a folder wears a thin gold ring, the palace's gold, so it reads as a
+        // room among the notes before anything is hovered
+        if (gild && (n.hub || n.slug.endsWith("/index"))) vein(n.x, n.y, rr + 2.5 / view.s, 1)
+        else if (n.hub || n.slug.endsWith("/index")) {
+          ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
+          ctx.lineWidth = 1.2 / view.s
           ctx.beginPath()
-          ctx.arc(n.x, n.y, sky.day ? rr : rr * 1.5, 0, 7)
-          ctx.fill()
-          // a folder wears a thin gold ring, the palace's gold, so it reads
-          // as a folder among the notes before anything is hovered
-          if (gild && n.slug.endsWith("/index")) vein(n.x, n.y, rr + 2.5 / view.s, 1)
-          else if (n.slug.endsWith("/index")) {
-            ctx.strokeStyle = sky.day ? "rgba(184,135,63,.95)" : "rgba(214,178,104,.9)"
-            ctx.lineWidth = 1.2 / view.s
-            ctx.beginPath()
-            ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
-            ctx.stroke()
-          }
+          ctx.arc(n.x, n.y, rr + 2.5 / view.s, 0, 7)
+          ctx.stroke()
         }
         ctx.globalAlpha = 1
         // the one star actually under the pointer: a ring in the sky's ink, so

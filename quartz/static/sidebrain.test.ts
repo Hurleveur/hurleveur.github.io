@@ -143,8 +143,9 @@ test("seen-page tracking", async (t) => {
   await t.test("a seen star desaturates instead of gaining a second color system", () => {
     // reuses n.color/desat rather than a parallel "seen palette" — one hue per
     // note, dimmed, so an unseen star still pops next to it
-    // (ink is n.color, darkened on the day rotunda: still the note's own hue)
-    assert.match(js, /const ink = mini && sky\.day \? darken\(n\.color, [\d.]+\) : n\.color/)
+    // (ink is n.color, darkened on the day rotunda but for the room stars,
+    // which stay bright: still the note's own hue)
+    assert.match(js, /const ink = mini && sky\.day && !n\.hub \? darken\(n\.color, [\d.]+\) : n\.color/)
     assert.match(js, /const col = n\.seen \? desat\(ink, [\d.]+\) : ink/)
   })
 })
