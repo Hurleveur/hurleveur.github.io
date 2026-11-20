@@ -128,32 +128,25 @@ body[data-slug="work/index"] .transclude[data-url="work/path/index"] {
   }
 }
 
-// the "How I work" shelf is the Library's spines (custom.scss .shelf) on the
-// page; a visited spine (.vb-seen) would grey its text on the cloth
-.work-shelf a.spine.internal {
-  color: #f0e4d0;
-  font-weight: 400;
-  line-height: normal;
-  text-decoration: none;
-}
+// "How I work": the guide covers (.guide-niche below), the manual first in
+// gold and a size up; the gold is the fifth cover's, so that one takes plum.
+// Doubled class: this sits above the .guide-cover rules it overrides.
+.guide-alcove.work-how {
+  padding-top: 3.2em;
 
-// a phone holds the nine on one board instead of wrapping a row off it
-@media (max-width: 600px) {
-  .work-shelf {
-    gap: 4px;
-    padding: 0;
+  .guide-cover:nth-of-type(5) {
+    --cloth: #5b2f4a;
+  }
 
-    a.spine.internal {
-      min-height: 150px;
-      padding: 0.8rem 0.4rem;
-      font-size: 0.8rem;
+  .manual-cover {
+    --cloth: #7a5c2e;
+  }
+
+  @media (min-width: 601px) {
+    .manual-cover {
+      flex-basis: 10.5em;
     }
   }
-}
-
-.work-shelf + .shelf-board {
-  max-width: 30rem;
-  margin-bottom: 0;
 }
 
 // section label: small caps with a hairline running to the edge. They are
