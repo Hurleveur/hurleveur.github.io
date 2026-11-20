@@ -1,0 +1,480 @@
+@use "./variables.scss" as *;
+
+// The Work room's showcase: the HTML block at the top of Work/Work.md in the
+// vault, the same pattern as the Library's shelf. Every colour is a theme
+// variable so night needs no rules of its own; the one exception, the
+// screenshot caption, sits on a dark scrim in both themes.
+
+.work-showcase {
+  margin: 0 0 3.5rem;
+
+  a {
+    background: none;
+    padding: 0;
+  }
+}
+
+.work-hero {
+  padding: 1.5rem 0 0.5rem;
+
+  .eyebrow {
+    color: var(--secondary);
+    opacity: 1;
+    margin: 0;
+  }
+
+  .work-lead {
+    font-family: var(--headerFont);
+    font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem);
+    line-height: 1.15;
+    font-weight: 500;
+    color: var(--dark);
+    margin: 0.6rem 0 0.8rem;
+    text-wrap: balance;
+  }
+
+  .work-sub {
+    color: var(--darkgray);
+    font-size: 1.05rem;
+    max-width: 36rem;
+    margin: 0;
+  }
+}
+
+.work-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.4rem;
+  margin: 1.4rem 0 0;
+
+  .work-btn {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    background: var(--secondary);
+    color: var(--light);
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--light);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px -8px var(--secondary);
+    }
+  }
+
+  .work-contact {
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--darkgray);
+
+    b {
+      color: var(--dark);
+    }
+  }
+}
+
+// section label: small caps with a hairline running to the edge
+.work-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 3rem 0 1.1rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--secondary);
+
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--lightgray), transparent);
+  }
+}
+
+.wgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 1.4rem;
+
+  & + .wgrid {
+    margin-top: 1.4rem;
+  }
+}
+
+.wcard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lightgray);
+  border-radius: 14px;
+  background: var(--light);
+  overflow: hidden;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--dark) 6%, transparent);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--secondary) 45%, var(--lightgray));
+    box-shadow: 0 18px 36px -22px color-mix(in srgb, var(--dark) 45%, transparent);
+  }
+}
+
+.wcard-shot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--lightgray);
+  border-bottom: 1px solid var(--lightgray);
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    margin: 0;
+    border-radius: 0;
+    transition: transform 0.6s ease;
+  }
+
+  .wcard:hover & img {
+    transform: scale(1.025);
+  }
+
+  // the picture is the link; Quartz's external-link arrow has no place on it
+  .external-icon {
+    display: none;
+  }
+}
+
+// the browser chrome over each capture
+.wcard-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--lightgray) 70%, var(--light));
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--darkgray);
+
+  i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--gray) 55%, transparent);
+  }
+
+  span {
+    flex: 1;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 6px;
+    background: var(--light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// the longer text: rises over the picture on hover, sits under it on touch
+.wcard-more {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--darkgray);
+  padding: 0.9rem 1.2rem 0;
+
+  @media (hover: hover) {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 2.4rem 1.2rem 1rem;
+    color: #f4efe4;
+    background: linear-gradient(transparent, rgba(16, 14, 10, 0.88) 38%);
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+
+    .wcard:hover &,
+    .wcard:focus-within & {
+      transform: none;
+    }
+  }
+}
+
+.wcard-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem 1.2rem 1.15rem;
+
+  h3 {
+    font-family: var(--headerFont);
+    font-size: 1.55rem;
+    font-weight: 600;
+    margin: 0.15rem 0 0.35rem;
+    color: var(--dark);
+  }
+
+  p {
+    margin: 0;
+    color: var(--darkgray);
+  }
+
+  .wcard-tag {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--secondary);
+  }
+
+  .wcard-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin-top: auto;
+    padding-top: 0.9rem;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+  }
+}
+
+.wcard-soon {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--light);
+  letter-spacing: 0.1em;
+}
+
+// the wide card: picture left, text right, once the column can hold both
+.wcard-feature {
+  @media (min-width: 720px) {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+
+    .wcard-shot {
+      border-bottom: 0;
+      border-right: 1px solid var(--lightgray);
+    }
+
+    .wcard-body {
+      justify-content: center;
+      padding: 1.6rem;
+    }
+
+    .wcard-body h3 {
+      font-size: 2rem;
+    }
+  }
+}
+
+// cards with no site to capture get a drawn picture of the same 16:10
+.wcard-drawn {
+  display: flex;
+  flex-direction: column;
+}
+
+.office-term {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.55rem;
+  aspect-ratio: 16 / 10;
+  padding: 1rem 1.3rem;
+  margin-top: -28px; // the bar sits over it like over a capture
+  padding-top: calc(28px + 1rem);
+  background:
+    radial-gradient(ellipse 80% 60% at 85% 10%, rgba(83, 87, 154, 0.35), transparent 70%), #16151d;
+  font-family: var(--codeFont, monospace);
+  font-size: clamp(0.72rem, 0.6rem + 0.4vw, 0.85rem);
+  font-weight: 400;
+  color: #b9b4c9;
+
+  > span::before {
+    content: "› ";
+    color: #6f6a86;
+  }
+
+  b {
+    color: #e2c27d;
+    font-weight: 500;
+    margin-right: 0.5rem;
+  }
+}
+
+.wcard-guides .wcard-shot {
+  min-height: 15rem;
+  background:
+    linear-gradient(
+      color-mix(in srgb, var(--light) 25%, transparent),
+      color-mix(in srgb, var(--light) 55%, transparent)
+    ),
+    url("/static/rotunda.webp") center 30% / cover;
+}
+
+:root[saved-theme="dark"] .wcard-guides .wcard-shot {
+  background:
+    linear-gradient(
+      color-mix(in srgb, var(--light) 30%, transparent),
+      color-mix(in srgb, var(--light) 60%, transparent)
+    ),
+    url("/static/rotunda-night.webp") center 30% / cover;
+}
+
+// five guide covers stood on a ledge under the dome; they lift on hover
+.guide-stack {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0 1rem;
+
+  > span {
+    flex: 0 1 5.6rem;
+    min-width: 0;
+    aspect-ratio: 3 / 4.2;
+    display: flex;
+    align-items: flex-end;
+    padding: 0.6rem 0.5rem;
+    border-radius: 3px 7px 7px 3px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.25), transparent 14%), var(--cloth, #2f4858);
+    box-shadow:
+      inset 0 0 0 1px rgba(240, 228, 208, 0.18),
+      0 10px 20px -10px rgba(0, 0, 0, 0.6);
+    font-family: var(--headerFont);
+    font-size: clamp(0.72rem, 0.6rem + 0.35vw, 0.9rem);
+    font-weight: 600;
+    line-height: 1.12;
+    hyphens: auto;
+    color: #f0e4d0;
+    transform: rotate(var(--tilt, 0deg));
+    transition: transform 0.4s ease;
+  }
+
+  > span:nth-child(1) {
+    --cloth: #3f5240;
+    --tilt: -3deg;
+  }
+  > span:nth-child(2) {
+    --cloth: #53579a;
+    --tilt: 1.5deg;
+  }
+  > span:nth-child(3) {
+    --cloth: #6e3b2c;
+    --tilt: -1deg;
+  }
+  > span:nth-child(4) {
+    --cloth: #2f4858;
+    --tilt: 2.5deg;
+  }
+  > span:nth-child(5) {
+    --cloth: #7a5c2e;
+    --tilt: -2deg;
+  }
+
+  .wcard:hover & > span,
+  .wcard:focus-within & > span {
+    transform: translateY(-0.5rem) rotate(0deg);
+  }
+
+  .wcard:hover & > span:nth-child(even),
+  .wcard:focus-within & > span:nth-child(even) {
+    transition-delay: 0.06s;
+  }
+}
+
+// the path: a rail down the left with a stop per step, the last one lit
+.work-path {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.6rem;
+  border-left: 1px solid var(--lightgray);
+
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 5.2rem 1fr;
+    column-gap: 1rem;
+    padding: 0 0 1.3rem;
+    margin: 0;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: calc(-1.6rem - 5px);
+      top: 0.45rem;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--light);
+      border: 1px solid var(--gray);
+    }
+
+    > :not(.when) {
+      grid-column: 2;
+    }
+
+    > span:last-child {
+      color: var(--darkgray);
+      font-size: 0.95rem;
+    }
+  }
+
+  .when {
+    grid-row: span 2;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--gray);
+    padding-top: 0.2rem;
+  }
+
+  li.now::before {
+    background: var(--secondary);
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--secondary) 22%, transparent);
+  }
+
+  li.now .when {
+    color: var(--secondary);
+  }
+
+  @media (max-width: 520px) {
+    li {
+      grid-template-columns: 1fr;
+    }
+
+    li > :not(.when) {
+      grid-column: auto;
+    }
+
+    .when {
+      grid-row: auto;
+      padding: 0;
+    }
+  }
+}

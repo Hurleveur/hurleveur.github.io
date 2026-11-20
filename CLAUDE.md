@@ -183,3 +183,11 @@ A note's `categories:` frontmatter lists it inside any published folder of that 
 Only the wikilink's **last segment** names the category. A folder note has to be linked by its full path (`[[Shared/Clippings/Clippings|Clippings]]`) because `markdownLinkResolution: shortest` can't resolve `[[Clippings]]` — `Folder/Folder.md` slugs to `folder/index`.
 
 The full path only wins when no other note shares that name. Where one does, every link form loses to it and there is no wikilink that reaches the folder note — `[[Meaning]]`, `[[Meaning/Meaning]]` and `[[Meaning/index]]` all land on `Friends/Meaning.md`. Build such a link in code as `/<folder>/`, or link a different note.
+
+## The Work room's showcase
+
+`/work` opens on a portfolio block written as raw HTML at the top of `Work/Work.md` in the vault, the Library's pattern; its styles are `quartz/styles/work.scss`, pulled into `custom.scss` with `@use`.
+
+- An HTML block in Markdown ends at the first blank line: keep the block free of blank lines, and leave one after its closing `</div>`, or the next paragraph renders with raw `[[wikilinks]]`.
+- The card pictures are headless captures in `quartz/static/work/`, refreshed by `capture.sh` beside them; Claude Office and Guides are drawn in CSS because they have no site to capture.
+- The picture links (`.wcard-shot`) and the hero button are kept out of `POPOVER_LINKS`, or every card hover opens a preview on top of its own text.
