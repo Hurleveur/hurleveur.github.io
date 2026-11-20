@@ -431,8 +431,8 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   }
 }
 
-// HAI OS is not out yet: its cockpit's look (dark teal grid, the tick dial, the
-// assistant's eyes) with nothing on screen, rather than a capture of it
+// HAI OS is not out yet: its cockpit's look (dark teal grid, the tab bar, the
+// assistant's face) with nothing on screen, rather than a capture of it
 .hai-veil {
   position: relative;
   min-height: 16rem;
@@ -487,91 +487,169 @@ body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
   }
 }
 
-// the dial: a ring of ticks, teal running into amber, the eyes inside it
-.hai-dial {
+// the assistant as its minimised window draws it (hai-surface avatar/body.js,
+// idle): dark orb, pulsing ring, two eyes, a flat mouth. Sizes are body.js's
+// face units (orb radius 31, ring to 38), as % of the face or cqi of the box.
+.hai-orb {
   position: relative;
   display: grid;
   place-items: center;
-  width: 8.5rem;
+  width: 9rem;
   aspect-ratio: 1;
+  container-type: inline-size;
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background:
-      repeating-conic-gradient(#0b1014 0 1.6deg, transparent 1.6deg 6deg),
-      conic-gradient(
-        from 200deg,
-        transparent 0 8%,
-        rgba(45, 212, 191, 0.85) 8%,
-        rgba(45, 212, 191, 0.6) 55%,
-        rgba(201, 151, 63, 0.8) 80%,
-        transparent 80%
-      );
-    mask: radial-gradient(circle, transparent 60%, black 61% 70%, transparent 71%);
-    animation: hai-turn 40s linear infinite;
+    border: 4.5cqi solid rgb(127, 240, 228);
+    box-shadow:
+      0 0 5cqi 1cqi rgba(0, 229, 204, 0.6),
+      inset 0 0 5cqi 2cqi rgba(0, 229, 204, 0.5);
+    animation: hai-pulse 4s ease-in-out infinite;
   }
 }
 
-.hai-eyes {
-  display: grid;
-  place-items: center;
-  width: 3.4rem;
+.hai-face {
+  position: relative;
+  width: 81.6%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid rgba(45, 212, 191, 0.45);
-  box-shadow: 0 0 24px rgba(45, 212, 191, 0.2);
+  background:
+    radial-gradient(circle 22.4cqi at 35% 30%, rgba(120, 170, 200, 0.2), transparent),
+    radial-gradient(circle at 38% 33%, #141c24, #05070a);
+  animation: hai-breathe 4s ease-in-out infinite;
+
+  // the two faint inner circles, the orb's depth behind the face
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 12.9%;
+    border-radius: 50%;
+    border: max(1px, 1cqi) solid rgba(0, 229, 204, 0.14);
+  }
+
+  &::after {
+    inset: 25.8%;
+  }
 
   i {
-    display: flex;
-    gap: 0.55rem;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 
     &::before,
     &::after {
       content: "";
-      width: 0.45rem;
-      height: 0.45rem;
+      position: absolute;
+      top: 41.9%;
+      left: 21.8%;
+      width: 19.4%;
+      height: 12.9%;
       border-radius: 50%;
-      background: #2dd4bf;
-      box-shadow: 0 0 8px #2dd4bf;
-      animation: hai-blink 6s infinite;
+      background: rgb(0, 229, 204);
+      box-shadow: 0 0 0 2cqi rgba(0, 229, 204, 0.1);
+      animation:
+        hai-blink 5.5s infinite,
+        hai-lid 3.2s ease-in-out infinite;
     }
+
+    &::after {
+      left: auto;
+      right: 21.8%;
+    }
+  }
+
+  b {
+    position: absolute;
+    top: 72.4%;
+    left: 40.3%;
+    width: 19.4%;
+    height: 2cqi;
+    border-radius: 1cqi;
+    background: rgba(0, 229, 204, 0.32);
   }
 }
 
 .hai-state {
-  padding: 0.15rem 0.6rem;
-  border: 1px solid rgba(45, 212, 191, 0.3);
+  padding: 1px 6px;
   border-radius: 999px;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  color: rgba(45, 212, 191, 0.8);
+  background: rgb(0, 229, 204);
+  font:
+    700 0.7rem/1 system-ui,
+    sans-serif;
+  letter-spacing: 0.06em;
+  color: #0b0f14;
 }
 
-@keyframes hai-turn {
-  to {
-    transform: rotate(1turn);
+// as a thumbnail: the four tabs still fit across 16rem, the face sized to the row
+.wcard-compact .hai-veil {
+  min-height: 10rem;
+  gap: 0.5rem;
+  padding: 2.2rem 0.8rem 0.8rem;
+
+  .hai-top {
+    gap: 0.7rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+
+    b {
+      letter-spacing: 0.15em;
+    }
+
+    b::before {
+      margin-right: 0.4rem;
+    }
+  }
+
+  .hai-orb {
+    width: 5rem;
+  }
+
+  .hai-state {
+    font-size: 0.6rem;
   }
 }
 
+@keyframes hai-pulse {
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes hai-breathe {
+  50% {
+    transform: scale(1.015);
+  }
+}
+
+// body.js pinches the eyes between 72% and 92% of each 5.5s period
 @keyframes hai-blink {
   0%,
-  46%,
-  50%,
+  72%,
+  92%,
   100% {
     transform: none;
   }
-  48% {
-    transform: scaleY(0.1);
+  82% {
+    transform: scaleY(0.06);
+  }
+}
+
+@keyframes hai-lid {
+  50% {
+    opacity: 0.75;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hai-dial::before,
-  .hai-eyes i::before,
-  .hai-eyes i::after {
+  .hai-orb::before,
+  .hai-face,
+  .hai-face i::before,
+  .hai-face i::after {
     animation: none;
   }
 }

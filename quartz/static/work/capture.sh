@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Refreshes the site captures on the Work room's cards (Work/Work.md in the
 # vault): one 1440x900 headless screenshot per site, saved as a 1200px webp.
+# loci.webp is shot at night through capture-night.mjs, which can set the theme.
 # Not here: endless-sky.webp (the game's own battle.jpg from
 # endless-sky.github.io/screenshots.html) and the CSS-drawn cards.
 set -euo pipefail
@@ -10,7 +11,6 @@ declare -A SITES=(
   [ingram]=https://ingram.tech/
   [cyberspace]=https://www.cyberspace.team/
   [ctf]=https://robottech.vercel.app/
-  [loci]=https://hurleveur.github.io/
 )
 tmp=$(mktemp -d)
 for name in "${!SITES[@]}"; do
@@ -21,4 +21,7 @@ for name in "${!SITES[@]}"; do
   magick "$tmp/$name.png" -resize 1200x -strip -quality 80 "$name.webp"
   echo "$name.webp"
 done
+node capture-night.mjs https://hurleveur.github.io/ "$tmp/loci.png"
+magick "$tmp/loci.png" -resize 1200x -strip -quality 80 loci.webp
+echo loci.webp
 rm -rf "$tmp"
