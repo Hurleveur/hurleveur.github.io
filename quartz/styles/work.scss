@@ -114,7 +114,7 @@ body[data-slug="work/index"] .markdown-rendered > h2 {
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  margin: 3rem 0 1.1rem;
+  margin: 2.2rem 0 0.8rem;
   font-family: var(--sans);
   font-size: 0.72rem;
   letter-spacing: 0.3em;
@@ -129,14 +129,14 @@ body[data-slug="work/index"] .markdown-rendered > h2 {
   }
 }
 
-.wgrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: 1.4rem;
+// the room's own prose resumes under the last card
+body[data-slug="work/index"] .markdown-rendered > .work-showcase + p {
+  margin-top: 2.5rem;
+}
 
-  & + .wgrid {
-    margin-top: 1.4rem;
-  }
+.wlist {
+  display: grid;
+  gap: 0.9rem;
 }
 
 .wcard {
@@ -327,20 +327,65 @@ body[data-slug="work/index"] .markdown-rendered > h2 {
   }
 }
 
-// a short card for the page you are on: thumbnail beside the text
+// the short card most sections use: thumbnail beside the text, the text sets
+// the height and the picture fills it
 .wcard-compact {
   @media (min-width: 720px) {
     display: grid;
-    grid-template-columns: 15rem 1fr;
+    grid-template-columns: 16rem 1fr;
 
     .wcard-shot {
+      display: flex;
+      flex-direction: column;
+      min-height: 9rem;
       border-bottom: 0;
       border-right: 1px solid var(--lightgray);
     }
 
-    .wcard-shot img {
-      height: 100%;
+    .wcard-shot img,
+    .office-term {
+      flex: 1;
+      min-height: 0;
+      aspect-ratio: auto;
     }
+
+    // the browser chrome eats a fifth of a thumbnail this small
+    .wcard-bar {
+      display: none;
+    }
+
+    // one line per command, or the terminal outgrows the card
+    .office-term {
+      gap: 0.4rem;
+      padding: 0.8rem 1rem;
+
+      > span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media (hover: hover) {
+      .wcard-more {
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        background: linear-gradient(rgba(16, 14, 10, 0.55), rgba(16, 14, 10, 0.9));
+      }
+    }
+
+    .wcard-body {
+      justify-content: center;
+      padding: 0.9rem 1.2rem;
+    }
+  }
+
+  .wcard-body h3 {
+    font-size: 1.4rem;
   }
 
   .wcard-body .wcard-links {
@@ -461,12 +506,25 @@ body[data-slug="work/index"] .markdown-rendered > h2 {
   .wcard:focus-within & > span:nth-child(even) {
     transition-delay: 0.06s;
   }
+
+  // a thumbnail holds three covers at a readable size
+  @media (min-width: 720px) {
+    .wcard-compact & > span:nth-child(n + 4) {
+      display: none;
+    }
+  }
+}
+
+@media (min-width: 720px) {
+  .wcard-compact.wcard-guides .wcard-shot {
+    min-height: 9rem;
+  }
 }
 
 // the path: a rail down the left with a stop per step, the last one lit
 .work-path {
   list-style: none;
-  margin: 0 0 3.5rem;
+  margin: 0;
   padding: 0 0 0 1.6rem;
   border-left: 1px solid var(--lightgray);
 
