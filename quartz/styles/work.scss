@@ -327,6 +327,27 @@ body[data-slug="work/index"] .markdown-rendered > h2 {
   }
 }
 
+// a short card for the page you are on: thumbnail beside the text
+.wcard-compact {
+  @media (min-width: 720px) {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+
+    .wcard-shot {
+      border-bottom: 0;
+      border-right: 1px solid var(--lightgray);
+    }
+
+    .wcard-shot img {
+      height: 100%;
+    }
+  }
+
+  .wcard-body .wcard-links {
+    padding-top: 0.6rem;
+  }
+}
+
 // cards with no site to capture get a drawn picture of the same 16:10
 .wcard-drawn {
   display: flex;
