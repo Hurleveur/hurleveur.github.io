@@ -111,6 +111,7 @@ rsync -a --delete --exclude '.git' "$BUILD/" "$WT/"
 touch "$WT/.nojekyll"   # tell GitHub Pages to serve files verbatim, no Jekyll pass
 
 git -C "$WT" add -A
+deployed_sha=
 if git -C "$WT" diff --cached --quiet; then
   echo "No changes to deploy."
 else
@@ -125,6 +126,7 @@ else
     sleep 30
   done
   [ -n "$pushed" ] || { echo "push failed after 5 attempts" >&2; exit 1; }
+  deployed_sha="$(git -C "$WT" rev-parse HEAD)"
 fi
 
 # Live site now matches this fingerprint (pushed, or already identical). Written
@@ -135,4 +137,34 @@ printf '%s\n' "$FINGERPRINT" > "$stamp_tmp"
 mv "$stamp_tmp" "$STAMP"
 
 git worktree remove -f "$WT"
+
+# 4. The push only queues GitHub's "pages build and deployment" run, which has
+#    failed on GitHub's side while this script reported success (syncing_files
+#    timeout 2026-11-09, a 502 creating the deployment 2026-11-27). Both cleared
+#    on a rerun: wait for the run, rerun once, else exit 1 so the job notifies.
+if [ -n "$deployed_sha" ]; then
+  repo="$(git remote get-url origin | sed -E 's#.*github\.com[:/]##; s#\.git$##')"
+  run=
+  for _ in $(seq 60); do
+    # -w cannot name this workflow: GitHub generates it, so filter by name instead.
+    run="$(gh run list -R "$repo" --commit "$deployed_sha" --json databaseId,workflowName \
+      -q '[.[] | select(.workflowName == "pages-build-deployment")][0].databaseId // empty' \
+      2>/dev/null || true)"
+    [ -n "$run" ] && break
+    sleep 10
+  done
+  [ -n "$run" ] || { echo "no Pages run appeared for $deployed_sha" >&2; exit 1; }
+  if ! timeout 20m gh run watch "$run" -R "$repo" -i 15 --exit-status >/dev/null; then
+    echo "Pages run $run failed; rerunning once" >&2
+    gh run rerun "$run" -R "$repo" --failed
+    # Until GitHub requeues it, watch would read the old failure straight back.
+    for _ in $(seq 30); do
+      [ "$(gh run view "$run" -R "$repo" --json status -q .status)" != completed ] && break
+      sleep 5
+    done
+    timeout 20m gh run watch "$run" -R "$repo" -i 15 --exit-status >/dev/null \
+      || { echo "Pages run failed twice: https://github.com/$repo/actions/runs/$run" >&2; exit 1; }
+  fi
+  echo "Pages run $run succeeded."
+fi
 echo "Done. gh-pages updated (push it to your repo's origin if not already)."
